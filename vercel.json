@@ -1,0 +1,90 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Strict-Transport-Security", "value": "max-age=63072000" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
+        {
+          "key": "Content-Security-Policy-Report-Only",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://res.cloudinary.com https://images.unsplash.com https://plytoawhcvzdjtrgtnrn.supabase.co; connect-src 'self' https://plytoawhcvzdjtrgtnrn.supabase.co; media-src 'self' https://res.cloudinary.com; object-src 'none'; base-uri 'self'; frame-ancestors 'self'"
+        }
+      ]
+    },
+    {
+      "source": "/sonicmediaadmin",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" },
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }
+      ]
+    },
+    {
+      "source": "/sonicmediaadmin.html",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" },
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }
+      ]
+    }
+  ],
+  "rewrites": [
+    { "source": "/about",            "destination": "/about.html" },
+    { "source": "/services",         "destination": "/services.html" },
+    { "source": "/portfolio",        "destination": "/portfolio.html" },
+    { "source": "/project",          "destination": "/project.html" },
+    { "source": "/project/:id",      "destination": "/project.html" },
+    { "source": "/article",          "destination": "/article.html" },
+    { "source": "/article/:id",      "destination": "/article.html" },
+    { "source": "/case-study",       "destination": "/case-study.html" },
+    { "source": "/case-study/:id",   "destination": "/case-study.html" },
+    { "source": "/studio",           "destination": "/portfolio.html" },
+    { "source": "/casestudies",      "destination": "/casestudies.html" },
+    { "source": "/journal",          "destination": "/journal.html" },
+    { "source": "/future",           "destination": "/future.html" },
+    { "source": "/faq",              "destination": "/faq.html" },
+    { "source": "/contact",          "destination": "/contact.html" },
+    { "source": "/linktree",         "destination": "/linktree.html" },
+    { "source": "/sonicmediaadmin",  "destination": "/sonicmediaadmin.html" },
+    { "source": "/services/web",     "destination": "/services/web.html" },
+    { "source": "/services/app",     "destination": "/services/app.html" },
+    { "source": "/services/seo",     "destination": "/services/seo.html" },
+    { "source": "/services/smm",     "destination": "/services/smm.html" },
+    { "source": "/services/perf",    "destination": "/services/perf.html" },
+    { "source": "/services/inf",     "destination": "/services/inf.html" },
+    { "source": "/services/ecom",    "destination": "/services/ecom.html" },
+    { "source": "/services/content", "destination": "/services/content.html" },
+    { "source": "/services/brand",   "destination": "/services/brand.html" },
+    { "source": "/services/ai",      "destination": "/services/ai.html" }
+  ],
+  "redirects": [
+    { "source": "/about.html",             "destination": "/about",             "permanent": true },
+    { "source": "/services.html",          "destination": "/services",          "permanent": true },
+    { "source": "/portfolio.html",         "destination": "/portfolio",         "permanent": true },
+    { "source": "/project.html",           "destination": "/project",           "permanent": true },
+    { "source": "/article.html",           "destination": "/article",           "permanent": true },
+    { "source": "/case-study.html",        "destination": "/case-study",        "permanent": true },
+    { "source": "/studio.html",            "destination": "/portfolio",         "permanent": true },
+    { "source": "/studio",                 "destination": "/portfolio",         "permanent": true },
+    { "source": "/casestudies.html",       "destination": "/casestudies",       "permanent": true },
+    { "source": "/journal.html",           "destination": "/journal",           "permanent": true },
+    { "source": "/future.html",            "destination": "/future",            "permanent": true },
+    { "source": "/faq.html",              "destination": "/faq",               "permanent": true },
+    { "source": "/contact.html",           "destination": "/contact",           "permanent": true },
+    { "source": "/linktree.html",          "destination": "/linktree",          "permanent": true },
+    { "source": "/sonicmediaadmin.html",   "destination": "/sonicmediaadmin",   "permanent": true },
+    { "source": "/services/web.html",      "destination": "/services/web",      "permanent": true },
+    { "source": "/services/app.html",      "destination": "/services/app",      "permanent": true },
+    { "source": "/services/seo.html",      "destination": "/services/seo",      "permanent": true },
+    { "source": "/services/smm.html",      "destination": "/services/smm",      "permanent": true },
+    { "source": "/services/perf.html",     "destination": "/services/perf",     "permanent": true },
+    { "source": "/services/inf.html",      "destination": "/services/inf",      "permanent": true },
+    { "source": "/services/ecom.html",     "destination": "/services/ecom",     "permanent": true },
+    { "source": "/services/content.html",  "destination": "/services/content",  "permanent": true },
+    { "source": "/services/brand.html",    "destination": "/services/brand",    "permanent": true },
+    { "source": "/services/ai.html",       "destination": "/services/ai",       "permanent": true }
+  ]
+}

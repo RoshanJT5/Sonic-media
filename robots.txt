@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /sonicmediaadmin
+Disallow: /sonicmediaadmin.html
+Allow: /
+
+Sitemap: https://thesonicmedia.com/sitemap.xml

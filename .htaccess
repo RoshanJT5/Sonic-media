@@ -1,0 +1,29 @@
+# Apache / LiteSpeed Clean URL Configuration
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # 1. Redirect /index.html directly to root /
+  RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /index\.html\ HTTP/
+  RewriteRule ^index\.html$ / [R=301,L]
+
+  # 2. Redirect *.html to clean URL (e.g. /about.html -> /about, /sonicmediaadmin.html -> /sonicmediaadmin)
+  RewriteCond %{THE_REQUEST} ^[A-Z]{3,9}\ /([^.]+)\.html\ HTTP/
+  RewriteRule ^([^.]+)\.html$ /$1 [R=301,L]
+
+  # 3. Rewrite /studio to portfolio.html
+  RewriteRule ^studio/?$ portfolio.html [L]
+
+  # 4. Internal rewrite: if clean url + .html exists as a file, serve it
+  RewriteRule ^project/(.+?)/?$ project.html?id=$1 [QSA,L]
+  RewriteRule ^article/(.+?)/?$ article.html?id=$1 [QSA,L]
+  RewriteRule ^case-study/(.+?)/?$ case-study.html?id=$1 [QSA,L]
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{DOCUMENT_ROOT}/$1.html -f
+  RewriteRule ^(.+?)/?$ $1.html [L]
+
+  # 5. Services subfolder rewrite
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{DOCUMENT_ROOT}/services/$1.html -f
+  RewriteRule ^services/(.+?)/?$ services/$1.html [L]
+</IfModule>

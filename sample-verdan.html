@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verdan Beverages — Premium Customized Bottled Water</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,450;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-950:#081b30;
+    --navy-900:#0a2540;
+    --navy-800:#123a63;
+    --navy-700:#1c4a7a;
+    --cream-050:#fdfaf4;
+    --cream-100:#f7f1e5;
+    --cream-200:#efe6d2;
+    --gold-500:#c8a15d;
+    --gold-400:#d9bc85;
+    --ink:#0d1b2a;
+    --ink-soft:rgba(13,27,42,.68);
+    --cream-soft:rgba(253,250,244,.72);
+    --radius-lg:28px;
+    --radius-md:18px;
+    --radius-sm:10px;
+    --shadow-1:0 20px 60px -20px rgba(10,37,64,.35);
+    --ease:cubic-bezier(.22,1,.36,1);
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    font-family:'Manrope',sans-serif;
+    background:var(--cream-050);
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  h1,h2,h3,.display{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    letter-spacing:-.01em;
+    margin:0;
+  }
+  p{margin:0;}
+  a{text-decoration:none;color:inherit;}
+  img{max-width:100%;display:block;}
+  ::selection{background:var(--gold-400);color:var(--navy-950);}
+
+  .eyebrow{
+    font-family:'Manrope',sans-serif;
+    font-size:.72rem;
+    font-weight:700;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--gold-500);
+    display:flex;
+    align-items:center;
+    gap:.6em;
+  }
+  .eyebrow::before{
+    content:"";
+    width:26px;height:1px;
+    background:var(--gold-500);
+    display:inline-block;
+  }
+
+  .wrap{max-width:1240px;margin:0 auto;padding:0 clamp(20px,5vw,64px);}
+  section{position:relative;}
+
+  /* ---------- reveal on scroll ---------- */
+  .reveal{opacity:0;transform:translateY(28px);transition:opacity .9s var(--ease),transform .9s var(--ease);}
+  .reveal.in{opacity:1;transform:translateY(0);}
+  .reveal-stagger > *{opacity:0;transform:translateY(24px);transition:opacity .7s var(--ease),transform .7s var(--ease);}
+  .reveal-stagger.in > *{opacity:1;transform:translateY(0);}
+  .reveal-stagger.in > *:nth-child(1){transition-delay:.03s}
+  .reveal-stagger.in > *:nth-child(2){transition-delay:.1s}
+  .reveal-stagger.in > *:nth-child(3){transition-delay:.17s}
+  .reveal-stagger.in > *:nth-child(4){transition-delay:.24s}
+  .reveal-stagger.in > *:nth-child(5){transition-delay:.31s}
+  .reveal-stagger.in > *:nth-child(6){transition-delay:.38s}
+  .reveal-stagger.in > *:nth-child(7){transition-delay:.45s}
+  .reveal-stagger.in > *:nth-child(8){transition-delay:.52s}
+  .reveal-stagger.in > *:nth-child(9){transition-delay:.59s}
+
+  /* ---------- pill navbar ---------- */
+  .navbar{
+    position:fixed;top:18px;left:50%;transform:translateX(-50%);
+    z-index:1200;
+    display:flex;align-items:center;gap:clamp(6px,2vw,28px);
+    background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.04)),rgba(10,37,64,.38);
+    backdrop-filter:blur(22px) saturate(180%);
+    -webkit-backdrop-filter:blur(22px) saturate(180%);
+    border:1px solid rgba(255,255,255,.22);
+    border-top-color:rgba(255,255,255,.38);
+    border-radius:999px;
+    padding:8px 10px 8px 18px;
+    box-shadow:0 12px 40px -12px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.25);
+    transition:padding .4s var(--ease), background .4s var(--ease);
+    max-width:calc(100vw - 24px);
+  }
+  .navbar.scrolled{background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,.02)),rgba(8,27,48,.62);padding:6px 8px 6px 16px;}
+  .navbar .brand{
+    font-family:'Fraunces',serif;font-weight:600;font-size:1rem;color:var(--cream-100);
+    display:flex;align-items:center;gap:8px;white-space:nowrap;
+    flex-shrink:1;min-width:0;overflow:hidden;
+  }
+  .navbar .brand img{height:26px;width:96px;max-width:26vw;display:block;object-fit:contain;object-position:left center;flex-shrink:1;min-width:0;filter:drop-shadow(0 2px 6px rgba(0,0,0,.25));}
+  .navlinks{display:flex;align-items:center;gap:2px;margin-left:8px;}
+  .navlinks a{
+    font-size:.82rem;font-weight:600;color:var(--cream-soft);
+    padding:9px 15px;border-radius:999px;transition:background .3s var(--ease),color .3s var(--ease);
+    white-space:nowrap;
+  }
+  .navlinks a:hover{background:rgba(255,255,255,.1);color:var(--cream-050);}
+  .nav-cta{
+    font-size:.8rem;font-weight:700;color:var(--navy-950);
+    background:linear-gradient(135deg,var(--gold-400),var(--gold-500));
+    padding:10px 20px;border-radius:999px;white-space:nowrap;flex-shrink:0;
+    transition:transform .3s var(--ease), box-shadow .3s var(--ease);
+  }
+  .nav-cta:hover{transform:translateY(-1px) scale(1.02);box-shadow:0 8px 20px -6px rgba(200,161,93,.6);}
+
+  .nav-toggle{
+    display:none;width:38px;height:38px;border-radius:50%;
+    background:rgba(255,255,255,.08);align-items:center;justify-content:center;
+    margin-left:auto;cursor:pointer;flex-shrink:0;border:none;position:relative;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .nav-toggle span{
+    position:absolute;left:10px;right:10px;height:2px;border-radius:2px;
+    background:var(--cream-100);transition:transform .35s var(--ease),opacity .25s var(--ease),top .35s var(--ease);
+  }
+  .nav-toggle span:nth-child(1){top:13px;}
+  .nav-toggle span:nth-child(2){top:18px;}
+  .nav-toggle span:nth-child(3){top:23px;}
+  .nav-toggle.open span:nth-child(1){top:18px;transform:rotate(45deg);}
+  .nav-toggle.open span:nth-child(2){opacity:0;}
+  .nav-toggle.open span:nth-child(3){top:18px;transform:rotate(-45deg);}
+
+  /* ---------- mobile menu panel ---------- */
+  .menu-overlay{
+    position:fixed;inset:0;background:rgba(4,8,14,.55);z-index:1090;
+    opacity:0;pointer-events:none;transition:opacity .4s var(--ease);
+  }
+  .menu-overlay.show{opacity:1;pointer-events:auto;}
+  .mobile-menu{
+    position:fixed;top:0;right:0;height:100%;width:min(80vw,320px);z-index:1095;
+    background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,0)),var(--navy-950);
+    border-left:1px solid rgba(255,255,255,.1);
+    box-shadow:-20px 0 60px -20px rgba(0,0,0,.5);
+    transform:translateX(100%);transition:transform .45s var(--ease);
+    display:flex;flex-direction:column;padding:100px 30px 40px;gap:4px;
+  }
+  .mobile-menu.open{transform:translateX(0);}
+  .mobile-menu a{
+    font-family:'Manrope',sans-serif;font-size:1rem;font-weight:600;color:var(--cream-100);
+    padding:15px 4px;border-bottom:1px solid rgba(255,255,255,.08);
+  }
+  .mobile-menu a:hover{color:var(--gold-400);}
+  .mobile-menu .btn{margin-top:24px;width:100%;}
+  body.menu-open{overflow:hidden;}
+
+  @media (max-width:1080px){
+    .navlinks{display:none;}
+    .nav-toggle{display:flex;}
+    .navbar{gap:8px;}
+    .nav-cta{padding:9px 16px;font-size:.76rem;}
+    .navbar .brand img{width:80px;}
+  }
+  @media (max-width:420px){
+    .navbar{padding:8px 8px 8px 14px;}
+    .navbar .brand img{height:22px;width:60px;}
+    .nav-cta{padding:8px 13px;font-size:.72rem;}
+  }
+
+  /* ---------- buttons ---------- */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    font-family:'Manrope',sans-serif;font-weight:700;font-size:.88rem;
+    padding:15px 30px;border-radius:999px;cursor:pointer;
+    transition:transform .35s var(--ease), box-shadow .35s var(--ease), background .35s var(--ease);
+    border:none;
+  }
+  .btn-gold{
+    background:linear-gradient(135deg,var(--gold-400),var(--gold-500));
+    color:var(--navy-950);
+    box-shadow:0 14px 30px -12px rgba(200,161,93,.55);
+  }
+  .btn-gold:hover{transform:translateY(-2px);box-shadow:0 18px 36px -12px rgba(200,161,93,.7);}
+  .btn-outline{
+    background:transparent;color:var(--cream-100);
+    border:1.5px solid rgba(247,241,229,.4);
+  }
+  .btn-outline:hover{border-color:var(--gold-400);color:var(--gold-400);transform:translateY(-2px);}
+  .btn-outline-navy{
+    background:transparent;color:var(--navy-900);border:1.5px solid rgba(10,37,64,.25);
+  }
+  .btn-outline-navy:hover{border-color:var(--navy-900);transform:translateY(-2px);}
+
+  /* ---------- hero ---------- */
+  .hero{
+    position:relative;
+    min-height:100vh;
+    display:flex;align-items:center;
+    padding-top:130px;padding-bottom:100px;
+    overflow:hidden;
+    isolation:isolate;
+  }
+  .hero-bg{position:absolute;inset:0;z-index:-2;}
+  .hero-bg img{width:100%;height:100%;object-fit:cover;object-position:center 30%;}
+  .hero-overlay{
+    position:absolute;inset:0;
+    background:linear-gradient(180deg,rgba(4,8,14,.08) 0%,rgba(4,8,14,.02) 35%,rgba(4,8,14,.38) 78%,var(--navy-950) 100%);
+  }
+  /* liquid ripple that follows the pointer */
+  .hero-ripple{
+    position:absolute;inset:0;z-index:-1;pointer-events:none;
+    mix-blend-mode:overlay;opacity:.9;
+    background:radial-gradient(320px 320px at var(--mx,50%) var(--my,35%), rgba(217,188,133,.55), rgba(217,188,133,0) 60%);
+    transition:background-position .1s linear;
+  }
+  .hero .wrap{position:relative;max-width:640px;margin:0;}
+  .hero-copy .display{
+    color:var(--cream-100);
+    font-size:clamp(2.5rem,4.6vw,4.1rem);
+    line-height:1.05;
+    margin:22px 0 24px;
+    text-shadow:0 2px 10px rgba(0,0,0,.55), 0 12px 40px rgba(0,0,0,.4);
+  }
+  .hero-copy .display em{
+    font-style:italic;color:var(--gold-400);font-weight:450;
+  }
+  .hero-sub{
+    color:var(--cream-soft);font-size:1.06rem;line-height:1.65;
+    max-width:520px;margin-bottom:36px;
+    text-shadow:0 2px 12px rgba(0,0,0,.6);
+  }
+  .hero-copy .eyebrow{text-shadow:0 2px 10px rgba(0,0,0,.5);}
+  .hero-btns{display:flex;gap:16px;flex-wrap:wrap;}
+  .hero-btns .btn{position:relative;overflow:hidden;}
+  .liquid-splash{
+    position:absolute;border-radius:50%;pointer-events:none;
+    background:rgba(255,255,255,.55);
+    transform:translate(-50%,-50%) scale(0);
+    animation:splash .65s var(--ease) forwards;
+  }
+  .btn-gold .liquid-splash{background:rgba(255,255,255,.5);}
+  .btn-outline .liquid-splash{background:rgba(217,188,133,.35);}
+  @keyframes splash{to{transform:translate(-50%,-50%) scale(1);opacity:0;}}
+  .hero-stats{
+    display:flex;gap:36px;margin-top:52px;padding-top:32px;
+    border-top:1px solid rgba(247,241,229,.18);
+  }
+  .hero-stats div strong{
+    display:block;font-family:'Fraunces',serif;font-size:1.8rem;color:var(--cream-100);font-weight:600;
+  }
+  .hero-stats div span{font-size:.76rem;color:var(--cream-soft);letter-spacing:.04em;}
+
+  /* gooey wave divider at base of hero */
+  .hero-wave{position:absolute;left:0;right:0;bottom:-1px;width:100%;height:120px;z-index:0;}
+
+  @media (max-width:900px){
+    .hero-stats{gap:24px;flex-wrap:wrap;}
+  }
+
+  /* ---------- section headers ---------- */
+  .sec-head{max-width:640px;margin-bottom:56px;}
+  .sec-head .display{font-size:clamp(1.9rem,3.2vw,2.7rem);margin-top:14px;line-height:1.12;color:var(--navy-950);}
+  .sec-head p{margin-top:16px;color:var(--ink-soft);font-size:1.02rem;line-height:1.6;}
+  .sec-head.on-dark .display{color:var(--cream-100);}
+  .sec-head.on-dark p{color:var(--cream-soft);}
+  .sec-head.center{margin-left:auto;margin-right:auto;text-align:center;}
+
+  section.pad{padding:120px 0;}
+  @media(max-width:700px){section.pad{padding:80px 0;}}
+
+  /* ---------- about ---------- */
+  .about{background:var(--cream-050);}
+  .about-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:64px;align-items:center;}
+  .about-photo{
+    position:relative;border-radius:var(--radius-lg);overflow:hidden;
+    aspect-ratio:3/3.6;box-shadow:var(--shadow-1);
+  }
+  .about-photo img{width:100%;height:100%;object-fit:cover;}
+  .feature-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px;}
+  .feature-card{
+    background:var(--cream-100);border:1px solid rgba(10,37,64,.06);
+    border-radius:var(--radius-md);padding:22px 20px;
+    transition:transform .35s var(--ease), box-shadow .35s var(--ease), background .35s var(--ease);
+  }
+  .feature-card:hover{transform:translateY(-5px);box-shadow:var(--shadow-1);background:var(--cream-050);}
+  .feature-card .ico{
+    width:38px;height:38px;border-radius:11px;
+    background:var(--navy-900);color:var(--gold-400);
+    display:flex;align-items:center;justify-content:center;margin-bottom:14px;
+    font-size:1rem;
+  }
+  .feature-card h3{font-size:1rem;color:var(--navy-950);font-weight:600;}
+
+  @media(max-width:880px){.about-grid{grid-template-columns:1fr;}.feature-grid{grid-template-columns:1fr 1fr;}}
+
+  /* ---------- industries (marquee style pills) ---------- */
+  .industries{
+    background:var(--navy-950);
+    padding:110px 0;
+    position:relative;
+  }
+  .industries::before{
+    content:"";position:absolute;inset:0;
+    background:radial-gradient(700px 400px at 90% 20%,rgba(200,161,93,.08),transparent 60%);
+  }
+  .ind-scroll{
+    overflow:hidden;width:100%;max-width:100%;
+    position:relative;
+    margin-top:20px;
+    touch-action:pan-y;
+  }
+  .ind-scroll::before,.ind-scroll::after{
+    content:"";position:absolute;top:0;bottom:0;width:60px;z-index:2;pointer-events:none;
+  }
+  .ind-scroll::before{left:0;background:linear-gradient(90deg,var(--navy-950),transparent);}
+  .ind-scroll::after{right:0;background:linear-gradient(-90deg,var(--navy-950),transparent);}
+  @media(max-width:600px){.ind-scroll::before,.ind-scroll::after{width:32px;}}
+  .ind-track{
+    display:flex;gap:16px;width:max-content;
+    animation:scroll-x 32s linear infinite;
+  }
+  @media (hover:hover) and (pointer:fine){
+    .ind-track:hover{animation-play-state:paused;}
+  }
+  @keyframes scroll-x{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  .ind-pill{
+    display:flex;align-items:center;gap:12px;
+    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+    padding:16px 26px;border-radius:999px;white-space:nowrap;
+    color:var(--cream-100);font-weight:600;font-size:.95rem;
+  }
+  .ind-pill .n{color:var(--gold-500);font-family:'Fraunces',serif;font-size:.85rem;}
+
+  @media(max-width:768px){
+    .ind-scroll{display:none;}
+  }
+
+  /* ---------- mobile marquee: native scroll, JS auto-advance (no CSS animation) ---------- */
+  .ind-scroll-mobile{display:none;}
+  @media(max-width:768px){
+    .ind-scroll-mobile{
+      display:block;position:relative;margin-top:20px;
+      overflow-x:auto;overflow-y:hidden;
+      -webkit-overflow-scrolling:touch;
+      scrollbar-width:none;
+    }
+    .ind-scroll-mobile::-webkit-scrollbar{display:none;height:0;}
+    .ind-scroll-mobile::before,.ind-scroll-mobile::after{
+      content:"";position:absolute;top:0;bottom:0;width:32px;z-index:2;pointer-events:none;
+    }
+    .ind-scroll-mobile::before{left:0;background:linear-gradient(90deg,var(--navy-950),transparent);}
+    .ind-scroll-mobile::after{right:0;background:linear-gradient(-90deg,var(--navy-950),transparent);}
+    .ind-track-mobile{display:flex;gap:10px;width:max-content;}
+  }
+
+  @media(max-width:600px){
+    .ind-pill{padding:11px 18px;font-size:.82rem;gap:8px;}
+    .ind-pill .n{font-size:.74rem;}
+  }
+
+  /* ---------- pricing ---------- */
+  .pricing{background:var(--cream-100);}
+  .collection-block{margin-bottom:80px;}
+  .collection-head{
+    display:flex;justify-content:space-between;align-items:flex-end;gap:24px;
+    margin-bottom:34px;flex-wrap:wrap;
+  }
+  .collection-head h3{font-size:1.6rem;color:var(--navy-950);}
+  .collection-head p{color:var(--ink-soft);max-width:420px;font-size:.95rem;margin-top:6px;}
+  .tag-pill{
+    font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    padding:7px 16px;border-radius:999px;
+  }
+  .tag-standard{background:rgba(28,74,122,.1);color:var(--navy-700);}
+  .tag-premium{background:rgba(200,161,93,.16);color:#9c7a34;}
+
+  .bottle-row{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
+  .bottle-row-premium{grid-template-columns:repeat(2,1fr);max-width:70%;margin:0 auto;}
+  @media(max-width:900px){
+    .bottle-row{grid-template-columns:1fr 1fr;}
+    .bottle-row-premium{max-width:100%;}
+  }
+  @media(max-width:600px){
+    .bottle-row,.bottle-row-premium{grid-template-columns:1fr;max-width:100%;}
+  }
+
+  .bottle-card{
+    background:var(--cream-050);border-radius:var(--radius-md);
+    overflow:hidden;border:1px solid rgba(10,37,64,.07);
+    display:flex;flex-direction:column;
+    transition:transform .4s var(--ease), box-shadow .4s var(--ease);
+  }
+  .bottle-card:hover{transform:translateY(-8px);box-shadow:var(--shadow-1);}
+  .bottle-media{
+    aspect-ratio:4/3;overflow:hidden;background:var(--navy-900);position:relative;
+  }
+  .bottle-media img{width:100%;height:100%;object-fit:cover;transition:transform .6s var(--ease);}
+  .bottle-card:hover .bottle-media img{transform:scale(1.06);}
+  .bottle-body{padding:22px 22px 24px;display:flex;flex-direction:column;flex:1;}
+  .bottle-body h4{font-family:'Fraunces',serif;font-size:1.25rem;color:var(--navy-950);font-weight:600;}
+  .bottle-body .desc{font-size:.86rem;color:var(--ink-soft);margin-top:6px;}
+  .bottle-meta{display:flex;justify-content:space-between;margin:18px 0;font-size:.78rem;color:var(--ink-soft);}
+  .bottle-meta strong{display:block;color:var(--navy-950);font-size:.92rem;font-family:'Fraunces',serif;font-weight:600;}
+  .bottle-select{
+    margin-top:auto;text-align:center;font-weight:700;font-size:.85rem;
+    padding:12px;border-radius:999px;border:1.5px solid var(--navy-900);color:var(--navy-900);
+    transition:background .35s var(--ease), color .35s var(--ease);
+    display:block;cursor:pointer;
+  }
+  .bottle-card:hover .bottle-select{background:var(--navy-900);color:var(--cream-100);}
+  .field-highlight{animation:field-pulse 1.4s var(--ease);}
+  @keyframes field-pulse{
+    0%{box-shadow:0 0 0 5px rgba(200,161,93,.55);border-color:var(--gold-500);}
+    100%{box-shadow:0 0 0 0 rgba(200,161,93,0);}
+  }
+
+  .moq-note{
+    text-align:center;margin-top:8px;color:var(--ink-soft);font-size:.85rem;
+    display:flex;align-items:center;justify-content:center;gap:10px;
+  }
+  .moq-note::before,.moq-note::after{content:"";width:40px;height:1px;background:rgba(10,37,64,.2);}
+
+  /* ---------- process ---------- */
+  .process{background:var(--navy-950);color:var(--cream-100);position:relative;overflow:hidden;}
+  .process::before{
+    content:"";position:absolute;inset:0;
+    background:radial-gradient(900px 500px at 10% 100%,rgba(28,74,122,.5),transparent 60%);
+  }
+  .timeline{
+    display:grid;grid-template-columns:repeat(7,1fr);gap:14px;margin-top:20px;position:relative;
+  }
+  .timeline::before{
+    content:"";position:absolute;top:23px;left:5%;right:5%;height:1px;
+    background:linear-gradient(90deg,transparent,rgba(200,161,93,.5),transparent);
+  }
+  .t-step{display:flex;flex-direction:column;align-items:flex-start;gap:16px;position:relative;}
+  .t-num{
+    width:46px;height:46px;border-radius:50%;
+    background:var(--navy-800);border:1px solid rgba(200,161,93,.4);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif;color:var(--gold-400);font-weight:600;
+    flex-shrink:0;position:relative;z-index:1;
+  }
+  .t-step h4{font-size:.92rem;font-weight:700;color:var(--cream-100);line-height:1.3;}
+  @media(max-width:980px){
+    .timeline{grid-template-columns:repeat(2,1fr);gap:32px 20px;}
+    .timeline::before{display:none;}
+  }
+
+  /* ---------- why / showcase ---------- */
+  .showcase{background:var(--cream-050);}
+  .showcase-block{margin-bottom:64px;}
+  .showcase-media{
+    border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-1);
+    background:var(--navy-950);
+  }
+  .showcase-media img{width:100%;height:auto;display:block;object-fit:contain;}
+  .showcase-text{max-width:600px;margin-bottom:30px;}
+  .showcase-text h3{font-size:1.7rem;color:var(--navy-950);}
+  .showcase-text p{margin-top:10px;color:var(--ink-soft);}
+
+  /* ---------- contact ---------- */
+  .contact{background:var(--cream-100);}
+  .contact-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:50px;align-items:start;}
+  .contact-form{
+    background:var(--cream-050);border-radius:var(--radius-lg);
+    padding:clamp(28px,4vw,46px);box-shadow:var(--shadow-1);
+  }
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;}
+  .field{display:flex;flex-direction:column;gap:8px;}
+  .field.full{grid-column:1/-1;}
+  .field label{font-size:.76rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--navy-800);}
+  .field input,.field select,.field textarea{
+    font-family:'Manrope',sans-serif;font-size:.92rem;
+    border:1.5px solid rgba(10,37,64,.14);border-radius:var(--radius-sm);
+    padding:13px 15px;background:var(--cream-050);color:var(--ink);
+    transition:border-color .3s var(--ease), box-shadow .3s var(--ease);
+  }
+  .field input:focus,.field select:focus,.field textarea:focus{
+    outline:none;border-color:var(--gold-500);box-shadow:0 0 0 4px rgba(200,161,93,.15);
+  }
+  .field textarea{resize:vertical;min-height:96px;}
+  .contact-form .btn{width:100%;margin-top:6px;}
+
+  .contact-side{display:flex;flex-direction:column;gap:22px;}
+  .info-card{
+    background:var(--navy-950);color:var(--cream-100);
+    border-radius:var(--radius-lg);padding:32px;
+    position:relative;overflow:hidden;
+  }
+  .info-card::before{
+    content:"";position:absolute;inset:0;
+    background:radial-gradient(400px 240px at 100% 0%,rgba(200,161,93,.18),transparent 60%);
+  }
+  .info-row{display:flex;gap:14px;align-items:flex-start;margin-top:20px;position:relative;}
+  .info-row:first-of-type{margin-top:24px;}
+  .info-row .ico{
+    width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.08);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--gold-400);
+  }
+  .info-row .lab{font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--cream-soft);}
+  .info-row .val{font-size:.92rem;font-weight:600;color:var(--cream-100);margin-top:2px;line-height:1.5;}
+  .info-row .val a{border-bottom:1px solid transparent;transition:border-color .3s;}
+  .info-row .val a:hover{border-color:var(--gold-400);}
+
+  .sf-main{display:flex;flex-direction:column;gap:.5em;}
+  .sf-up,.sf-down{display:flex;flex-direction:row;gap:.5em;}
+  .sf-card{
+    width:74px;height:74px;outline:none;border:none;background:var(--cream-050);
+    box-shadow:rgba(50,50,93,.25) 0px 2px 5px -1px, rgba(0,0,0,.3) 0px 1px 3px -1px;
+    transition:.2s ease-in-out;cursor:pointer;display:flex;
+  }
+  .sf-card1{border-radius:74px 5px 5px 5px;}
+  .sf-card2{border-radius:5px 74px 5px 5px;}
+  .sf-card3{border-radius:5px 5px 5px 74px;}
+  .sf-card4{border-radius:5px 5px 74px 5px;}
+  .sf-icon{margin:auto;width:24px;height:24px;}
+  .sf-instagram{fill:#cc39a4;}
+  .sf-linkedin{fill:#0a66c2;}
+  .sf-facebook{fill:#1877f2;}
+  .sf-maps{fill:#c8482f;}
+  .sf-card1:hover{transform:scale(1.08);background-color:#cc39a4;}
+  .sf-card1:hover .sf-instagram{fill:#fff;}
+  .sf-card2:hover{transform:scale(1.08);background-color:#0a66c2;}
+  .sf-card2:hover .sf-linkedin{fill:#fff;}
+  .sf-card3:hover{transform:scale(1.08);background-color:#1877f2;}
+  .sf-card3:hover .sf-facebook{fill:#fff;}
+  .sf-card4:hover{transform:scale(1.08);background-color:#c8482f;}
+  .sf-card4:hover .sf-maps{fill:#fff;}
+
+
+  @media(max-width:960px){.contact-grid{grid-template-columns:1fr;}.form-row{grid-template-columns:1fr;}}
+
+  .map-block{margin-top:56px;border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-1);position:relative;}
+  .map-block iframe{width:100%;height:380px;border:0;display:block;filter:grayscale(.15) contrast(1.05);}
+  .map-label{
+    position:absolute;top:20px;left:20px;background:var(--cream-050);
+    padding:12px 18px;border-radius:999px;box-shadow:var(--shadow-1);
+    display:flex;align-items:center;gap:10px;font-size:.82rem;font-weight:700;color:var(--navy-950);
+  }
+  .map-label .dotpin{width:9px;height:9px;border-radius:50%;background:var(--gold-500);}
+
+  /* ---------- footer ---------- */
+  footer{background:var(--navy-950);color:var(--cream-soft);padding:76px 0 28px;}
+  .foot-grid{
+    display:grid;grid-template-columns:1.4fr 1fr 1fr 1.2fr;gap:40px;
+    padding-bottom:50px;border-bottom:1px solid rgba(255,255,255,.08);
+  }
+  .foot-brand .brand{
+    font-family:'Fraunces',serif;color:var(--cream-100);font-size:1.35rem;font-weight:600;
+    display:flex;align-items:center;gap:8px;
+  }
+  .foot-brand .dot{width:8px;height:8px;border-radius:50%;background:var(--gold-500);}
+  .foot-brand p{margin-top:14px;font-size:.9rem;line-height:1.6;max-width:280px;color:var(--cream-soft);}
+  .foot-col h5{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-500);margin-bottom:18px;}
+  .foot-col a,.foot-col p{
+    display:block;font-size:.88rem;color:var(--cream-soft);margin-bottom:11px;
+    transition:color .3s;
+  }
+  .foot-col a:hover{color:var(--cream-100);}
+  .bottom-bar{
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+    padding-top:26px;font-size:.8rem;color:rgba(253,250,244,.5);
+  }
+  .credit-link{transition:color .3s var(--ease);}
+  .credit-link:hover{color:var(--gold-400);}
+  @media(max-width:820px){.foot-grid{grid-template-columns:1fr 1fr;}}
+  @media(max-width:520px){.foot-grid{grid-template-columns:1fr;}}
+
+  /* ---------- back to top ---------- */
+  .to-top{
+    position:fixed;right:22px;bottom:22px;z-index:900;
+    width:48px;height:48px;border-radius:50%;
+    background:var(--navy-950);color:var(--gold-400);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:var(--shadow-1);cursor:pointer;
+    opacity:0;pointer-events:none;transform:translateY(10px);
+    transition:opacity .35s var(--ease), transform .35s var(--ease);
+  }
+  .to-top.show{opacity:1;pointer-events:auto;transform:translateY(0);}
+
+  .floaters{
+    position:fixed;right:22px;bottom:86px;z-index:900;
+    display:flex;flex-direction:column;gap:14px;align-items:center;
+  }
+  .float-btn{
+    width:52px;height:52px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 14px 30px -10px rgba(0,0,0,.4);
+    transition:transform .3s var(--ease), box-shadow .3s var(--ease);
+    position:relative;
+  }
+  .float-btn:hover{transform:translateY(-3px) scale(1.06);}
+  .float-btn svg{width:24px;height:24px;}
+  .float-whatsapp{background:#25d366;}
+  .float-whatsapp svg{fill:#fff;}
+  .float-email{background:var(--navy-950);border:1.5px solid rgba(200,161,93,.5);}
+  .float-email svg{fill:var(--gold-400);}
+  .float-tip{
+    position:absolute;right:64px;top:50%;transform:translateY(-50%) translateX(6px);
+    background:var(--navy-950);color:var(--cream-100);
+    font-size:.76rem;font-weight:600;white-space:nowrap;
+    padding:8px 13px;border-radius:8px;
+    opacity:0;pointer-events:none;
+    transition:opacity .25s var(--ease), transform .25s var(--ease);
+  }
+  .float-btn:hover .float-tip{opacity:1;transform:translateY(-50%) translateX(0);}
+  @media(max-width:600px){.floaters{right:16px;bottom:78px;}.float-btn{width:46px;height:46px;}.float-btn svg{width:21px;height:21px;}}
+
+  @media(prefers-reduced-motion:reduce){
+    *{animation-duration:.01ms !important; transition-duration:.01ms !important;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= NAVBAR ================= -->
+<nav class="navbar" id="navbar">
+  <a href="#top" class="brand"><img src="https://res.cloudinary.com/vwdrbdrg/image/upload/v1784974244/logo_dj09m8.png" alt="Verdan Beverages logo"></a>
+  <div class="navlinks">
+    <a href="#about">About</a>
+    <a href="#bottles">Bottles</a>
+    <a href="#process">Process</a>
+    <a href="#why">Why Us</a>
+    <a href="#contact">Contact</a>
+  </div>
+  <a href="#contact" class="nav-cta">Get a Quote</a>
+  <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="menu-overlay" id="menuOverlay"></div>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#about">About</a>
+  <a href="#bottles">Bottles</a>
+  <a href="#process">Process</a>
+  <a href="#why">Why Us</a>
+  <a href="#contact">Contact</a>
+  <a href="#contact" class="btn btn-gold">Get a Quote</a>
+</div>
+
+<!-- ================= HERO ================= -->
+<section class="hero" id="top">
+  <div class="hero-bg">
+    <img src="https://res.cloudinary.com/vwdrbdrg/image/upload/v1784973254/young-girl-blue-blouse-holding-water-giving-thumbs-up_bggq0f.jpg" alt="Customer enjoying Verdan branded water bottle">
+  </div>
+  <div class="hero-overlay"></div>
+  <div class="hero-ripple" id="heroRipple"></div>
+
+  <div class="wrap">
+    <div class="hero-copy reveal">
+      <span class="eyebrow">Verdan Beverages</span>
+      <h1 class="display">Premium Customized Bottled Water That <em>Elevates</em> Your Brand</h1>
+      <p class="hero-sub">Transform every bottle into a memorable brand experience with premium drinking water, professionally customized labels, and luxury packaging designed for businesses across every industry.</p>
+      <div class="hero-btns">
+        <a href="#contact" class="btn btn-gold" data-liquid>Get a Free Quote</a>
+        <a href="#bottles" class="btn btn-outline" data-liquid>Explore Bottle Collection</a>
+      </div>
+      <div class="hero-stats">
+        <div><strong>9+</strong><span>Industries Served</span></div>
+        <div><strong>7</strong><span>Bottle Formats</span></div>
+        <div><strong>100%</strong><span>Custom Branded</span></div>
+      </div>
+    </div>
+  </div>
+
+  <svg class="hero-wave" viewBox="0 0 1440 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="goo"><feTurbulence id="turb" type="fractalNoise" baseFrequency="0.012 0.06" numOctaves="1" seed="4" result="n"><animate attributeName="baseFrequency" dur="14s" values="0.012 0.06;0.02 0.045;0.012 0.06" repeatCount="indefinite"/></feTurbulence><feDisplacementMap in="SourceGraphic" in2="n" scale="14"/></filter>
+    </defs>
+    <path filter="url(#goo)" fill="#fdfaf4" d="M0,64 C240,110 480,10 720,40 C960,70 1200,120 1440,56 L1440,120 L0,120 Z"/>
+  </svg>
+</section>
+
+<!-- ================= ABOUT ================= -->
+<section class="about pad" id="about">
+  <div class="wrap">
+    <div class="about-grid">
+      <div class="about-photo reveal">
+        <img src="https://res.cloudinary.com/vwdrbdrg/image/upload/v1784973255/business-woman-drinking-coffee-working-laptop-cafe_ixfuh3.jpg" alt="Professional working with Verdan branded bottled water">
+      </div>
+      <div class="reveal">
+        <span class="eyebrow">About Verdan Beverages</span>
+        <h2 class="display" style="font-size:clamp(1.9rem,3vw,2.5rem);margin:16px 0 18px;color:var(--navy-950);">Every Sip Reflects Your Brand.</h2>
+        <p style="color:var(--ink-soft);font-size:1rem;line-height:1.7;max-width:540px;">At Verdan Beverages, we believe every bottle of water is more than just hydration — it's an opportunity to market your brand. We specialize in premium customized bottled water that combines pure, high-quality drinking water with professionally designed labels, helping businesses create memorable brand experiences. From design and printing to production and delivery, we provide a seamless solution with uncompromising quality and reliable service.</p>
+
+        <div class="feature-grid reveal-stagger" id="feature-grid">
+          <div class="feature-card"><div class="ico">◆</div><h3>Premium Quality Water</h3></div>
+          <div class="feature-card"><div class="ico">✎</div><h3>Professional Label Designing</h3></div>
+          <div class="feature-card"><div class="ico">▣</div><h3>Bulk Manufacturing</h3></div>
+          <div class="feature-card"><div class="ico">◈</div><h3>Premium Packaging</h3></div>
+          <div class="feature-card"><div class="ico">➤</div><h3>Fast Delivery</h3></div>
+          <div class="feature-card"><div class="ico">☎</div><h3>Reliable Service</h3></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= INDUSTRIES ================= -->
+<section class="industries" id="industries">
+  <div class="wrap">
+    <span class="eyebrow" style="color:var(--gold-500)">Trusted By</span>
+    <h2 class="display reveal" style="font-size:clamp(1.9rem,3vw,2.6rem);margin-top:14px;color:var(--cream-100);">Industries We Serve</h2>
+  </div>
+  <div class="ind-scroll reveal">
+    <div class="ind-track" id="ind-track">
+      <!-- items injected twice via JS for seamless loop -->
+    </div>
+  </div>
+  <div class="ind-scroll-mobile reveal" id="indScrollMobile">
+    <div class="ind-track-mobile" id="indTrackMobile">
+      <!-- items injected via JS, auto-advanced with native scroll -->
+    </div>
+  </div>
+</section>
+
+<!-- ================= BOTTLE PRICING ================= -->
+<section class="pricing pad" id="bottles">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">Choose Your Bottle</span>
+      <h2 class="display">Choose the Perfect Bottle for Your Brand</h2>
+      <p>Select the bottle size that best suits your business. Every bottle comes with premium quality water, customized branding, and professional packaging.</p>
+    </div>
+
+    <div class="collection-block reveal">
+      <div class="collection-head">
+        <div>
+          <span class="tag-pill tag-standard">Standard Collection</span>
+          <p>Perfect for hotels, restaurants, cafés, corporate offices, events, and promotional branding.</p>
+        </div>
+      </div>
+      <div class="bottle-row">
+        <div class="bottle-card">
+          <div class="bottle-media"><img src="https://res.cloudinary.com/vwdrbdrg/image/upload/v1784973762/0_5_tq87up.jpg" alt="200ml customized bottle"></div>
+          <div class="bottle-body">
+            <h4>200ml Bottle</h4>
+            <p class="desc">Premium Customized Bottle</p>
+            <div class="bottle-meta"><div>Price<strong>₹240 / box</strong></div><div>Per Box<strong>48 Bottles</strong></div></div>
+            <a href="#contact" class="bottle-select" data-bottle="200ml Bottle">Select Bottle</a>
+          </div>
+        </div>
+        <div class="bottle-card">
+          <div class="bottle-media"><img src="https://res.cloudinary.com/vwdrbdrg/image/upload/v1784973762/0_1_cfg833.jpg" alt="500ml customized bottle"></div>
+          <div class="bottle-body">
+            <h4>500ml Bottle</h4>
+            <p class="desc">Premium Customized Bottle</p>
+            <div class="bottle-meta"><div>Price<strong>₹168 / box</strong></div><div>Per Box<strong>24 Bottles</strong></div></div>
+            <a href="#contact" class="bottle-select" data-bottle="500ml Bottle">Select Bottle</a>
+          </div>
+        </div>
+        <div class="bottle-card">
+          <div class="bottle-media"><img src="https://res.cloudinary.com/vwdrbdrg/image/upload/v1784973763/0_3_qg4s2x.jpg" alt="1 litre customized bottle"></div>
+          <div class="bottle-body">
+            <h4>1L Bottle</h4>
+            <p class="desc">Premium Customized Bottle</p>
+            <div class="bottle-meta"><div>Price<strong>₹132 / box</strong></div><div>Per Box<strong>12 Bottles</strong></div></div>
+            <a href="#contact" class="bottle-select" data-bottle="1L Bottle">Select Bottle</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="collection-block reveal" style="margin-bottom:0;">
+      <div class="collection-head">
+        <div>
+          <span class="tag-pill tag-premium">Premium Collection</span>
+          <p>Designed for luxury hospitality, premium events, executive gifting, and exclusive branding.</p>
+        </div>
+      </div>
+      <div class="bottle-row bottle-row-premium">
+        <div class="bottle-card">
+          <div class="bottle-media"><img src="https://res.cloudinary.com/vwdrbdrg/image/upload/v1784973762/0_2_hw09ti.jpg" alt="250ml premium customized bottle"></div>
+          <div class="bottle-body">
+            <h4>250ml Bottle</h4>
+            <p class="desc">Premium Customized Bottle</p>
+            <div class="bottle-meta"><div>Price<strong>₹230 / box</strong></div><div>Per Box<strong>35 Bottles</strong></div></div>
+            <a href="#contact" class="bottle-select" data-bottle="250ml Bottle">Select Bottle</a>
+          </div>
+        </div>
+        <div class="bottle-card">
+          <div class="bottle-media"><img src="https://res.cloudinary.com/vwdrbdrg/image/upload/v1784973763/0_4_ha8oew.jpg" alt="750ml premium customized bottle"></div>
+          <div class="bottle-body">
+            <h4>750ml Bottle</h4>
+            <p class="desc">Premium Customized Bottle</p>
+            <div class="bottle-meta"><div>Price<strong>₹225 / box</strong></div><div>Per Box<strong>15 Bottles</strong></div></div>
+            <a href="#contact" class="bottle-select" data-bottle="750ml Bottle">Select Bottle</a>
+          </div>
+        </div>
+      </div>
+      <p class="moq-note">Minimum Order Quantity: 100 Boxes</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PROCESS ================= -->
+<section class="process pad" id="process">
+  <div class="wrap">
+    <div class="sec-head on-dark reveal">
+      <span class="eyebrow">Our Process</span>
+      <h2 class="display">Simple. Professional. Reliable.</h2>
+      <p>From concept to delivery, we ensure every customized bottle meets the highest standards of quality and branding.</p>
+    </div>
+    <div class="timeline reveal-stagger" id="timeline">
+      <div class="t-step"><div class="t-num">01</div><h4>Share Your Requirement</h4></div>
+      <div class="t-step"><div class="t-num">02</div><h4>Custom Label Designing</h4></div>
+      <div class="t-step"><div class="t-num">03</div><h4>Design Approval</h4></div>
+      <div class="t-step"><div class="t-num">04</div><h4>Printing</h4></div>
+      <div class="t-step"><div class="t-num">05</div><h4>Bottle Production</h4></div>
+      <div class="t-step"><div class="t-num">06</div><h4>Quality Check</h4></div>
+      <div class="t-step"><div class="t-num">07</div><h4>Delivery</h4></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= WHY / SHOWCASE ================= -->
+<section class="showcase pad" id="why">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">Why Customized Bottled Water?</span>
+      <h2 class="display">More Than Water. It's Your Brand.</h2>
+      <p>Create a lasting impression with customized bottled water that enhances brand visibility, engages customers, and delivers a premium experience.</p>
+    </div>
+
+    <div class="showcase-block reveal">
+      <div class="showcase-text">
+        <h3>Smart QR Bottle Solutions</h3>
+        <p>Every label can carry a scannable QR code — linking customers straight to your menu, offers, or story.</p>
+      </div>
+      <div class="showcase-media">
+        <img src="https://res.cloudinary.com/vwdrbdrg/image/upload/v1784973254/Screenshot_2026-07-25_145305_jscwfz.jpg" alt="Smart QR bottle solutions brochure">
+      </div>
+    </div>
+
+    <div class="showcase-block reveal" style="margin-bottom:0;">
+      <div class="showcase-text">
+        <h3>Labels That Represent Your Brand Perfectly</h3>
+        <p>Professionally designed labels that capture your brand identity with elegance, creativity, and attention to detail.</p>
+      </div>
+      <div class="showcase-media">
+        <img src="https://res.cloudinary.com/vwdrbdrg/image/upload/v1784973255/Screenshot_2026-07-25_145354_z2ex84.jpg" alt="Custom label design showcase">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CONTACT ================= -->
+<section class="contact pad" id="contact">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">Contact Us</span>
+      <h2 class="display">Let's Build Your Brand, One Bottle at a Time.</h2>
+      <p>Whether you're looking for customized bottled water for hotels, restaurants, cafés, corporate offices, healthcare, educational institutions, retail brands, real estate, aviation, or events — we're here to help.</p>
+    </div>
+
+    <div class="contact-grid">
+      <form class="contact-form reveal" onsubmit="return false;">
+        <div class="form-row">
+          <div class="field"><label>Full Name</label><input type="text" placeholder="Your name"></div>
+          <div class="field"><label>Company Name</label><input type="text" placeholder="Your company"></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Mobile Number</label><input type="tel" placeholder="+91"></div>
+          <div class="field"><label>Email Address</label><input type="email" placeholder="you@company.com"></div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>Preferred Bottle</label>
+            <select id="bottleSelect">
+              <option value="">Not sure yet</option>
+              <option value="200ml Bottle">200ml Bottle — Standard</option>
+              <option value="500ml Bottle">500ml Bottle — Standard</option>
+              <option value="1L Bottle">1L Bottle — Standard</option>
+              <option value="250ml Bottle">250ml Bottle — Premium</option>
+              <option value="750ml Bottle">750ml Bottle — Premium</option>
+            </select>
+          </div>
+          <div class="field"><label>Quantity Required</label><input type="text" placeholder="e.g. 500 boxes"></div>
+        </div>
+        <div class="form-row">
+          <div class="field full"><label>Message</label><textarea placeholder="Tell us about your brand and requirement"></textarea></div>
+        </div>
+        <button class="btn btn-gold" type="submit">Get a Quote</button>
+      </form>
+
+      <div class="contact-side reveal">
+        <div class="info-card">
+          <span class="eyebrow" style="color:var(--gold-400)">Contact Details</span>
+          <div class="info-row"><div class="ico">☎</div><div><div class="lab">Mobile Numbers</div>
+            <div class="val"><a href="tel:+919875252687">+91 98752 52687</a><br><a href="tel:+918460228054">+91 84602 28054</a><br><a href="tel:+919595138820">+91 95951 38820</a></div>
+          </div></div>
+          <div class="info-row"><div class="ico">✉</div><div><div class="lab">Email Address</div>
+            <div class="val"><a href="mailto:verdanbeverages@gmail.com">verdanbeverages@gmail.com</a></div>
+          </div></div>
+          <div class="info-row"><div class="ico">⚑</div><div><div class="lab">Business Address</div>
+            <div class="val">Neelkanth Ashutosh Avenue, Hansol, Sardarnagar, Ahmedabad, Gujarat</div>
+          </div></div>
+          <div class="sf-main" style="margin-top:26px;position:relative;">
+            <div class="sf-up">
+              <a class="sf-card sf-card1" href="https://www.instagram.com/verdanbeverages/" target="_blank" rel="noopener" aria-label="Instagram">
+                <svg class="sf-icon sf-instagram" xmlns="http://www.w3.org/2000/svg" viewBox="0,0,256,256"><g transform="scale(8,8)"><path d="M11.46875,5c-3.55078,0 -6.46875,2.91406 -6.46875,6.46875v9.0625c0,3.55078 2.91406,6.46875 6.46875,6.46875h9.0625c3.55078,0 6.46875,-2.91406 6.46875,-6.46875v-9.0625c0,-3.55078 -2.91406,-6.46875 -6.46875,-6.46875zM11.46875,7h9.0625c2.47266,0 4.46875,1.99609 4.46875,4.46875v9.0625c0,2.47266 -1.99609,4.46875 -4.46875,4.46875h-9.0625c-2.47266,0 -4.46875,-1.99609 -4.46875,-4.46875v-9.0625c0,-2.47266 1.99609,-4.46875 4.46875,-4.46875zM21.90625,9.1875c-0.50391,0 -0.90625,0.40234 -0.90625,0.90625c0,0.50391 0.40234,0.90625 0.90625,0.90625c0.50391,0 0.90625,-0.40234 0.90625,-0.90625c0,-0.50391 -0.40234,-0.90625 -0.90625,-0.90625zM16,10c-3.30078,0 -6,2.69922 -6,6c0,3.30078 2.69922,6 6,6c3.30078,0 6,-2.69922 6,-6c0,-3.30078 -2.69922,-6 -6,-6zM16,12c2.22266,0 4,1.77734 4,4c0,2.22266 -1.77734,4 -4,4c-2.22266,0 -4,-1.77734 -4,-4c0,-2.22266 1.77734,-4 4,-4z"></path></g></svg>
+              </a>
+              <a class="sf-card sf-card2" href="https://www.linkedin.com/company/verdan-beverages/" target="_blank" rel="noopener" aria-label="LinkedIn">
+                <svg class="sf-icon sf-linkedin" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4.98 3.5C4.98 4.881 3.87 6 2.49 6S0 4.881 0 3.5 1.12 1 2.5 1s2.48 1.119 2.48 2.5zM.22 8.4h4.55V24H.22V8.4zM8.4 8.4h4.36v2.13h.06c.61-1.14 2.08-2.34 4.27-2.34 4.56 0 5.4 3 5.4 6.9V24h-4.55v-7.9c0-1.88-.04-4.3-2.62-4.3-2.63 0-3.03 2.05-3.03 4.17V24H8.4V8.4z"></path></svg>
+              </a>
+            </div>
+            <div class="sf-down">
+              <a class="sf-card sf-card3" href="https://www.facebook.com/profile.php?id=61591093132190" target="_blank" rel="noopener" aria-label="Facebook">
+                <svg class="sf-icon sf-facebook" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.891h-2.33v6.987C18.343 21.128 22 16.991 22 12z"></path></svg>
+              </a>
+              <a class="sf-card sf-card4" href="https://www.google.com/maps/search/?api=1&query=Neelkanth+Ashutosh+Avenue+Hansol+Sardarnagar+Ahmedabad+Gujarat" target="_blank" rel="noopener" aria-label="Google Maps location">
+                <svg class="sf-icon sf-maps" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="map-block reveal">
+      <div class="map-label"><span class="dotpin"></span> Neelkanth Ashutosh Avenue, Hansol, Ahmedabad</div>
+      <iframe src="https://maps.google.com/maps?q=Neelkanth%20Ashutosh%20Avenue%2C%20Hansol%2C%20Sardarnagar%2C%20Ahmedabad%2C%20Gujarat&t=&z=15&ie=UTF8&iwloc=&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Verdan Beverages location on Google Maps"></iframe>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <div class="brand"><img src="https://res.cloudinary.com/vwdrbdrg/image/upload/v1784974244/logo_dj09m8.png" alt="Verdan Beverages logo" style="height:32px;width:auto;object-fit:contain;"></div>
+        <p>Premium customized bottled water for powerful brand experiences.</p>
+      </div>
+      <div class="foot-col">
+        <h5>Quick Links</h5>
+        <a href="#top">Home</a>
+        <a href="#about">About</a>
+        <a href="#bottles">Bottle Collection</a>
+        <a href="#process">Our Process</a>
+        <a href="#contact">Contact</a>
+      </div>
+      <div class="foot-col">
+        <h5>Products</h5>
+        <a href="#bottles">Standard Collection</a>
+        <a href="#bottles">Premium Collection</a>
+        <a href="#why">Smart QR Bottles</a>
+        <a href="#why">Custom Label Designing</a>
+      </div>
+      <div class="foot-col">
+        <h5>Contact</h5>
+        <p style="margin-bottom:4px;">+91 98752 52687</p>
+        <p style="margin-bottom:4px;">+91 84602 28054</p>
+        <p style="margin-bottom:11px;">+91 95951 38820</p>
+        <a href="mailto:verdanbeverages@gmail.com">verdanbeverages@gmail.com</a>
+        <p style="margin-top:11px;">Neelkanth Ashutosh Avenue, Hansol, Sardarnagar, Ahmedabad, Gujarat</p>
+      </div>
+    </div>
+    <div class="bottom-bar">
+      <span>© 2026 Verdan Beverages. All Rights Reserved.</span>
+      <a href="https://thesonicmedia.com" target="_blank" rel="noopener" class="credit-link">Designed &amp; Developed by THE SONIC MEDIA</a>
+    </div>
+  </div>
+</footer>
+
+<div class="floaters">
+  <a class="float-btn float-email" href="mailto:verdanbeverages@gmail.com" aria-label="Email us">
+    <span class="float-tip">Email Us</span>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M2 5.5A2.5 2.5 0 0 1 4.5 3h15A2.5 2.5 0 0 1 22 5.5v13a2.5 2.5 0 0 1-2.5 2.5h-15A2.5 2.5 0 0 1 2 18.5v-13zm2.2.3 7.4 6.1a.7.7 0 0 0 .8 0l7.4-6.1a.6.6 0 0 0-.4-1H4.6a.6.6 0 0 0-.4 1z"></path></svg>
+  </a>
+  <a class="float-btn float-whatsapp" href="https://wa.me/919875252687" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+    <span class="float-tip">WhatsApp Us</span>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M16.004 3C9.377 3 4 8.373 4 15c0 2.34.66 4.523 1.803 6.383L4 29l7.815-1.746A11.93 11.93 0 0 0 16.004 27C22.63 27 28 21.627 28 15S22.63 3 16.004 3zm6.99 17.02c-.297.836-1.47 1.53-2.42 1.73-.645.135-1.487.243-4.324-.93-3.632-1.5-5.97-5.19-6.152-5.432-.18-.242-1.47-1.96-1.47-3.738 0-1.777.93-2.65 1.26-3.012.33-.363.72-.454.96-.454.24 0 .48.003.69.013.222.01.52-.084.812.62.297.72 1.01 2.494 1.098 2.676.087.18.145.394.03.636-.117.242-.176.393-.35.605-.174.212-.367.473-.524.635-.174.18-.356.375-.153.735.204.36.906 1.5 1.946 2.43 1.337 1.196 2.464 1.567 2.826 1.744.362.18.575.15.786-.09.21-.24.9-1.05 1.14-1.41.24-.36.48-.3.81-.18.33.12 2.1.99 2.46 1.17.36.18.6.27.69.42.09.15.09.87-.207 1.71z"></path></svg>
+  </a>
+</div>
+
+<div class="to-top" id="toTop" aria-label="Back to top">↑</div>
+
+<script>
+  // Industry pills — build list & duplicate for seamless marquee
+  const industries = ["Hotels","Restaurants & Cafés","Corporate Offices","Healthcare","Educational Institutions","Retail Brands","Real Estate","Aviation","Events"];
+  const track = document.getElementById('ind-track');
+  const buildPills = () => industries.map((name,i)=>`<div class="ind-pill"><span class="n">0${i+1}</span>${name}</div>`).join('');
+  track.innerHTML = buildPills() + buildPills();
+
+  // Mobile marquee: native horizontal scroll auto-advanced via rAF (no CSS transform animation → no flicker)
+  const trackMobile = document.getElementById('indTrackMobile');
+  const scrollMobile = document.getElementById('indScrollMobile');
+  if (trackMobile && scrollMobile) {
+    trackMobile.innerHTML = buildPills() + buildPills();
+    let mobileAutoplay = true;
+    let resumeTimer = null;
+    const step = () => {
+      if (mobileAutoplay && document.body.contains(scrollMobile)) {
+        const half = trackMobile.scrollWidth / 2;
+        scrollMobile.scrollLeft += 0.7;
+        if (scrollMobile.scrollLeft >= half) {
+          scrollMobile.scrollLeft -= half;
+        }
+      }
+      requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+    const pause = () => {
+      mobileAutoplay = false;
+      if (resumeTimer) clearTimeout(resumeTimer);
+    };
+    const resumeLater = () => {
+      if (resumeTimer) clearTimeout(resumeTimer);
+      resumeTimer = setTimeout(() => { mobileAutoplay = true; }, 2000);
+    };
+    scrollMobile.addEventListener('touchstart', pause, {passive:true});
+    scrollMobile.addEventListener('touchend', resumeLater, {passive:true});
+    scrollMobile.addEventListener('pointerdown', pause);
+    window.addEventListener('pointerup', resumeLater);
+  }
+
+  // Hero liquid ripple — follows pointer, drifts gently when idle
+  const hero = document.getElementById('top');
+  const ripple = document.getElementById('heroRipple');
+  let mx = 50, my = 35, idle = true;
+  hero.addEventListener('mousemove', (e)=>{
+    const r = hero.getBoundingClientRect();
+    mx = ((e.clientX - r.left) / r.width) * 100;
+    my = ((e.clientY - r.top) / r.height) * 100;
+    idle = false;
+    ripple.style.setProperty('--mx', mx + '%');
+    ripple.style.setProperty('--my', my + '%');
+  });
+  hero.addEventListener('mouseleave', ()=>{ idle = true; });
+  let t = 0;
+  setInterval(()=>{
+    if(!idle) return;
+    t += 0.02;
+    const dx = 50 + Math.sin(t) * 18;
+    const dy = 35 + Math.cos(t*0.8) * 12;
+    ripple.style.setProperty('--mx', dx + '%');
+    ripple.style.setProperty('--my', dy + '%');
+  }, 60);
+
+  // Liquid splash on button interaction
+  document.querySelectorAll('[data-liquid]').forEach(btn=>{
+    btn.addEventListener('pointerdown', (e)=>{
+      const r = btn.getBoundingClientRect();
+      const size = Math.max(r.width, r.height) * 2.2;
+      const splash = document.createElement('span');
+      splash.className = 'liquid-splash';
+      splash.style.width = splash.style.height = size + 'px';
+      splash.style.left = (e.clientX - r.left) + 'px';
+      splash.style.top = (e.clientY - r.top) + 'px';
+      btn.appendChild(splash);
+      splash.addEventListener('animationend', ()=>splash.remove());
+    });
+  });
+
+  // Mobile menu toggle
+  const navToggle = document.getElementById('navToggle');
+  const mobileMenu = document.getElementById('mobileMenu');
+  const menuOverlay = document.getElementById('menuOverlay');
+  const closeMenu = () => {
+    navToggle.classList.remove('open');
+    mobileMenu.classList.remove('open');
+    menuOverlay.classList.remove('show');
+    document.body.classList.remove('menu-open');
+    navToggle.setAttribute('aria-expanded','false');
+  };
+  const openMenu = () => {
+    navToggle.classList.add('open');
+    mobileMenu.classList.add('open');
+    menuOverlay.classList.add('show');
+    document.body.classList.add('menu-open');
+    navToggle.setAttribute('aria-expanded','true');
+  };
+  navToggle.addEventListener('click', () => {
+    mobileMenu.classList.contains('open') ? closeMenu() : openMenu();
+  });
+  menuOverlay.addEventListener('click', closeMenu);
+  mobileMenu.querySelectorAll('a').forEach(a => a.addEventListener('click', closeMenu));
+  window.addEventListener('resize', () => { if(window.innerWidth > 1080) closeMenu(); });
+
+  // Bottle selection -> auto-select in contact form + scroll to it
+  const bottleSelect = document.getElementById('bottleSelect');
+  document.querySelectorAll('.bottle-select[data-bottle]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const bottle = link.getAttribute('data-bottle');
+      if (bottleSelect && bottle) {
+        bottleSelect.value = bottle;
+        bottleSelect.classList.remove('field-highlight');
+        void bottleSelect.offsetWidth; // restart animation
+        bottleSelect.classList.add('field-highlight');
+      }
+      const target = document.getElementById('contact');
+      if (target) {
+        const top = target.getBoundingClientRect().top + window.scrollY - 90;
+        window.scrollTo({ top, behavior: 'smooth' });
+      }
+    });
+  });
+
+  // Navbar scroll state
+  const nav = document.getElementById('navbar');
+  const toTop = document.getElementById('toTop');
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    nav.classList.toggle('scrolled', y > 40);
+    toTop.classList.toggle('show', y > 700);
+  });
+  toTop.addEventListener('click', () => window.scrollTo({top:0, behavior:'smooth'}));
+
+  // Reveal on scroll
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+    });
+  }, {threshold:.15});
+  document.querySelectorAll('.reveal, .reveal-stagger').forEach(el=>io.observe(el));
+
+  // Smooth anchor scroll offset for fixed nav
+  document.querySelectorAll('a[href^="#"]').forEach(a=>{
+    a.addEventListener('click', e=>{
+      const id = a.getAttribute('href').slice(1);
+      const target = document.getElementById(id);
+      if(target){
+        e.preventDefault();
+        const top = target.getBoundingClientRect().top + window.scrollY - 90;
+        window.scrollTo({top, behavior:'smooth'});
+      }
+    });
+  });
+</script>
+</body>
+</html>

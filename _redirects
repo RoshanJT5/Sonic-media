@@ -1,0 +1,45 @@
+# 301 Redirects: Strip .html extension from all URLs
+/about.html            /about              301
+/services.html         /services           301
+/portfolio.html        /portfolio          301
+/project.html          /project            301
+/article.html          /article            301
+/case-study.html       /case-study         301
+/studio.html           /portfolio          301
+/studio                /portfolio          301
+/casestudies.html      /casestudies        301
+/journal.html          /journal            301
+/future.html           /future             301
+/faq.html              /faq                301
+/contact.html          /contact            301
+/linktree.html         /linktree           301
+/sonicmediaadmin.html  /sonicmediaadmin    301
+/services/web.html     /services/web       301
+/services/app.html     /services/app       301
+/services/seo.html     /services/seo       301
+/services/smm.html     /services/smm       301
+/services/perf.html    /services/perf      301
+/services/inf.html     /services/inf       301
+/services/ecom.html    /services/ecom      301
+/services/content.html /services/content   301
+/services/brand.html   /services/brand     301
+/services/ai.html      /services/ai        301
+
+# 200 Rewrites: Serve .html files transparently for clean URLs
+/about                 /about.html         200
+/services              /services.html      200
+/portfolio             /portfolio.html     200
+/project               /project.html       200
+/project/:id           /project.html       200
+/article               /article.html       200
+/article/:id           /article.html       200
+/case-study            /case-study.html    200
+/case-study/:id        /case-study.html    200
+/casestudies           /casestudies.html   200
+/journal               /journal.html       200
+/future                /future.html        200
+/faq                   /faq.html           200
+/contact               /contact.html       200
+/linktree              /linktree.html      200
+/sonicmediaadmin       /sonicmediaadmin.html 200
+/services/:splat       /services/:splat.html 200

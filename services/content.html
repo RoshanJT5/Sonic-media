@@ -1,0 +1,2032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Content Production — The Sonic Media</title>
+<link rel="icon" type="image/png" href="https://res.cloudinary.com/dq2nrpky0/image/upload/v1779787887/favicon_oalxfi.png">
+<link rel="apple-touch-icon" href="https://res.cloudinary.com/dq2nrpky0/image/upload/v1779787887/favicon_oalxfi.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@300;400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/styles.css">
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+<script src="../assets/js/service-page-optimizations.js"></script>
+<style>
+/* ══════════════════════
+   NEW HERO SECTION
+══════════════════════ */
+#wsv-hero-new {
+  --orange: #ff5c00;
+  --glow: #4fc3f7;
+}
+#wsv-hero-new .hero-left {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 52%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 64px 0 72px;
+  z-index: 20;
+  background: linear-gradient(90deg, rgba(0,0,0,0.62) 50%, rgba(0,0,0,0.3) 75%, transparent 100%);
+}
+#wsv-hero-new .hero-left::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,92,0,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,92,0,0.025) 1px, transparent 1px);
+  background-size: 52px 52px;
+  pointer-events: none;
+}
+#wsv-hero-new .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  font-family: 'Syne', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.35);
+  margin-bottom: 22px;
+  opacity: 0;
+  transform: translateY(12px);
+}
+#wsv-hero-new .hero-h1 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(64px, 7vw, 116px);
+  line-height: .87;
+  letter-spacing: -.01em;
+  color: #fff;
+  margin-bottom: 28px;
+}
+#wsv-hero-new .line-wrap {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.06em;
+}
+#wsv-hero-new .line {
+  display: block;
+  transform: translateY(110%);
+}
+#wsv-hero-new .or { color: var(--orange); }
+#wsv-hero-new .hero-sub {
+  font-size: 14px;
+  line-height: 1.82;
+  color: rgba(255,255,255,.44);
+  max-width: 420px;
+  margin-bottom: 38px;
+  font-weight: 300;
+  opacity: 0;
+  transform: translateY(18px);
+}
+#wsv-hero-new .hero-btns {
+  display: flex;
+  gap: 14px;
+  opacity: 0;
+  transform: translateY(18px);
+}
+#wsv-hero-new .btn-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 13px 26px;
+  background: var(--orange);
+  color: #fff;
+  font-family: 'Syne', sans-serif;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: .13em; text-transform: uppercase;
+  border: none; cursor: pointer; text-decoration: none;
+  clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 0 100%);
+  transition: all .25s;
+}
+#wsv-hero-new .btn-primary:hover { filter: brightness(1.15); transform: translateY(-2px); box-shadow: 0 12px 36px rgba(255,92,0,.38); }
+#wsv-hero-new .btn-ghost {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 13px 26px;
+  background: transparent;
+  color: rgba(255,255,255,.55);
+  font-family: 'Syne', sans-serif;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: .13em; text-transform: uppercase;
+  border: 1px solid rgba(255,255,255,.1);
+  cursor: pointer; text-decoration: none;
+  transition: all .25s;
+}
+#wsv-hero-new .btn-ghost:hover { border-color: rgba(255,255,255,.28); color: #fff; transform: translateY(-2px); }
+#wsv-hero-new .hero-right {
+  position: relative;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+#wsv-hero-new .hero-right::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 55% at 50% 50%, rgba(79,195,247,0.04) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+#wsv-hero-new .monitor-wrap {
+  position: relative;
+  z-index: 2;
+  width: 86%;
+  aspect-ratio: 16 / 9;
+  border-radius: 4px;
+  overflow: hidden;
+  filter: drop-shadow(0 24px 80px rgba(0,0,0,.85)) drop-shadow(0 0 40px rgba(79,195,247,0.08));
+}
+#wsv-hero-new .screen-area {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #000;
+}
+#wsv-hero-new .screen-dark {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  z-index: 1;
+}
+#wsv-hero-new .screen-code {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  clip-path: inset(0 0 100% 0);
+  transition: none;
+}
+#wsv-hero-new .vscode-frame {
+  width: 100%; height: 100%;
+  border: none;
+  display: block;
+  pointer-events: none;
+}
+#wsv-hero-new .screen-site {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  clip-path: inset(0 100% 0 0);
+  transition: none;
+}
+#wsv-hero-new .site-iframe-wrap {
+  width: 100%; height: 100%;
+  position: relative;
+}
+#wsv-hero-new .site-iframe-wrap iframe {
+  width: 1440px;
+  height: 900px;
+  border: none;
+  display: block;
+  transform-origin: top left;
+  pointer-events: none;
+}
+#wsv-hero-new .rod-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+#wsv-hero-new .stage-label {
+  position: absolute;
+  bottom: 18px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: .18em;
+  color: rgba(255,255,255,.2);
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+}
+#wsv-hero-new .stage-label-dot {
+  width: 4px; height: 4px; border-radius: 50%;
+  background: rgba(79,195,247,.5);
+  box-shadow: 0 0 6px rgba(79,195,247,.8);
+}
+/* New hero layout */
+#wsv-hero-new .hero-inner-grid {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+}
+/* ── GLOBE GALLERY (hero-right) ── */
+#wsv-hero-new .hero-right {
+  position: absolute;
+  inset: 0;
+  background: #080a0f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+#wsv-hero-new .hero-right::before { display: none; }
+
+#wsv-hero-new .globe-scene {
+  width: 100%;
+  height: 100%;
+  perspective: 1200px;
+  perspective-origin: 50% 50%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#wsv-hero-new .globe-wrap {
+  width: 0; height: 0;
+  position: relative;
+  transform-style: preserve-3d;
+  animation: globeSpin 100s linear infinite;
+}
+@keyframes globeSpin {
+  from { transform: rotateY(0deg) rotateX(-8deg); }
+  to   { transform: rotateY(360deg) rotateX(-8deg); }
+}
+#wsv-hero-new .globe-card {
+  position: absolute;
+  transform-style: preserve-3d;
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.06);
+  transition: box-shadow 0.4s, border-color 0.4s;
+  backface-visibility: hidden;
+}
+#wsv-hero-new .globe-card::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(160deg, rgba(255,255,255,0.06) 0%, transparent 50%, rgba(0,0,0,0.3) 100%);
+  z-index: 2;
+  pointer-events: none;
+}
+#wsv-hero-new .globe-card:hover {
+  box-shadow: 0 8px 50px rgba(0,0,0,0.85), 0 0 0 1px rgba(201,169,110,0.5), 0 0 30px rgba(201,169,110,0.15);
+  border-color: rgba(201,169,110,0.4);
+  z-index: 100;
+}
+#wsv-hero-new .globe-card img {
+  display: block;
+  width: 100%; height: 100%;
+  object-fit: cover;
+}
+#wsv-hero-new .globe-vignette {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 50%, transparent 35%, rgba(8,10,15,0.5) 100%);
+  pointer-events: none;
+  z-index: 10;
+}
+#wsv-hero-new .globe-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.08;
+}
+#wsv-hero-new .globe-glow-1 { width: 500px; height: 500px; top: -120px; left: 0; background: #c9a96e; }
+#wsv-hero-new .globe-glow-2 { width: 400px; height: 400px; top: 25%; right: -60px; background: #4a6fa5; }
+#wsv-hero-new .globe-glow-3 { width: 380px; height: 380px; bottom: -80px; left: 28%; background: #8a5a7a; }
+#wsv-hero-new .globe-drag-hint {
+  position: absolute;
+  top: 20px; right: 20px;
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #c9a96e;
+  opacity: 0.6;
+  z-index: 20;
+  font-family: 'Syne', sans-serif;
+  pointer-events: none;
+}
+#wsv-hero-new .globe-count {
+  position: absolute;
+  top: 20px; left: 20px;
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #9aa0b4;
+  opacity: 0.6;
+  z-index: 20;
+  font-family: 'Syne', sans-serif;
+  pointer-events: none;
+}
+/* Search animation overlay — pinned to right half centre */
+#wsv-hero-new .globe-search-stage {
+  position: absolute;
+  top: 50%; left: 75%;
+  transform: translate(-50%, -50%);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+#wsv-hero-new .globe-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 6px 2px rgba(255,255,255,0.9), 0 0 20px 6px rgba(201,169,110,0.6), 0 0 50px 16px rgba(201,169,110,0.25);
+  position: absolute;
+  animation: gbDotPulse 1.2s ease-in-out infinite alternate;
+}
+@keyframes gbDotPulse {
+  from { box-shadow: 0 0 6px 2px rgba(255,255,255,0.9), 0 0 20px 6px rgba(201,169,110,0.6), 0 0 50px 16px rgba(201,169,110,0.25); }
+  to   { box-shadow: 0 0 10px 4px rgba(255,255,255,1),  0 0 30px 10px rgba(201,169,110,0.8), 0 0 70px 24px rgba(201,169,110,0.35); }
+}
+#wsv-hero-new .globe-ring-anim {
+  position: absolute;
+  border-radius: 50%;
+  border: 1.5px solid rgba(201,169,110,0.85);
+  box-shadow: 0 0 12px 2px rgba(201,169,110,0.4), inset 0 0 8px 1px rgba(201,169,110,0.15);
+  width: 0; height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+#wsv-hero-new .globe-search-bar {
+  position: absolute;
+  height: 52px;
+  width: 0;
+  border-radius: 999px;
+  background: rgba(8,10,15,0.72);
+  backdrop-filter: blur(24px) saturate(1.8);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8);
+  border: 1px solid rgba(201,169,110,0.45);
+  box-shadow: 0 0 0 1px rgba(201,169,110,0.12), 0 0 30px 4px rgba(201,169,110,0.18), 0 8px 40px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07);
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  white-space: nowrap;
+  pointer-events: none;
+}
+#wsv-hero-new .globe-search-inner {
+  display: flex;
+  align-items: center;
+  padding: 0 22px;
+  gap: 12px;
+  opacity: 0;
+  width: 100%;
+}
+#wsv-hero-new .globe-search-icon { flex-shrink: 0; opacity: 0.5; }
+#wsv-hero-new .globe-search-text {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: rgba(240,235,224,0.92);
+  flex: 1;
+}
+#wsv-hero-new .globe-search-cursor {
+  display: inline-block;
+  width: 1.5px; height: 16px;
+  background: #c9a96e;
+  margin-left: 1px;
+  vertical-align: middle;
+  border-radius: 1px;
+  box-shadow: 0 0 6px rgba(201,169,110,0.8);
+  animation: gbBlink 1s step-end infinite;
+}
+@keyframes gbBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+#wsv-hero-new .globe-search-pill {
+  flex-shrink: 0;
+  background: #c9a96e;
+  color: #080a0f;
+  font-family: 'Syne', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: 999px;
+  opacity: 0.9;
+}
+</style>
+  <link href="https://fonts.googleapis.com/css2?family=Krona+One&display=swap" rel="stylesheet">
+<link rel="canonical" href="https://thesonicmedia.com/services/content">
+<meta property="og:url" content="https://thesonicmedia.com/services/content">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="The Sonic Media">
+<meta property="og:title" content="Content Production — The Sonic Media | Photo & Video India">
+<meta property="og:description" content="Cinematic content production for Indian brands. Photography, videography, Reels, and creative direction by The Sonic Media.">
+<meta property="og:image" content="https://res.cloudinary.com/dq2nrpky0/image/upload/v1779741212/PV_twlw1w.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="en_IN">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@thesonicmedia">
+<meta name="twitter:title" content="Content Production — The Sonic Media | Photo & Video India">
+<meta name="twitter:description" content="Cinematic content production for Indian brands. Photography, videography, Reels, and creative direction by The Sonic Media.">
+<meta name="twitter:image" content="https://res.cloudinary.com/dq2nrpky0/image/upload/v1779741212/PV_twlw1w.jpg">
+<meta name="robots" content="index, follow">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Service",
+      "@id": "https://thesonicmedia.com/services/content#service",
+      "name": "Content Production & Photography/Videography",
+      "provider": {
+        "@type": "Organization",
+        "name": "The Sonic Media",
+        "url": "https://thesonicmedia.com/",
+        "logo": "https://res.cloudinary.com/dq2nrpky0/image/upload/v1779787887/favicon_oalxfi.png"
+      },
+      "areaServed": "India",
+      "url": "https://thesonicmedia.com/services/content",
+      "description": "Cinematic content production for Indian brands. Photography, videography, Reels, and creative direction by The Sonic Media."
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type":"ListItem","position":1,"name":"Home","item":"https://thesonicmedia.com/"},
+        {"@type":"ListItem","position":2,"name":"Services","item":"https://thesonicmedia.com/services"},
+        {"@type":"ListItem","position":3,"name":"Content Production & Photography/Videography","item":"https://thesonicmedia.com/services/content"}
+      ]
+    }
+  ]
+}
+</script>
+</head>
+
+<body>
+
+<!-- Cursor -->
+<div id="cursor"></div>
+<div id="cursor-follower"></div>
+<canvas id="cursor-trail"></canvas>
+<div id="mouse-glow"></div>
+<!-- Scroll progress -->
+<div id="sp"></div>
+
+<!-- ═══════ NAVBAR ═══════ -->
+<nav id="navbar">
+  <div class="nav-left" onclick="navigate('home')">
+    <img src="https://res.cloudinary.com/dq2nrpky0/image/upload/v1779787887/favicon_oalxfi.png" alt="The Sonic Media Logo" style="width:36px;height:36px;object-fit:contain;flex-shrink:0;" />
+    <div class="nav-brand">
+      THE SONIC MEDIA
+    </div>
+  </div>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#" onclick="navigate('home');return false;" data-page="home" class="active-link">Home</a></li>
+    <li><a href="#" onclick="navigate('about');return false;" data-page="about">About</a></li>
+    <li class="has-drop">
+      <button onclick="return false;">Services <span class="drop-arrow"><svg class="drop-arrow-svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:inline-block;vertical-align:middle;margin-left:3px;"><polyline points="6 9 12 15 18 9"></polyline></svg></span></button>
+      <div class="dropdown">
+        <a href="#" onclick="navigate('services');return false;" style="border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:6px;padding-bottom:14px;color:var(--orange);font-weight:700;"><span class="drop-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M1.371 5.476L11.943 0l10.686 5.476-10.686 5.495zm3.36 4.81l7.212 3.547 7.288-3.547-7.288 3.738zm0 4.153l7.212 3.547 7.288-3.547-7.288 3.738z"/></svg></span>All Services</a>
+        <a href="#" onclick="navigate('svc-web');return false;"><span class="drop-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M1.5 0h21l-1.91 21.563L11.977 24l-8.565-2.438zm16.95 6.077H5.55l.386 4.364H17.84zm-4.805 7.73l-.22.253-.008.01-1.44.407-1.44-.407-.098-1.077H6.11l.24 2.67 5.627 1.56 5.627-1.56.634-7.11H8.084l-.196-2.182h10.973z"/></svg></span>Website Development</a>
+        <a href="#" onclick="navigate('svc-app');return false;"><span class="drop-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.18c.64-.78 1.08-1.86.96-2.94-1 .04-2.14.67-2.82 1.46-.59.68-1.12 1.77-.98 2.83 1.11.09 2.21-.57 2.84-1.35z"/></svg></span>Mobile App Development</a>
+        <a href="#" onclick="navigate('svc-seo');return false;"><span class="drop-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12.01 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24zm0 2.18a9.82 9.82 0 1 1 0 19.64 9.82 9.82 0 0 1 0-19.64zm2.18 4.36l-4.36 4.36 2.18 2.18 4.36-4.36-2.18-2.18zm-5.45 6.54l-2.18 2.18 2.18 2.18 2.18-2.18-2.18-2.18z"/></svg></span>Search Engine Optimization</a>
+        <a href="#" onclick="navigate('svc-smm');return false;"><span class="drop-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M6.915 4.03c-2.342 0-4.37 1.432-5.26 3.488C.72 9.68 1.09 12.03 2.6 13.79c1.67 1.94 4.08 2.88 6.44 2.88 2.37 0 4.79-.94 6.46-2.88 1.51-1.76 1.88-4.11.95-6.27-.89-2.06-2.92-3.49-5.26-3.49H6.915zm8.97 7.02c-.78 1.5-2.2 2.65-3.88 2.65-1.67 0-3.1-1.15-3.87-2.65-.5-1-.5-2.18 0-3.18.78-1.5 2.2-2.65 3.88-2.65 1.67 0 3.1 1.15 3.87 2.65.5 1 .5 2.18 0 3.18z"/></svg></span>Social Media Management</a>
+        <a href="#" onclick="navigate('svc-perf');return false;"><span class="drop-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M3.9998 22.9291C1.7908 22.9291 0 21.1383 0 18.9293s1.7908-3.9998 3.9998-3.9998 3.9998 1.7908 3.9998 3.9998-1.7908 3.9998-3.9998 3.9998zm19.4643-6.0004L15.4632 3.072C14.3586 1.1587 11.9121.5028 9.9988 1.6074S7.4295 5.1585 8.5341 7.0718l8.0009 13.8567c1.1046 1.9133 3.5511 2.5679 5.4644 1.4646 1.9134-1.1046 2.568-3.5511 1.4647-5.4644zM7.5137 4.8438L1.5645 15.1484A4.5 4.5 0 0 1 4 14.4297c2.5597-.0075 4.6248 2.1585 4.4941 4.7148l3.2168-5.5723-3.6094-6.25c-.4499-.7793-.6322-1.6394-.5878-2.4784z"/></svg></span>Performance Marketing &amp; Paid Ads</a>
+        <a href="#" onclick="navigate('svc-inf');return false;"><span class="drop-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></span>Influencer Marketing</a>
+        <a href="#" onclick="navigate('svc-ecom');return false;"><span class="drop-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M15.337 23.979l7.216-1.561s-2.604-17.613-2.625-17.73c-.018-.116-.114-.192-.211-.192s-1.929-.136-1.929-.136-1.275-1.274-1.439-1.411c-.045-.037-.075-.057-.121-.074l-.914 21.104h.023zM11.71 11.305s-.81-.424-1.774-.424c-1.447 0-1.504.906-1.504 1.141 0 1.232 3.24 1.715 3.24 4.629 0 2.295-1.44 3.76-3.406 3.76-2.354 0-3.54-1.465-3.54-1.465l.646-2.086s1.245 1.066 2.28 1.066c.675 0 .975-.545.975-.932 0-1.619-2.654-1.694-2.654-4.359-.034-2.237 1.571-4.416 4.827-4.416 1.257 0 1.875.361 1.875.361l-.945 2.715-.02.01zM11.17.83c.136 0 .271.038.405.135-.984.465-2.064 1.639-2.508 3.992-.656.213-1.293.405-1.889.578C7.697 3.75 8.951.84 11.17.84V.83zm1.235 2.949v.135c-.754.232-1.583.484-2.394.736.466-1.777 1.333-2.645 2.085-2.971.193.501.309 1.176.309 2.1zm.539-2.234c.694.074 1.141.867 1.429 1.755-.349.114-.735.231-1.158.366v-.252c0-.752-.096-1.371-.271-1.871v.002zm2.992 1.289c-.02 0-.06.021-.078.021s-.289.075-.714.21c-.423-1.233-1.176-2.37-2.508-2.37h-.115C12.135.209 11.669 0 11.265 0 8.159 0 6.675 3.877 6.21 5.846c-1.194.365-2.063.636-2.16.674-.675.213-.694.232-.772.87-.075.462-1.83 14.063-1.83 14.063L15.009 24l.927-21.166z"/></svg></span>E-Commerce Marketing</a>
+        <a href="#" onclick="navigate('svc-content');return false;"><span class="drop-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></span>Content Production &amp; Photo/Videography</a>
+        <a href="#" onclick="navigate('svc-brand');return false;"><span class="drop-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M15.852 8.981h-4.588V0h4.588c2.476 0 4.49 2.014 4.49 4.49s-2.014 4.491-4.49 4.491zM12.735 7.51h3.117c1.665 0 3.019-1.355 3.019-3.019s-1.355-3.019-3.019-3.019h-3.117V7.51zm0 1.471H8.148c-2.476 0-4.49-2.014-4.49-4.49S5.672 0 8.148 0h4.588v8.981zm-4.587-7.51c-1.665 0-3.019 1.355-3.019 3.019s1.354 3.02 3.019 3.02h3.117V1.471H8.148zm4.587 15.019H8.148c-2.476 0-4.49-2.014-4.49-4.49s2.014-4.49 4.49-4.49h4.588v8.98zM8.148 8.981c-1.665 0-3.019 1.355-3.019 3.019s1.355 3.019 3.019 3.019h3.117V8.981H8.148zM8.172 24c-2.489 0-4.515-2.014-4.515-4.49s2.014-4.49 4.49-4.49h4.588v4.441c0 2.503-2.047 4.539-4.563 4.539zm-.024-7.51a3.023 3.023 0 0 0-3.019 3.019c0 1.665 1.365 3.019 3.044 3.019 1.705 0 3.093-1.376 3.093-3.068v-2.97H8.148zm7.704 0h-.098c-2.476 0-4.49-2.014-4.49-4.49s2.014-4.49 4.49-4.49h.098c2.476 0 4.49 2.014 4.49 4.49s-2.014 4.49-4.49 4.49zm-.097-7.509c-1.665 0-3.019 1.355-3.019 3.019s1.355 3.019 3.019 3.019h.098c1.665 0 3.019-1.355 3.019-3.019s-1.355-3.019-3.019-3.019h-.098z"/></svg></span>Branding &amp; Advertising Solutions</a>
+        <a href="#" onclick="navigate('svc-ai');return false;"><span class="drop-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M11.04 19.32Q12 21.51 12 24q0-2.49.93-4.68.96-2.19 2.58-3.81t3.81-2.55Q21.51 12 24 12q-2.49 0-4.68-.93a12.3 12.3 0 0 1-3.81-2.58 12.3 12.3 0 0 1-2.58-3.81Q12 2.49 12 0q0 2.49-.96 4.68-.93 2.19-2.55 3.81a12.3 12.3 0 0 1-3.81 2.58Q2.49 12 0 12q2.49 0 4.68.96 2.19.93 3.81 2.55t2.55 3.81"/></svg></span>AI Doodling/Editing</a>
+      </div>
+    </li>
+    <li><a href="#" onclick="navigate('studio');return false;" data-page="studio">Portfolio</a></li>
+    <li><a href="#" onclick="navigate('casestudies');return false;" data-page="casestudies">Case Studies</a></li>
+    <li><a href="#" onclick="navigate('journal');return false;" data-page="journal">Journal</a></li>
+    <li><a href="#" onclick="navigate('future');return false;" data-page="future">Future Vision</a></li>
+    <li><a href="#" onclick="navigate('faq');return false;" data-page="faq">FAQ</a></li>
+    <li><a href="#" onclick="navigate('contact');return false;" data-page="contact" class="nav-cta">Contact</a></li>
+  </ul>
+  <button class="ham" id="ham" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- Mobile Nav Drawer -->
+<div class="mob-nav" id="mobNav">
+  <!-- Backdrop -->
+  <div class="mob-nav-backdrop" id="mobBackdrop" onclick="closeMob()"></div>
+
+  <!-- Drawer -->
+  <div class="mob-nav-drawer">
+
+    <!-- Header -->
+    <div class="mob-nav-header">
+      <div class="mob-nav-brand">
+        <img src="https://res.cloudinary.com/dq2nrpky0/image/upload/v1779787887/favicon_oalxfi.png" alt="The Sonic Media" />
+        THE SONIC MEDIA
+      </div>
+      <button class="mob-close" id="mobClose" aria-label="Close menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+
+    <!-- Body -->
+    <div class="mob-nav-body">
+
+      <!-- Main nav -->
+      <div class="mob-nav-section-label">Navigation</div>
+
+      <button class="mob-nav-link" onclick="navigate('home');closeMob()" data-mob-page="home">
+        Home <span class="mob-nav-link-arrow"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span>
+      </button>
+      <button class="mob-nav-link" onclick="navigate('about');closeMob()" data-mob-page="about">
+        About <span class="mob-nav-link-arrow"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span>
+      </button>
+
+      <!-- Services accordion -->
+      <button class="mob-services-toggle" id="mobSvcToggle" onclick="toggleMobServices()" aria-expanded="false">
+        Services
+        <span class="mob-acc-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
+      </button>
+      <div class="mob-services-submenu" id="mobSvcSubmenu">
+        <button class="mob-svc-all" onclick="navigate('services');closeMob()">
+          <span class="mob-svc-item-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M1.371 5.476L11.943 0l10.686 5.476-10.686 5.495zm3.36 4.81l7.212 3.547 7.288-3.547-7.288 3.738zm0 4.153l7.212 3.547 7.288-3.547-7.288 3.738z"/></svg></span> All Services
+        </button>
+        <button class="mob-svc-item" onclick="navigate('svc-web');closeMob()">
+          <span class="mob-svc-item-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M1.5 0h21l-1.91 21.563L11.977 24l-8.565-2.438zm16.95 6.077H5.55l.386 4.364H17.84zm-4.805 7.73l-.22.253-.008.01-1.44.407-1.44-.407-.098-1.077H6.11l.24 2.67 5.627 1.56 5.627-1.56.634-7.11H8.084l-.196-2.182h10.973z"/></svg></span> Website Development
+        </button>
+        <button class="mob-svc-item" onclick="navigate('svc-app');closeMob()">
+          <span class="mob-svc-item-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.18c.64-.78 1.08-1.86.96-2.94-1 .04-2.14.67-2.82 1.46-.59.68-1.12 1.77-.98 2.83 1.11.09 2.21-.57 2.84-1.35z"/></svg></span> Mobile App Development
+        </button>
+        <button class="mob-svc-item" onclick="navigate('svc-seo');closeMob()">
+          <span class="mob-svc-item-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12.01 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24zm0 2.18a9.82 9.82 0 1 1 0 19.64 9.82 9.82 0 0 1 0-19.64zm2.18 4.36l-4.36 4.36 2.18 2.18 4.36-4.36-2.18-2.18zm-5.45 6.54l-2.18 2.18 2.18 2.18 2.18-2.18-2.18-2.18z"/></svg></span> Search Engine Optimization
+        </button>
+        <button class="mob-svc-item" onclick="navigate('svc-smm');closeMob()">
+          <span class="mob-svc-item-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M6.915 4.03c-2.342 0-4.37 1.432-5.26 3.488C.72 9.68 1.09 12.03 2.6 13.79c1.67 1.94 4.08 2.88 6.44 2.88 2.37 0 4.79-.94 6.46-2.88 1.51-1.76 1.88-4.11.95-6.27-.89-2.06-2.92-3.49-5.26-3.49H6.915zm8.97 7.02c-.78 1.5-2.2 2.65-3.88 2.65-1.67 0-3.1-1.15-3.87-2.65-.5-1-.5-2.18 0-3.18.78-1.5 2.2-2.65 3.88-2.65 1.67 0 3.1 1.15 3.87 2.65.5 1 .5 2.18 0 3.18z"/></svg></span> Social Media Management
+        </button>
+        <button class="mob-svc-item" onclick="navigate('svc-perf');closeMob()">
+          <span class="mob-svc-item-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M3.9998 22.9291C1.7908 22.9291 0 21.1383 0 18.9293s1.7908-3.9998 3.9998-3.9998 3.9998 1.7908 3.9998 3.9998-1.7908 3.9998-3.9998 3.9998zm19.4643-6.0004L15.4632 3.072C14.3586 1.1587 11.9121.5028 9.9988 1.6074S7.4295 5.1585 8.5341 7.0718l8.0009 13.8567c1.1046 1.9133 3.5511 2.5679 5.4644 1.4646 1.9134-1.1046 2.568-3.5511 1.4647-5.4644zM7.5137 4.8438L1.5645 15.1484A4.5 4.5 0 0 1 4 14.4297c2.5597-.0075 4.6248 2.1585 4.4941 4.7148l3.2168-5.5723-3.6094-6.25c-.4499-.7793-.6322-1.6394-.5878-2.4784z"/></svg></span> Performance Marketing
+        </button>
+        <button class="mob-svc-item" onclick="navigate('svc-inf');closeMob()">
+          <span class="mob-svc-item-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></span> Influencer Marketing
+        </button>
+        <button class="mob-svc-item" onclick="navigate('svc-ecom');closeMob()">
+          <span class="mob-svc-item-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M15.337 23.979l7.216-1.561s-2.604-17.613-2.625-17.73c-.018-.116-.114-.192-.211-.192s-1.929-.136-1.929-.136-1.275-1.274-1.439-1.411c-.045-.037-.075-.057-.121-.074l-.914 21.104h.023zM11.71 11.305s-.81-.424-1.774-.424c-1.447 0-1.504.906-1.504 1.141 0 1.232 3.24 1.715 3.24 4.629 0 2.295-1.44 3.76-3.406 3.76-2.354 0-3.54-1.465-3.54-1.465l.646-2.086s1.245 1.066 2.28 1.066c.675 0 .975-.545.975-.932 0-1.619-2.654-1.694-2.654-4.359-.034-2.237 1.571-4.416 4.827-4.416 1.257 0 1.875.361 1.875.361l-.945 2.715-.02.01zM11.17.83c.136 0 .271.038.405.135-.984.465-2.064 1.639-2.508 3.992-.656.213-1.293.405-1.889.578C7.697 3.75 8.951.84 11.17.84V.83zm1.235 2.949v.135c-.754.232-1.583.484-2.394.736.466-1.777 1.333-2.645 2.085-2.971.193.501.309 1.176.309 2.1zm.539-2.234c.694.074 1.141.867 1.429 1.755-.349.114-.735.231-1.158.366v-.252c0-.752-.096-1.371-.271-1.871v.002zm2.992 1.289c-.02 0-.06.021-.078.021s-.289.075-.714.21c-.423-1.233-1.176-2.37-2.508-2.37h-.115C12.135.209 11.669 0 11.265 0 8.159 0 6.675 3.877 6.21 5.846c-1.194.365-2.063.636-2.16.674-.675.213-.694.232-.772.87-.075.462-1.83 14.063-1.83 14.063L15.009 24l.927-21.166z"/></svg></span> E-Commerce Marketing
+        </button>
+        <button class="mob-svc-item" onclick="navigate('svc-content');closeMob()">
+          <span class="mob-svc-item-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></span> Content Production
+        </button>
+        <button class="mob-svc-item" onclick="navigate('svc-brand');closeMob()">
+          <span class="mob-svc-item-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M15.852 8.981h-4.588V0h4.588c2.476 0 4.49 2.014 4.49 4.49s-2.014 4.491-4.49 4.491zM12.735 7.51h3.117c1.665 0 3.019-1.355 3.019-3.019s-1.355-3.019-3.019-3.019h-3.117V7.51zm0 1.471H8.148c-2.476 0-4.49-2.014-4.49-4.49S5.672 0 8.148 0h4.588v8.981zm-4.587-7.51c-1.665 0-3.019 1.355-3.019 3.019s1.354 3.02 3.019 3.02h3.117V1.471H8.148zm4.587 15.019H8.148c-2.476 0-4.49-2.014-4.49-4.49s2.014-4.49 4.49-4.49h4.588v8.98zM8.148 8.981c-1.665 0-3.019 1.355-3.019 3.019s1.355 3.019 3.019 3.019h3.117V8.981H8.148zM8.172 24c-2.489 0-4.515-2.014-4.515-4.49s2.014-4.49 4.49-4.49h4.588v4.441c0 2.503-2.047 4.539-4.563 4.539zm-.024-7.51a3.023 3.023 0 0 0-3.019 3.019c0 1.665 1.365 3.019 3.044 3.019 1.705 0 3.093-1.376 3.093-3.068v-2.97H8.148zm7.704 0h-.098c-2.476 0-4.49-2.014-4.49-4.49s2.014-4.49 4.49-4.49h.098c2.476 0 4.49 2.014 4.49 4.49s-2.014 4.49-4.49 4.49zm-.097-7.509c-1.665 0-3.019 1.355-3.019 3.019s1.355 3.019 3.019 3.019h.098c1.665 0 3.019-1.355 3.019-3.019s-1.355-3.019-3.019-3.019h-.098z"/></svg></span> Branding &amp; Advertising Solutions
+        </button>
+        <button class="mob-svc-item" onclick="navigate('svc-ai');closeMob()">
+          <span class="mob-svc-item-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M11.04 19.32Q12 21.51 12 24q0-2.49.93-4.68.96-2.19 2.58-3.81t3.81-2.55Q21.51 12 24 12q-2.49 0-4.68-.93a12.3 12.3 0 0 1-3.81-2.58 12.3 12.3 0 0 1-2.58-3.81Q12 2.49 12 0q0 2.49-.96 4.68-.93 2.19-2.55 3.81a12.3 12.3 0 0 1-3.81 2.58Q2.49 12 0 12q2.49 0 4.68.96 2.19.93 3.81 2.55t2.55 3.81"/></svg></span> AI Doodling / Editing
+        </button>
+      </div>
+
+      <button class="mob-nav-link" onclick="navigate('studio');closeMob()" data-mob-page="studio">
+        Portfolio <span class="mob-nav-link-arrow"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span>
+      </button>
+      <button class="mob-nav-link" onclick="navigate('casestudies');closeMob()" data-mob-page="casestudies">
+        Case Studies <span class="mob-nav-link-arrow"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span>
+      </button>
+
+      <div class="mob-nav-divider"></div>
+      <div class="mob-nav-section-label">Explore</div>
+
+      <button class="mob-nav-link" onclick="navigate('journal');closeMob()" data-mob-page="journal">
+        Journal <span class="mob-nav-link-arrow"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span>
+      </button>
+      <button class="mob-nav-link" onclick="navigate('future');closeMob()" data-mob-page="future">
+        Future Vision <span class="mob-nav-link-arrow"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span>
+      </button>
+      <button class="mob-nav-link" onclick="navigate('faq');closeMob()" data-mob-page="faq">
+        FAQ <span class="mob-nav-link-arrow"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span>
+      </button>
+
+      <!-- CTA -->
+      <div class="mob-nav-divider" style="margin-top:16px;"></div>
+      <button class="mob-nav-cta" onclick="navigate('contact');closeMob()">
+        Start Your Project →
+      </button>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="mob-nav-footer">
+      <div class="mob-nav-footer-copy">© 2026 <span>The Sonic Media</span></div>
+      <div class="mob-nav-socials">
+        <a href="https://wa.me/918733087249" class="mob-nav-social" target="_blank" title="WhatsApp"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg></a>
+        <a href="mailto:info@thesonicmedia.com" class="mob-nav-social" title="Email"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z"/></svg></a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE: HOME
+═══════════════════════════════════════════ -->
+
+<!-- ═══════ ALL PAGE SECTIONS ═══════ -->
+
+<!-- ═══════ PAGE CONTENT ═══════ -->
+<div id="page-svc-content" class="page active">
+
+  <!-- ═══ HERO ═══ -->
+  <section id="wsv-hero-new" style="min-height:100vh;overflow:hidden;background:#000;">
+    <!-- MOBILE HERO (matches homepage mobile hero, same video) -->
+    <div class="svc-mobile-hero" aria-hidden="true">
+      <div class="svc-mobile-hero-bg">
+        <video src="https://res.cloudinary.com/dq2nrpky0/video/upload/v1781960249/Vid_msgtsg.mp4" autoplay muted loop playsinline></video>
+        <div class="svc-mobile-hero-overlay"></div>
+      </div>
+      <div class="svc-mobile-hero-eyebrow">PREMIUM CONTENT STUDIO · AHMEDABAD</div>
+      <div class="svc-mobile-hero-panel">
+        <h1 class="svc-mobile-hero-h1">
+          <span class="line">WE CREATE</span>
+          <span class="line">CONTENT</span>
+          <span class="line">THAT <span class="or">CONVERTS.</span></span>
+        </h1>
+        <div class="svc-mobile-hero-btns">
+          <a href="#wsv-final-cta" onclick="document.getElementById('wsv-final-cta').scrollIntoView({behavior:'smooth'});return false;">Book a Production Session</a>
+          <a href="#" onclick="navigate('studio');return false;">View Content Portfolio</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-inner-grid">
+
+      <!-- LEFT: CONTENT -->
+      <div class="hero-left">
+        <div class="eyebrow" id="nhEyebrow">PREMIUM CONTENT STUDIO · AHMEDABAD</div>
+        <h1 class="hero-h1">
+          <span class="line-wrap"><span class="line">WE CREATE</span></span>
+          <span class="line-wrap"><span class="line">CONTENT</span></span>
+          <span class="line-wrap"><span class="line">THAT <span class="or">CONVERTS.</span></span></span>
+        </h1>
+        <p class="hero-sub" id="nhSub">
+          Cinematic video, photography, reels, and written content crafted to stop the scroll — produced in-house with studio-quality output.
+        </p>
+        <div class="hero-btns" id="nhBtns">
+          <a href="#wsv-final-cta" onclick="document.getElementById('wsv-final-cta').scrollIntoView({behavior:'smooth'});return false;" class="btn-primary">
+            Book a Production Session
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+              <path d="M2 6h8M6 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+          <a href="#" onclick="navigate('studio');return false;" class="btn-ghost">View Content Portfolio</a>
+        </div>
+      </div>
+
+      <!-- RIGHT: GLOBE GALLERY -->
+      <div class="hero-right">
+        <!-- Glows -->
+        <div class="globe-glow globe-glow-1"></div>
+        <div class="globe-glow globe-glow-2"></div>
+        <div class="globe-glow globe-glow-3"></div>
+        <!-- Vignette -->
+        <div class="globe-vignette"></div>
+        <!-- Badge / hint -->
+        <div class="globe-count" id="gbCountBadge"></div>
+        <div class="globe-drag-hint">Drag to rotate</div>
+        <!-- 3D Scene -->
+        <div class="globe-scene">
+          <div class="globe-wrap" id="gbGlobe"></div>
+        </div>
+        <!-- Search animation overlay -->
+        <div class="globe-search-stage" id="gbSearchStage">
+          <div class="globe-dot" id="gbDot"></div>
+          <div class="globe-ring-anim" id="gbRingAnim"></div>
+          <div class="globe-search-bar" id="gbSearchBar">
+            <div class="globe-search-inner" id="gbSearchInner">
+              <svg class="globe-search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <circle cx="6.5" cy="6.5" r="5" stroke="rgba(240,235,224,0.6)" stroke-width="1.4"/>
+                <path d="M10.5 10.5L14 14" stroke="rgba(240,235,224,0.6)" stroke-width="1.4" stroke-linecap="round"/>
+              </svg>
+              <span class="globe-search-text"><span id="gbTypedText"></span><span class="globe-search-cursor" id="gbCursor"></span></span>
+              <span class="globe-search-pill">Search</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <script>
+  /* ── GLOBE GALLERY SCRIPTS ── */
+  (function() {
+  'use strict';
+
+  // ── IMAGE POOL ──────────────────────────────────────────────
+  const images = [
+    { url: 'https://res.cloudinary.com/dq2nrpky0/image/upload/v1779983858/MH_1_1_exys0k.jpg', label: 'Architecture' },
+    { url: 'https://res.cloudinary.com/dq2nrpky0/image/upload/v1779983858/MH_1_2_u09mx4.jpg', label: 'Urban' },
+    { url: 'https://res.cloudinary.com/dq2nrpky0/image/upload/v1779983857/MH_1_3_jwlpcu.jpg', label: 'Cityscape' },
+    { url: 'https://res.cloudinary.com/dq2nrpky0/image/upload/v1779983858/MH_1_4_efibsj.jpg', label: 'Interior' },
+    { url: 'https://res.cloudinary.com/dq2nrpky0/image/upload/v1779983857/MH_1_5_qvqzfz.jpg', label: 'Art' },
+    { url: 'https://res.cloudinary.com/dq2nrpky0/image/upload/v1779985567/MH_2_1_bj1xfr.jpg', label: 'Office' },
+    { url: 'https://res.cloudinary.com/dq2nrpky0/image/upload/v1779985567/MH_2_2_owrlks.jpg', label: 'Modern' },
+    { url: 'https://res.cloudinary.com/dq2nrpky0/image/upload/v1779985568/MH_2_3_fcjg16.jpg', label: 'Neon' },
+    { url: 'https://res.cloudinary.com/dq2nrpky0/image/upload/v1779985567/MH_2_4_dpznik.jpg', label: 'Fashion' },
+    { url: 'https://res.cloudinary.com/dq2nrpky0/image/upload/v1779985568/MH_2_5_qzu7sq.jpg', label: 'Editorial' },
+    { url: 'https://res.cloudinary.com/dq2nrpky0/image/upload/v1779986862/MH_3_1_j16yhi.jpg', label: 'Runway' },
+    { url: 'https://res.cloudinary.com/dq2nrpky0/image/upload/v1779986860/MH_3_2_ynn2ky.jpg', label: 'Portrait' },
+    { url: 'https://res.cloudinary.com/dq2nrpky0/image/upload/v1779986863/MH_3_3_jzk0tb.jpg', label: 'Studio' },
+    { url: 'https://res.cloudinary.com/dq2nrpky0/image/upload/v1779986860/MH_3_4_bs7s7y.jpg', label: 'Elegance' },
+    { url: 'https://res.cloudinary.com/dq2nrpky0/image/upload/v1779987237/MH_3_5_wjxoyj.jpg', label: 'Lifestyle' },
+    { url: 'https://res.cloudinary.com/dq2nrpky0/image/upload/v1779988339/MH_4_1_qqzr7l.jpg', label: 'Glamour' },
+    { url: 'https://res.cloudinary.com/dq2nrpky0/image/upload/v1779988341/MH_4_2_n4fi3z.jpg', label: 'Mountains' },
+    { url: 'https://res.cloudinary.com/dq2nrpky0/image/upload/v1779988341/MH_4_3_hli4an.jpg', label: 'Coast' },
+    { url: 'https://res.cloudinary.com/dq2nrpky0/image/upload/v1779988342/MH_4_4_wp8ism.jpg', label: 'Forest' },
+    { url: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=500&q=75', label: 'Wilderness' },
+    { url: 'https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=500&q=75', label: 'Landscape' },
+    { url: 'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=500&q=75', label: 'Ocean' },
+    { url: 'https://images.unsplash.com/photo-1519046904884-53103b34b206?w=500&q=75', label: 'Seascape' },
+    { url: 'https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?w=500&q=75', label: 'Night Sky' },
+    { url: 'https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?w=500&q=75', label: 'Aurora' },
+    { url: 'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=500&q=75', label: 'Desert' },
+    { url: 'https://images.unsplash.com/photo-1490682143684-14369e18dce8?w=500&q=75', label: 'Dunes' },
+    { url: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?w=500&q=75', label: 'Camping' },
+    { url: 'https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=500&q=75', label: 'Valley' },
+    { url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=500&q=75', label: 'Woodland' },
+    { url: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=500&q=75', label: 'Cuisine' },
+    { url: 'https://images.unsplash.com/photo-1559181567-c3190ca9be46?w=500&q=75', label: 'Still Life' },
+    { url: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=75', label: 'Food Art' },
+    { url: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=500&q=75', label: 'Gourmet' },
+    { url: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=500&q=75', label: 'Baking' },
+    { url: 'https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=500&q=75', label: 'Plating' },
+    { url: 'https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=500&q=75', label: 'Automotive' },
+    { url: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=500&q=75', label: 'Speed' },
+    { url: 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=500&q=75', label: 'Classic Car' },
+    { url: 'https://images.unsplash.com/photo-1502877338535-766e1452684a?w=500&q=75', label: 'Drive' },
+    { url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&q=75', label: 'Abstract' },
+    { url: 'https://images.unsplash.com/photo-1578926288207-32356a8c1fe1?w=500&q=75', label: 'Design' },
+    { url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&q=75', label: 'Portrait' },
+    { url: 'https://images.unsplash.com/photo-1520209759809-a9bcb6cb3241?w=500&q=75', label: 'Texture' },
+    { url: 'https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?w=500&q=75', label: 'Geometry' },
+    { url: 'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=500&q=75', label: 'Minimal' },
+    { url: 'https://images.unsplash.com/photo-1499678329028-101435549a4e?w=500&q=75', label: 'Travel' },
+    { url: 'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=500&q=75', label: 'Dubai' },
+    { url: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=500&q=75', label: 'London' },
+    { url: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=500&q=75', label: 'Paris' },
+    { url: 'https://images.unsplash.com/photo-1534430480872-3498386e7856?w=500&q=75', label: 'Santorini' },
+    { url: 'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=500&q=75', label: 'Tokyo' },
+    { url: 'https://images.unsplash.com/photo-1518684079-3c830dcef090?w=500&q=75', label: 'Maldives' },
+    { url: 'https://images.unsplash.com/photo-1527838832700-5059252407fa?w=500&q=75', label: 'Morocco' },
+    { url: 'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9?w=500&q=75', label: 'Venice' },
+    { url: 'https://images.unsplash.com/photo-1504870712357-65ea720d6078?w=500&q=75', label: 'Iceland' },
+    { url: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=500&q=75', label: 'Space' },
+    { url: 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=500&q=75', label: 'Galaxy' },
+    { url: 'https://images.unsplash.com/photo-1516339901601-2e1b62dc0c45?w=500&q=75', label: 'Tech' },
+    { url: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=500&q=75', label: 'Circuit' },
+    { url: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=500&q=75', label: 'Cycling' },
+    { url: 'https://images.unsplash.com/photo-1530549387789-4c1017266635?w=500&q=75', label: 'Athletics' },
+    { url: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&q=75', label: 'Fitness' },
+    { url: 'https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=500&q=75', label: 'Workout' },
+    { url: 'https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=500&q=75', label: 'Wildlife' },
+    { url: 'https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=500&q=75', label: 'Sea Life' },
+    { url: 'https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=500&q=75', label: 'Animals' },
+    { url: 'https://images.unsplash.com/photo-1425082661705-1834bfd09dca?w=500&q=75', label: 'Safari' },
+    { url: 'https://images.unsplash.com/photo-1505144808419-1957a94ca61e?w=500&q=75', label: 'Reflection' },
+    { url: 'https://images.unsplash.com/photo-1477322524744-0eece9e79640?w=500&q=75', label: 'Lake' },
+    { url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=500&q=75', label: 'Waterfall' },
+    { url: 'https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?w=500&q=75', label: 'River' },
+    { url: 'https://images.unsplash.com/photo-1490750967868-88df5691cc5e?w=500&q=75', label: 'Bloom' },
+    { url: 'https://images.unsplash.com/photo-1508610048659-a06b669e3321?w=500&q=75', label: 'Floral' },
+    { url: 'https://images.unsplash.com/photo-1457530378978-8bac673b8062?w=500&q=75', label: 'Macro' },
+    { url: 'https://images.unsplash.com/photo-1444930694458-01babf71870c?w=500&q=75', label: 'Garden' },
+  ];
+
+  // ── RINGS CONFIG ─────────────────────────────────────────────
+  const rings = [
+    { lat:  80, n:  7, r: 900, w: 130, h:  92 },
+    { lat:  70, n: 11, r: 900, w: 140, h:  98 },
+    { lat:  60, n: 15, r: 900, w: 155, h: 110 },
+    { lat:  50, n: 18, r: 900, w: 163, h: 114 },
+    { lat:  40, n: 20, r: 900, w: 172, h: 120 },
+    { lat:  30, n: 22, r: 900, w: 178, h: 124 },
+    { lat:  20, n: 24, r: 900, w: 182, h: 127 },
+    { lat:  10, n: 25, r: 900, w: 185, h: 129 },
+    { lat:   0, n: 25, r: 900, w: 186, h: 130 },
+    { lat: -10, n: 25, r: 900, w: 185, h: 129 },
+    { lat: -20, n: 24, r: 900, w: 182, h: 127 },
+    { lat: -30, n: 22, r: 900, w: 178, h: 124 },
+    { lat: -40, n: 20, r: 900, w: 172, h: 120 },
+    { lat: -50, n: 18, r: 900, w: 163, h: 114 },
+    { lat: -60, n: 15, r: 900, w: 155, h: 110 },
+    { lat: -70, n: 11, r: 900, w: 140, h:  98 },
+    { lat: -80, n:  7, r: 900, w: 130, h:  92 },
+  ];
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  const globe = document.getElementById('gbGlobe');
+  const totalCards = rings.reduce((s, r) => s + r.n, 0);
+  let pool = shuffle(images);
+  while (pool.length < totalCards) pool = [...pool, ...shuffle(images)];
+  let imgIdx = 0;
+
+  rings.forEach(({ lat, n, r, w, h }) => {
+    const latRad = (lat * Math.PI) / 180;
+    const ringR  = r * Math.cos(latRad);
+    const yOff   = r * Math.sin(latRad);
+    for (let i = 0; i < n; i++) {
+      const angle = (360 / n) * i;
+      const img   = pool[imgIdx % pool.length];
+      imgIdx++;
+      const card = document.createElement('div');
+      card.className = 'globe-card';
+      card.style.width     = w + 'px';
+      card.style.height    = h + 'px';
+      card.style.marginLeft = -(w / 2) + 'px';
+      card.style.marginTop  = -(h / 2) + 'px';
+      card.style.transform = `rotateY(${angle}deg) translateZ(${ringR}px) translateY(${-yOff}px) rotateY(180deg)`;
+      card.innerHTML = `<img src="${img.url}" alt="${img.label}" loading="lazy" decoding="async">`;
+      globe.appendChild(card);
+    }
+  });
+
+  document.getElementById('gbCountBadge').textContent = totalCards + ' Visuals';
+
+  // ── DRAG ────────────────────────────────────────────────────
+  let isDragging = false, prevX = 0, prevY = 0, velX = 0, velY = 0, animId;
+  let rotX = -8, rotY = 0;
+
+  const heroRight = globe.closest('.hero-right');
+
+  heroRight.addEventListener('mousedown', e => {
+    isDragging = true;
+    prevX = e.clientX; prevY = e.clientY;
+    cancelAnimationFrame(animId);
+    globe.style.animation = 'none';
+  });
+  document.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    const dx = e.clientX - prevX, dy = e.clientY - prevY;
+    velX = dx * 0.4; velY = dy * 0.4;
+    rotY += dx * 0.25; rotX -= dy * 0.12;
+    rotX = Math.max(-65, Math.min(65, rotX));
+    globe.style.transform = `rotateY(${rotY}deg) rotateX(${rotX}deg)`;
+    prevX = e.clientX; prevY = e.clientY;
+  });
+  document.addEventListener('mouseup', () => { if (isDragging) { isDragging = false; inertia(); } });
+
+  function inertia() {
+    velX *= 0.93; velY *= 0.93;
+    rotY += velX; rotX -= velY;
+    rotX = Math.max(-65, Math.min(65, rotX));
+    globe.style.transform = `rotateY(${rotY}deg) rotateX(${rotX}deg)`;
+    if (Math.abs(velX) > 0.04 || Math.abs(velY) > 0.04) {
+      animId = requestAnimationFrame(inertia);
+    } else {
+      globe.style.animation = '';
+      globe.style.transform = '';
+    }
+  }
+
+  // Touch
+  let prevTX = 0, prevTY = 0;
+  heroRight.addEventListener('touchstart', e => {
+    isDragging = true;
+    prevTX = e.touches[0].clientX; prevTY = e.touches[0].clientY;
+    cancelAnimationFrame(animId);
+    globe.style.animation = 'none';
+  }, { passive: true });
+  document.addEventListener('touchmove', e => {
+    if (!isDragging) return;
+    const dx = e.touches[0].clientX - prevTX, dy = e.touches[0].clientY - prevTY;
+    velX = dx * 0.4; velY = dy * 0.4;
+    rotY += dx * 0.25; rotX -= dy * 0.12;
+    rotX = Math.max(-65, Math.min(65, rotX));
+    globe.style.transform = `rotateY(${rotY}deg) rotateX(${rotX}deg)`;
+    prevTX = e.touches[0].clientX; prevTY = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchend', () => { if (isDragging) { isDragging = false; inertia(); } });
+
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    globe.style.animationPlayState = 'paused';
+  }
+
+  // ── SEARCH ANIMATION (looping) ───────────────────────────────
+  (function() {
+    const dot     = document.getElementById('gbDot');
+    const ring    = document.getElementById('gbRingAnim');
+    const bar     = document.getElementById('gbSearchBar');
+    const inner   = document.getElementById('gbSearchInner');
+    const typedEl = document.getElementById('gbTypedText');
+    const cursor  = document.getElementById('gbCursor');
+
+    const FINAL_W   = 520;
+    const RING_SIZE = FINAL_W;
+
+    function easeOutExpo(t)    { return t === 1 ? 1 : 1 - Math.pow(2, -10 * t); }
+    function easeOutBack(t)    { const c1=1.70158,c3=c1+1; return 1+c3*Math.pow(t-1,3)+c1*Math.pow(t-1,2); }
+    function easeInOutQuart(t) { return t<0.5 ? 8*t*t*t*t : 1-Math.pow(-2*t+2,4)/2; }
+    function easeInBack(t)     { const c1=1.70158,c3=c1+1; return c3*t*t*t - c1*t*t; }
+    function easeInExpo(t)     { return t === 0 ? 0 : Math.pow(2, 10*t - 10); }
+    function easeOutQuart(t)   { return 1 - Math.pow(1-t, 4); }
+
+    function animate(duration, easing, onTick, onDone) {
+      const start = performance.now();
+      function frame(now) {
+        let t = Math.min((now - start) / duration, 1);
+        onTick(easing(t));
+        if (t < 1) requestAnimationFrame(frame);
+        else if (onDone) onDone();
+      }
+      requestAnimationFrame(frame);
+    }
+    function lerp(a, b, t) { return a + (b - a) * t; }
+
+    function resetState() {
+      dot.style.display    = '';
+      dot.style.opacity    = '1';
+      dot.style.transform  = 'scale(1)';
+      dot.style.animation  = 'gbDotPulse 1.2s ease-in-out infinite alternate';
+      ring.style.display   = '';
+      ring.style.opacity   = '0';
+      ring.style.width     = '0px';
+      ring.style.height    = '0px';
+      ring.style.transform = 'scale(1)';
+      ring.style.boxShadow = '';
+      ring.style.border    = '1.5px solid rgba(201,169,110,0.85)';
+      bar.style.opacity    = '0';
+      bar.style.width      = '0px';
+      bar.style.height     = '0px';
+      bar.style.transform  = 'scale(1)';
+      bar.style.boxShadow  = '';
+      inner.style.opacity  = '0';
+      typedEl.textContent  = '';
+      cursor.style.animation = 'none';
+      cursor.style.opacity = '1';
+    }
+
+    function runLoop() {
+      resetState();
+      setTimeout(() => {
+        dot.style.animation = 'none';
+        animate(600, easeOutExpo, t => {
+          dot.style.opacity   = lerp(1, 0, t);
+          dot.style.transform = `scale(${lerp(1, 0.2, t)})`;
+          const size = lerp(8, RING_SIZE, t);
+          ring.style.width    = size + 'px';
+          ring.style.height   = size + 'px';
+          ring.style.opacity  = lerp(0, 1, Math.min(t * 2, 1));
+          const glow = lerp(0, 18, t);
+          ring.style.boxShadow = `0 0 ${glow}px 2px rgba(201,169,110,${lerp(0,0.55,t)}), inset 0 0 ${glow*0.5}px 1px rgba(201,169,110,${lerp(0,0.2,t)})`;
+        }, () => {
+          dot.style.display    = 'none';
+          bar.style.width      = RING_SIZE + 'px';
+          bar.style.opacity    = '1';
+          bar.style.borderRadius = '999px';
+          bar.style.transform  = 'scale(1)';
+          animate(700, easeOutBack, t => {
+            ring.style.opacity   = lerp(1, 0, Math.min(t * 1.5, 1));
+            ring.style.transform = `scale(${lerp(1, 1.04, t)})`;
+            bar.style.width      = lerp(RING_SIZE, FINAL_W, t) + 'px';
+            bar.style.height     = lerp(RING_SIZE, 52, t) + 'px';
+            const gl = lerp(4, 30, t);
+            bar.style.boxShadow  = `0 0 0 1px rgba(201,169,110,${lerp(0.12,0.22,t)}), 0 0 ${gl}px 4px rgba(201,169,110,${lerp(0.18,0.28,t)}), 0 8px 40px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07)`;
+          }, () => {
+            ring.style.display = 'none';
+            animate(300, easeInOutQuart, t => {
+              inner.style.opacity = t;
+            }, () => {
+              const text = 'Content Production';
+              let i = 0;
+              cursor.style.animation = 'gbBlink 1s step-end infinite';
+              function typeNext() {
+                if (i <= text.length) {
+                  typedEl.textContent = text.slice(0, i++);
+                  setTimeout(typeNext, i === 1 ? 300 : 68 + Math.random() * 45);
+                } else {
+                  setTimeout(startClose, 1000);
+                }
+              }
+              setTimeout(typeNext, 200);
+            });
+          });
+        });
+      }, 1400);
+    }
+
+    function startClose() {
+      cursor.style.animation = 'none';
+      cursor.style.opacity   = '1';
+      const fullText = typedEl.textContent;
+      let len = fullText.length;
+      function deleteNext() {
+        if (len >= 0) {
+          typedEl.textContent = fullText.slice(0, len--);
+          setTimeout(deleteNext, 22 + Math.random() * 12);
+        } else {
+          animate(280, easeInBack, t => {
+            inner.style.opacity = lerp(1, 0, Math.min(t * 4, 1));
+            const w = lerp(FINAL_W, RING_SIZE, t);
+            const h = lerp(52, RING_SIZE, t);
+            bar.style.width  = w + 'px';
+            bar.style.height = h + 'px';
+            const squish = 1 + Math.sin(t * Math.PI) * 0.07;
+            bar.style.transform = `scaleX(${1/squish}) scaleY(${squish})`;
+            const gl = lerp(30, 10, t);
+            bar.style.boxShadow = `0 0 0 1px rgba(201,169,110,${lerp(0.22,0.65,t)}), 0 0 ${gl}px 4px rgba(201,169,110,${lerp(0.28,0.55,t)}), inset 0 1px 0 rgba(255,255,255,0.07)`;
+          }, () => {
+            ring.style.display   = '';
+            ring.style.opacity   = '1';
+            ring.style.width     = RING_SIZE + 'px';
+            ring.style.height    = RING_SIZE + 'px';
+            ring.style.transform = 'scale(1)';
+            ring.style.border    = '1.5px solid rgba(201,169,110,0.9)';
+            ring.style.boxShadow = `0 0 18px 2px rgba(201,169,110,0.55), inset 0 0 9px 1px rgba(201,169,110,0.2)`;
+            bar.style.opacity    = '0';
+            bar.style.transform  = 'scale(1)';
+            animate(380, easeInExpo, t => {
+              const size = lerp(RING_SIZE, 8, t);
+              ring.style.width  = size + 'px';
+              ring.style.height = size + 'px';
+              ring.style.border = `${lerp(1.5, 3.5, t)}px solid rgba(201,169,110,${lerp(0.9, 1, t)})`;
+              ring.style.opacity = t > 0.75 ? lerp(1, 0, (t - 0.75) / 0.25) : '1';
+              const glow = lerp(18, 0, t);
+              ring.style.boxShadow = `0 0 ${glow}px 2px rgba(201,169,110,${lerp(0.55,0,t)}), inset 0 0 ${glow*0.5}px 1px rgba(201,169,110,${lerp(0.2,0,t)})`;
+            }, () => {
+              ring.style.display  = 'none';
+              dot.style.display   = '';
+              dot.style.opacity   = '0';
+              dot.style.transform = 'scale(2.4)';
+              dot.style.animation = 'none';
+              animate(220, easeOutQuart, t => {
+                dot.style.opacity   = lerp(0, 1, t);
+                dot.style.transform = `scale(${lerp(2.4, 1, t)})`;
+              }, () => {
+                dot.style.animation = 'gbDotPulse 1.2s ease-in-out infinite alternate';
+                setTimeout(runLoop, 900);
+              });
+            });
+          });
+        }
+      }
+      deleteNext();
+    }
+
+    runLoop();
+  })();
+
+  // ── GSAP entrance for left panel ─────────────────────────────
+  if (typeof gsap !== 'undefined') {
+    var tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+    tl.to('#wsv-hero-new .eyebrow', { opacity:1, y:0, duration:0.7, delay:0.15 })
+      .to('#wsv-hero-new .line', { y:'0%', duration:0.9, stagger:0.12, ease:'power4.out' }, '-=0.3')
+      .to('#wsv-hero-new .hero-sub', { opacity:1, y:0, duration:0.7 }, '-=0.4')
+      .to('#wsv-hero-new .hero-btns', { opacity:1, y:0, duration:0.6 }, '-=0.45');
+  }
+
+  })();
+  </script>
+
+
+  <section class="app-process-tl-section" id="wsv-process">
+  <style>
+  .app-process-tl-section {
+    background: #07080c;
+    padding: 100px 0 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .app-process-tl-section::before {
+    content: '';
+    position: absolute;
+    top: -200px; left: 50%;
+    transform: translateX(-50%);
+    width: 900px; height: 600px;
+    background: radial-gradient(ellipse, rgba(255,92,0,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .app-ptl-header {
+    text-align: left;
+    padding: 0 0 72px;
+    
+    margin: 0;
+  }
+  .app-ptl-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 600;
+    letter-spacing: .22em; text-transform: uppercase;
+    color: #ff5c00; background: rgba(255,92,0,.08);
+    border: 1px solid rgba(255,92,0,.2); padding: 7px 16px;
+    border-radius: 100px; margin-bottom: 24px;
+  }
+  .app-ptl-eyebrow-dot {
+    width: 5px; height: 5px; border-radius: 50%; background: #ff5c00;
+    animation: app-ptl-pulse 2s infinite;
+  }
+  @keyframes app-ptl-pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(255,92,0,.6); }
+    50% { box-shadow: 0 0 0 7px rgba(255,92,0,0); }
+  }
+  .app-ptl-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(44px, 5.5vw, 80px);
+    color: #fff; line-height: .93; letter-spacing: -.01em;
+    margin-bottom: 18px;
+  }
+  .app-ptl-title span { color: #ff5c00; }
+  .app-ptl-sub {
+    font-size: 15px; line-height: 1.75;
+    color: rgba(255,255,255,.42);
+    font-family: 'DM Sans', sans-serif;
+  }
+  .app-ptl-inner {
+    max-width: 1380px; margin: 0 auto;
+    padding: 0 60px 100px;
+  }
+  .app-ptl-track {
+    position: relative;
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 0;
+  }
+  .app-ptl-track::before {
+    content: '';
+    position: absolute;
+    top: 36px; left: calc(100% / 10); right: calc(100% / 10);
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,92,0,.4) 15%, rgba(255,92,0,.4) 85%, transparent);
+    z-index: 0;
+  }
+  .app-ptl-step {
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center; padding: 0 8px;
+    position: relative; z-index: 1;
+    cursor: pointer;
+  }
+  .app-ptl-node {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: #111; border: 2px solid rgba(255,255,255,.08);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; margin-bottom: 20px;
+    transition: all .3s; flex-shrink: 0;
+    position: relative;
+  }
+  .app-ptl-node::before {
+    content: '';
+    position: absolute; inset: -5px; border-radius: 50%;
+    border: 1px solid transparent;
+    transition: border-color .3s;
+  }
+  .app-ptl-step.active .app-ptl-node,
+  .app-ptl-step:hover .app-ptl-node {
+    background: #ff5c00;
+    border-color: #ff5c00;
+    box-shadow: 0 0 30px rgba(255,92,0,.5);
+    transform: scale(1.1);
+  }
+  .app-ptl-step.active .app-ptl-node::before,
+  .app-ptl-step:hover .app-ptl-node::before {
+    border-color: rgba(255,92,0,.3);
+  }
+  .app-ptl-step-num {
+    position: absolute; top: -8px; right: -4px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #ff5c00; border: 2px solid #0a0a0a;
+    font-family: 'Syne', sans-serif; font-size: 9px; font-weight: 700;
+    color: #fff; display: flex; align-items: center; justify-content: center;
+  }
+  .app-ptl-step.active .app-ptl-step-num { background: #fff; color: #ff5c00; }
+  .app-ptl-step-label {
+    font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 700;
+    letter-spacing: .06em; text-transform: uppercase;
+    color: rgba(255,255,255,.35); line-height: 1.4; transition: color .3s;
+  }
+  .app-ptl-step.active .app-ptl-step-label,
+  .app-ptl-step:hover .app-ptl-step-label { color: #fff; }
+  .app-ptl-detail {
+    margin-top: 48px;
+    background: linear-gradient(135deg, #111316 0%, #0d0f14 100%);
+    border: 1px solid rgba(255,92,0,.2);
+    border-radius: 20px; padding: 36px 40px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
+    animation: app-ptl-panel-in .3s ease;
+  }
+  @keyframes app-ptl-panel-in {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .app-ptl-detail-step-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,92,0,.1); border: 1px solid rgba(255,92,0,.25);
+    padding: 5px 14px; border-radius: 100px; margin-bottom: 16px;
+    font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 700;
+    letter-spacing: .14em; text-transform: uppercase; color: #ff5c00;
+  }
+  .app-ptl-detail-title {
+    font-family: 'Bebas Neue', sans-serif; font-size: 40px; line-height: 1;
+    color: #fff; margin-bottom: 14px;
+  }
+  .app-ptl-detail-desc {
+    font-family: 'DM Sans', sans-serif; font-size: 14px; line-height: 1.75;
+    color: rgba(255,255,255,.45); margin-bottom: 24px;
+  }
+  .app-ptl-detail-tasks { display: flex; flex-direction: column; gap: 8px; }
+  .app-ptl-detail-task {
+    display: flex; align-items: center; gap: 10px;
+    font-family: 'DM Sans', sans-serif; font-size: 13px;
+    color: rgba(255,255,255,.6);
+  }
+  .app-ptl-detail-task::before {
+    content: ''; width: 6px; height: 6px; border-radius: 50%;
+    background: #ff5c00; flex-shrink: 0;
+  }
+  .app-ptl-detail-right {
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .app-ptl-mock-card {
+    background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06);
+    border-radius: 12px; padding: 16px 18px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .app-ptl-mock-icon {
+    width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+    background: rgba(255,92,0,.12); border: 1px solid rgba(255,92,0,.2);
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+  }
+  .app-ptl-mock-label {
+    font-family: 'Syne', sans-serif; font-size: 9px; font-weight: 700;
+    letter-spacing: .1em; text-transform: uppercase;
+    color: rgba(255,255,255,.3); margin-bottom: 3px;
+  }
+  .app-ptl-mock-val {
+    font-family: 'DM Sans', sans-serif; font-size: 13px; color: rgba(255,255,255,.7);
+  }
+  .app-ptl-mock-bar {
+    height: 4px; border-radius: 2px; background: rgba(255,255,255,.06);
+    margin-top: 8px; overflow: hidden;
+  }
+  .app-ptl-mock-bar-fill {
+    height: 100%; border-radius: 2px; background: #ff5c00;
+    transition: width .6s ease;
+  }
+  @media (max-width: 900px) {
+    .app-process-tl-section { padding: 56px 0 0; }
+    .app-ptl-inner { padding: 0 16px 56px; }
+    .app-ptl-header { padding: 0 0 40px; }
+    .app-ptl-title { font-size: clamp(32px, 8vw, 52px); }
+    .app-ptl-sub { font-size: 13px; line-height: 1.65; }
+    .app-ptl-track {
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 8px;
+      scrollbar-width: none;
+    }
+    .app-ptl-track::-webkit-scrollbar { display: none; }
+    .app-ptl-track::before { display: none; }
+    .app-ptl-step { padding: 8px 4px; min-width: 56px; }
+    .app-ptl-node {
+      width: 48px; height: 48px; font-size: 18px;
+      margin-bottom: 10px;
+      overflow: visible;
+    }
+    .app-ptl-step-num {
+      width: 18px; height: 18px; font-size: 8px;
+      top: -6px; right: -3px;
+    }
+    .app-ptl-step-label { font-size: 8px; letter-spacing: .03em; line-height: 1.3; }
+    .app-ptl-detail { grid-template-columns: 1fr; gap: 20px; padding: 20px 16px; margin-top: 28px; border-radius: 14px; }
+    .app-ptl-detail-title { font-size: 28px; }
+    .app-ptl-detail-desc { font-size: 13px; margin-bottom: 16px; }
+    .app-ptl-mock-card { padding: 12px 14px; gap: 10px; }
+    .app-ptl-mock-icon { width: 34px; height: 34px; font-size: 15px; }
+  }
+  @media (max-width: 480px) {
+    .app-ptl-track { grid-template-columns: repeat(5, minmax(52px, 1fr)); }
+    .app-ptl-step { min-width: 52px; }
+  }
+  </style>
+
+  <div class="app-ptl-inner">
+    <div class="app-ptl-header">
+    <div class="app-ptl-eyebrow"><span class="app-ptl-eyebrow-dot"></span>How We Produce Content</div>
+    <h2 class="app-ptl-title">OUR CONTENT PRODUCTION<br><span>PROCESS IN ACTION</span></h2>
+    <p class="app-ptl-sub">Five studio-grade phases — from strategy to final delivery — engineered to produce content that builds audiences, drives engagement, and earns trust.</p>
+  </div>
+    <div class="app-ptl-track" id="appPtlTrackContent">
+      <div class="app-ptl-step active" data-step="0">
+        <div class="app-ptl-node"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.981-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046.935-.56.935-1.167V6.354c0-.606-.233-.933-.748-.887l-15.177.887c-.56.047-.747.327-.747.933zm14.337.745c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.139c-.093-.514.28-.887.747-.933zM1.936 1.035l13.31-.98c1.634-.14 2.055-.047 3.082.7l4.249 2.986c.7.513.934.653.934 1.213v16.378c0 1.026-.373 1.634-1.68 1.726l-15.458.934c-.98.047-1.448-.093-1.962-.747l-3.129-4.06c-.56-.747-.793-1.306-.793-1.96V2.667c0-.839.374-1.54 1.447-1.632z"/></svg><span class="app-ptl-step-num">1</span></div>
+        <div class="app-ptl-step-label">Content Strategy &<br>Planning</div>
+      </div>
+      <div class="app-ptl-step" data-step="1">
+        <div class="app-ptl-node"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M15.502 13.035c-.5 0-.756-.411-.756-.917 0-.505.252-.894.756-.894.513 0 .756.407.756.894-.004.515-.261.917-.756.917Zm-4.888-1.81c.292 0 .414.17.414.317 0 .357-.365.514-1.126.536 0-.442.253-.854.712-.854Zm-3.241 1.81c-.473 0-.67-.384-.67-.917 0-.527.202-.894.67-.894.477 0 .702.38.702.894 0 .537-.234.917-.702.917Zm-3.997-2.334h-.738l1.224 2.808c-.234.519-.36.648-.522.648-.171 0-.333-.138-.45-.259l-.324.43c.22.232.522.366.832.366.387 0 .685-.224.856-.626l1.413-3.371h-.725l-.738 2.012-.828-2.008Zm19.553.523c.36 0 .432.246.432.823v1.516H24v-1.914c0-.689-.473-.988-.91-.988-.386 0-.742.241-.94.688a.901.901 0 0 0-.891-.688c-.365 0-.73.232-.927.666v-.626h-.64v2.857h.64v-1.22c0-.617.324-1.114.765-1.114.36 0 .427.246.427.823v1.516h.64l-.005-1.225c0-.617.329-1.114.77-1.114Zm-5.1-.523h-.324v2.857h.639v-1.095c0-.693.306-1.163.76-1.163.118 0 .217.005.325.05l.099-.676c-.081-.009-.153-.018-.225-.018-.45 0-.774.309-.964.707V10.7h-.31Zm-2.327-.045c-.846 0-1.418.644-1.418 1.458 0 .845.58 1.475 1.418 1.475.85 0 1.431-.648 1.431-1.475-.004-.818-.594-1.458-1.431-1.458Zm-4.852 2.38c-.333 0-.581-.17-.685-.515.847-.036 1.675-.242 1.675-.988 0-.43-.423-.872-1.03-.872-.82 0-1.374.666-1.374 1.457 0 .828.545 1.476 1.36 1.476.567 0 .927-.228 1.21-.559l-.31-.42c-.329.335-.531.42-.846.42Zm-3.151-2.38c-.324 0-.648.188-.774.483v-.438h-.64v3.98h.64v-1.422c.135.205.445.34.72.34.85 0 1.3-.631 1.3-1.48-.004-.841-.445-1.463-1.246-1.463Zm-4.483-1.1H0v.622h1.18v3.38h.67v-3.38h1.166v-.622Zm9.502 1.145h-.383v.572h.383v2.285h.639v-2.285h.621v-.572h-.621v-.447c0-.286.117-.385.382-.385.1 0 .19.027.311.068l.144-.537c-.117-.067-.351-.094-.504-.094-.612 0-.972.367-.972 1.002v.393Z"/></svg><span class="app-ptl-step-num">2</span></div>
+        <div class="app-ptl-step-label">Script Writing &<br>Concepting</div>
+      </div>
+      <div class="app-ptl-step" data-step="2">
+        <div class="app-ptl-node"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg><span class="app-ptl-step-num">3</span></div>
+        <div class="app-ptl-step-label">Shoot &<br>Recording</div>
+      </div>
+      <div class="app-ptl-step" data-step="3">
+        <div class="app-ptl-node"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg><span class="app-ptl-step-num">4</span></div>
+        <div class="app-ptl-step-label">Editing &<br>Post-Production</div>
+      </div>
+      <div class="app-ptl-step" data-step="4">
+        <div class="app-ptl-node"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M6 1.807L0 5.629l6 3.822 6.001-3.822L6 1.807zM18 1.807l-6 3.822 6 3.822 6-3.822-6-3.822zM0 13.274l6 3.822 6.001-3.822L6 9.452l-6 3.822zM18 9.452l-6 3.822 6 3.822 6-3.822-6-3.822zM6 18.371l6.001 3.822 6-3.822-6-3.822L6 18.371z"/></svg><span class="app-ptl-step-num">5</span></div>
+        <div class="app-ptl-step-label">Delivery &<br>Publishing</div>
+      </div>
+    </div>
+    <div class="app-ptl-detail" id="appPtlDetailContent"></div>
+  </div>
+
+  <script>
+  (function() {
+    var steps = [
+      {label:"Content Strategy & Planning",desc:"We define your content pillars, audience personas, platform mix, and posting cadence — building a 90-day content calendar before any camera is picked up.",tasks:["Content pillar definition","Audience persona mapping","Platform selection & format mix","90-day content calendar","Tone of voice & messaging guide"],mocks:[{icon: '<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"currentColor\"><path d=\"M1.371 5.476L11.943 0l10.686 5.476-10.686 5.495zm3.36 4.81l7.212 3.547 7.288-3.547 3.398 1.655-10.686 5.202L1.371 11.94zm0 6.171l7.212 3.911 7.288-3.91 3.398 1.815L11.943 24 1.371 18.273z\"/></svg>',label:"Content Calendar",val:"90 days mapped out",bar:90},{icon: '<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"currentColor\"><path d=\"M1.371 5.476L11.943 0l10.686 5.476-10.686 5.495zm3.36 4.81l7.212 3.547 7.288-3.547 3.398 1.655-10.686 5.202L1.371 11.94zm0 6.171l7.212 3.911 7.288-3.91 3.398 1.815L11.943 24 1.371 18.273z\"/></svg>',label:"Content Pillars",val:"3–5 brand pillars",bar:85},{icon: '<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"currentColor\"><path d=\"M4.6035 0v24h4.9317V0zm9.8613 0v24h4.9317V0z\"/></svg>',label:"Tone of Voice",val:"Defined & documented",bar:100}]},
+      {label:"Script Writing & Concepting",desc:"Every video, reel, and podcast episode starts with a tight script or concept — hooks, talking points, CTAs, and story structure planned before production begins.",tasks:["Video & reel script writing","Hook & opening concept","Talking points & story structure","CTA strategy per format","Podcast episode outlines"],mocks:[{icon: '<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"currentColor\"><path d=\"M21.469 6.825c.84 1.537 1.318 3.3 1.318 5.175 0 3.979-2.156 7.456-5.363 9.325l3.295-9.527c.615-1.54.82-2.771.82-3.864 0-.405-.026-.78-.07-1.11m-7.981.105c.647-.03 1.232-.105 1.232-.105.582-.075.514-.93-.067-.899 0 0-1.755.135-2.88.135-1.064 0-2.85-.15-2.85-.15-.585-.03-.661.855-.075.885 0 0 .54.061 1.125.09l1.68 4.605-2.37 7.08L5.354 6.9c.649-.03 1.234-.1 1.234-.1.585-.075.516-.93-.065-.896 0 0-1.746.138-2.874.138-.2 0-.438-.008-.69-.015C4.911 3.15 8.235 1.215 12 1.215c2.809 0 5.365 1.072 7.286 2.833-.046-.003-.091-.009-.141-.009-1.06 0-1.812.923-1.812 1.914 0 .89.513 1.643 1.06 2.531.411.72.89 1.643.89 2.977 0 .915-.354 1.994-.821 3.479l-1.075 3.585-3.9-11.61.001.014zM12 22.784c-1.059 0-2.081-.153-3.048-.437l3.237-9.406 3.315 9.087c.024.053.05.101.078.149-1.12.393-2.325.609-3.582.609M1.211 12c0-1.564.336-3.05.935-4.39L7.29 21.709C3.694 19.96 1.212 16.271 1.211 12M12 0C5.385 0 0 5.385 0 12s5.385 12 12 12 12-5.385 12-12S18.615 0 12 0\"/></svg>',label:"Scripts Written",val:"Per shoot, per episode",bar:100},{icon:"✦",label:"Hooks Written",val:"3+ per video",bar:88},{icon: '<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"currentColor\"><path d=\"M4.6035 0v24h4.9317V0zm9.8613 0v24h4.9317V0z\"/></svg>',label:"Podcast Outlines",val:"Episode structure ready",bar:82}]},
+      {label:"Shoot & Recording",desc:"Our production team handles studio or on-location shoots — lighting, camera, direction, and audio — producing high-quality raw footage aligned to the brief.",tasks:["Studio or on-location shoot","Professional lighting & camera","Talent direction & coaching","Multi-angle video capture","Behind-the-scenes & B-roll"],mocks:[{icon: '<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"currentColor\"><path d=\"M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z\"/></svg>',label:"Shoot Formats",val:"Studio & on-location",bar:100},{icon: '<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"currentColor\"><path d=\"M4.6035 0v24h4.9317V0zm9.8613 0v24h4.9317V0z\"/></svg>',label:"Audio Quality",val:"Pro mic & recording",bar:95},{icon: '<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"currentColor\"><path d=\"M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z\"/></svg>',label:"B-Roll Captured",val:"3–5x the edit length",bar:85}]},
+      {label:"Editing & Post-Production",desc:"Our editors cut, colour-grade, motion-design, and sound-design every piece — producing platform-ready content that looks cinematic and feels native to the feed.",tasks:["Video editing & colour grading","Motion graphics & text overlays","Sound design & music selection","Captions & subtitles","Platform-specific format export"],mocks:[{icon: '<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"currentColor\"><path d=\"M15.852 8.981h-4.588V0h4.588c2.476 0 4.49 2.014 4.49 4.49s-2.014 4.491-4.49 4.491zM12.735 7.51h3.117c1.665 0 3.019-1.355 3.019-3.019s-1.355-3.019-3.019-3.019h-3.117V7.51zm0 1.471H8.148c-2.476 0-4.49-2.014-4.49-4.49S5.672 0 8.148 0h4.588v8.981zm-4.587-7.51c-1.665 0-3.019 1.355-3.019 3.019s1.354 3.02 3.019 3.02h3.117V1.471H8.148zm4.587 15.019H8.148c-2.476 0-4.49-2.014-4.49-4.49s2.014-4.49 4.49-4.49h4.588v8.98zM8.148 8.981c-1.665 0-3.019 1.355-3.019 3.019s1.355 3.019 3.019 3.019h3.117V8.981H8.148zM8.172 24c-2.489 0-4.515-2.014-4.515-4.49s2.014-4.49 4.49-4.49h4.588v4.441c0 2.503-2.047 4.539-4.563 4.539zm-.024-7.51a3.023 3.023 0 0 0-3.019 3.019c0 1.665 1.365 3.019 3.044 3.019 1.705 0 3.093-1.376 3.093-3.068v-2.97H8.148zm7.704 0h-.098c-2.476 0-4.49-2.014-4.49-4.49s2.014-4.49 4.49-4.49h.098c2.476 0 4.49 2.014 4.49 4.49s-2.014 4.49-4.49 4.49zm-.097-7.509c-1.665 0-3.019 1.355-3.019 3.019s1.355 3.019 3.019 3.019h.098c1.665 0 3.019-1.355 3.019-3.019s-1.355-3.019-3.019-3.019h-.098z\"/></svg>',label:"Edit Passes",val:"2 revision rounds",bar:90},{icon: '<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"currentColor\"><path d=\"M15.852 8.981h-4.588V0h4.588c2.476 0 4.49 2.014 4.49 4.49s-2.014 4.491-4.49 4.491zM12.735 7.51h3.117c1.665 0 3.019-1.355 3.019-3.019s-1.355-3.019-3.019-3.019h-3.117V7.51zm0 1.471H8.148c-2.476 0-4.49-2.014-4.49-4.49S5.672 0 8.148 0h4.588v8.981zm-4.587-7.51c-1.665 0-3.019 1.355-3.019 3.019s1.354 3.02 3.019 3.02h3.117V1.471H8.148zm4.587 15.019H8.148c-2.476 0-4.49-2.014-4.49-4.49s2.014-4.49 4.49-4.49h4.588v8.98zM8.148 8.981c-1.665 0-3.019 1.355-3.019 3.019s1.355 3.019 3.019 3.019h3.117V8.981H8.148zM8.172 24c-2.489 0-4.515-2.014-4.515-4.49s2.014-4.49 4.49-4.49h4.588v4.441c0 2.503-2.047 4.539-4.563 4.539zm-.024-7.51a3.023 3.023 0 0 0-3.019 3.019c0 1.665 1.365 3.019 3.044 3.019 1.705 0 3.093-1.376 3.093-3.068v-2.97H8.148zm7.704 0h-.098c-2.476 0-4.49-2.014-4.49-4.49s2.014-4.49 4.49-4.49h.098c2.476 0 4.49 2.014 4.49 4.49s-2.014 4.49-4.49 4.49zm-.097-7.509c-1.665 0-3.019 1.355-3.019 3.019s1.355 3.019 3.019 3.019h.098c1.665 0 3.019-1.355 3.019-3.019s-1.355-3.019-3.019-3.019h-.098z\"/></svg>',label:"Colour Grade",val:"Cinematic look applied",bar:88},{icon: '<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"currentColor\"><path d=\"M15.502 13.035c-.5 0-.756-.411-.756-.917 0-.505.252-.894.756-.894.513 0 .756.407.756.894-.004.515-.261.917-.756.917Zm-4.888-1.81c.292 0 .414.17.414.317 0 .357-.365.514-1.126.536 0-.442.253-.854.712-.854Zm-3.241 1.81c-.473 0-.67-.384-.67-.917 0-.527.202-.894.67-.894.477 0 .702.38.702.894 0 .537-.234.917-.702.917Zm-3.997-2.334h-.738l1.224 2.808c-.234.519-.36.648-.522.648-.171 0-.333-.138-.45-.259l-.324.43c.22.232.522.366.832.366.387 0 .685-.224.856-.626l1.413-3.371h-.725l-.738 2.012-.828-2.008Zm19.553.523c.36 0 .432.246.432.823v1.516H24v-1.914c0-.689-.473-.988-.91-.988-.386 0-.742.241-.94.688a.901.901 0 0 0-.891-.688c-.365 0-.73.232-.927.666v-.626h-.64v2.857h.64v-1.22c0-.617.324-1.114.765-1.114.36 0 .427.246.427.823v1.516h.64l-.005-1.225c0-.617.329-1.114.77-1.114Zm-5.1-.523h-.324v2.857h.639v-1.095c0-.693.306-1.163.76-1.163.118 0 .217.005.325.05l.099-.676c-.081-.009-.153-.018-.225-.018-.45 0-.774.309-.964.707V10.7h-.31Zm-2.327-.045c-.846 0-1.418.644-1.418 1.458 0 .845.58 1.475 1.418 1.475.85 0 1.431-.648 1.431-1.475-.004-.818-.594-1.458-1.431-1.458Zm-4.852 2.38c-.333 0-.581-.17-.685-.515.847-.036 1.675-.242 1.675-.988 0-.43-.423-.872-1.03-.872-.82 0-1.374.666-1.374 1.457 0 .828.545 1.476 1.36 1.476.567 0 .927-.228 1.21-.559l-.31-.42c-.329.335-.531.42-.846.42Zm-3.151-2.38c-.324 0-.648.188-.774.483v-.438h-.64v3.98h.64v-1.422c.135.205.445.34.72.34.85 0 1.3-.631 1.3-1.48-.004-.841-.445-1.463-1.246-1.463Zm-4.483-1.1H0v.622h1.18v3.38h.67v-3.38h1.166v-.622Zm9.502 1.145h-.383v.572h.383v2.285h.639v-2.285h.621v-.572h-.621v-.447c0-.286.117-.385.382-.385.1 0 .19.027.311.068l.144-.537c-.117-.067-.351-.094-.504-.094-.612 0-.972.367-.972 1.002v.393Z\"/></svg>',label:"Formats Exported",val:"All platform sizes",bar:100}]},
+      {label:"Delivery & Publishing",desc:"Final content delivered in all platform-ready formats — plus optional scheduling, captioning, and hashtag strategy to maximise reach on every post.",tasks:["Final file delivery (all formats)","Platform-native caption writing","Hashtag & SEO strategy","Optional scheduling & publishing","Monthly performance reporting"],mocks:[{icon: '<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"currentColor\"><path d=\"M6 1.807L0 5.629l6 3.822 6.001-3.822L6 1.807zM18 1.807l-6 3.822 6 3.822 6-3.822-6-3.822zM0 13.274l6 3.822 6.001-3.822L6 9.452l-6 3.822zM18 9.452l-6 3.822 6 3.822 6-3.822-6-3.822zM6 18.371l6.001 3.822 6-3.822-6-3.822L6 18.371z\"/></svg>',label:"Files Delivered",val:"All sizes & formats",bar:100},{icon:"#️⃣",label:"Hashtag Strategy",val:"Platform-optimised",bar:85},{icon: '<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"currentColor\"><path d=\"M22.84 2.9982v17.9987c.0086 1.6473-1.3197 2.9897-2.967 2.9984a2.9808 2.9808 0 01-.3677-.0208c-1.528-.226-2.6477-1.5558-2.6105-3.1V3.1204c-.0369-1.5458 1.0856-2.8762 2.6157-3.1 1.6361-.1915 3.1178.9796 3.3093 2.6158.014.1201.0208.241.0202.3619zM4.1326 18.0548c-1.6417 0-2.9726 1.331-2.9726 2.9726C1.16 22.6691 2.4909 24 4.1326 24s2.9726-1.3309 2.9726-2.9726-1.331-2.9726-2.9726-2.9726zm7.8728-9.0098c-.0171 0-.0342 0-.0513.0003-1.6495.0904-2.9293 1.474-2.891 3.1256v7.9846c0 2.167.9535 3.4825 2.3505 3.763 1.6118.3266 3.1832-.7152 3.5098-2.327.04-.1974.06-.3983.0593-.5998v-8.9585c.003-1.6474-1.33-2.9852-2.9773-2.9882z\"/></svg>',label:"Monthly Report",val:"Reach, engagement, growth",bar:80}]},
+    ];
+    var track  = document.getElementById('appPtlTrackContent');
+    var detail = document.getElementById('appPtlDetailContent');
+    if (!track || !detail) return;
+    function renderDetail(i) {
+      var s = steps[i];
+      var tasksHtml = s.tasks.map(function(t) { return '<div class="app-ptl-detail-task">' + t + '</div>'; }).join('');
+      var mocksHtml = s.mocks.map(function(m) {
+        return '<div class="app-ptl-mock-card">'
+          + '<div class="app-ptl-mock-icon">' + m.icon + '</div>'
+          + '<div class="app-ptl-mock-text">'
+          + '<div class="app-ptl-mock-label">' + m.label + '</div>'
+          + '<div class="app-ptl-mock-val">' + m.val + '</div>'
+          + '<div class="app-ptl-mock-bar"><div class="app-ptl-mock-bar-fill" style="width:0%" data-w="' + m.bar + '%"></div></div>'
+          + '</div></div>';
+      }).join('');
+      detail.innerHTML =
+        '<div class="app-ptl-detail-left">'
+        + '<div class="app-ptl-detail-step-badge">Phase ' + (i + 1) + ' of 5</div>'
+        + '<div class="app-ptl-detail-title">' + s.label.toUpperCase() + '</div>'
+        + '<div class="app-ptl-detail-desc">' + s.desc + '</div>'
+        + '<div class="app-ptl-detail-tasks">' + tasksHtml + '</div>'
+        + '</div>'
+        + '<div class="app-ptl-detail-right">' + mocksHtml + '</div>';
+      setTimeout(function() {
+        detail.querySelectorAll('.app-ptl-mock-bar-fill').forEach(function(bar) {
+          bar.style.width = bar.getAttribute('data-w');
+        });
+      }, 50);
+    }
+    track.querySelectorAll('.app-ptl-step').forEach(function(step) {
+      step.addEventListener('click', function() {
+        track.querySelectorAll('.app-ptl-step').forEach(function(s) { s.classList.remove('active'); });
+        step.classList.add('active');
+        renderDetail(parseInt(step.getAttribute('data-step')));
+      });
+    });
+    renderDetail(0);
+  })();
+  </script>
+  </section>
+
+  <!-- ═══ CAPABILITIES GRID ═══ -->
+  <section class="app-caps-deliv-section" id="wsv-caps">
+  <style>
+  .app-caps-deliv-section {
+    background: #07080c;
+    padding: 100px 0;
+    position: relative; overflow: hidden;
+  }
+  .app-caps-deliv-inner {
+    max-width: 1380px; margin: 0 auto; padding: 0 60px;
+  }
+  .app-caps-deliv-header {
+    text-align: left; margin-bottom: 64px;
+  }
+  .app-caps-deliv-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 600;
+    letter-spacing: .22em; text-transform: uppercase;
+    color: #ff5c00; background: rgba(255,92,0,.08);
+    border: 1px solid rgba(255,92,0,.2); padding: 7px 16px;
+    border-radius: 100px; margin-bottom: 22px;
+  }
+  .app-caps-deliv-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(44px, 5.5vw, 82px);
+    color: #fff; line-height: .93; letter-spacing: -.01em;
+    margin-bottom: 14px;
+  }
+  .app-caps-deliv-title span { color: #ff5c00; }
+  .app-caps-deliv-subtitle {
+    font-size: 14px; color: rgba(255,255,255,.38);
+    font-family: 'DM Sans', sans-serif;
+    max-width: 540px; margin: 0;
+  }
+  .app-caps-deliv-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 60px;
+  }
+  .app-caps-deliv-card {
+    background: linear-gradient(135deg, #111418 0%, #0c0e13 100%);
+    border: 1px solid rgba(255,255,255,.06);
+    border-radius: 16px; padding: 24px 22px;
+    position: relative; overflow: hidden;
+    transition: all .3s; cursor: default;
+  }
+  .app-caps-deliv-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, #ff5c00, transparent);
+    opacity: 0; transition: opacity .3s;
+  }
+  .app-caps-deliv-card:hover {
+    border-color: rgba(255,92,0,.3);
+    transform: translateY(-4px);
+    box-shadow: 0 20px 48px rgba(0,0,0,.5), 0 0 0 1px rgba(255,92,0,.1);
+  }
+  .app-caps-deliv-card:hover::before { opacity: 1; }
+  .app-caps-deliv-card-icon {
+    font-size: 28px; margin-bottom: 14px; display: block;
+  }
+  .app-caps-deliv-card-title {
+    font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700;
+    letter-spacing: .04em; color: #fff; margin-bottom: 6px;
+  }
+  .app-caps-deliv-card-desc {
+    font-family: 'DM Sans', sans-serif; font-size: 12px; line-height: 1.6;
+    color: rgba(255,255,255,.38);
+  }
+  .app-caps-deliv-card-check {
+    position: absolute; top: 18px; right: 18px;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: #22c55e;
+  }
+  .app-caps-deliv-strip {
+    background: linear-gradient(135deg, #ff5c00 0%, #e04e00 100%);
+    border-radius: 20px; padding: 40px 48px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 32px; flex-wrap: wrap;
+  }
+  .app-caps-deliv-strip-tag {
+    font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 700;
+    letter-spacing: .18em; text-transform: uppercase;
+    color: rgba(255,255,255,.65); margin-bottom: 8px;
+  }
+  .app-caps-deliv-strip-heading {
+    font-family: 'Bebas Neue', sans-serif; font-size: clamp(32px, 4vw, 52px);
+    color: #fff; line-height: 1; letter-spacing: .01em;
+  }
+  .app-caps-deliv-strip-right {
+    display: flex; gap: 12px; flex-wrap: wrap;
+  }
+  .app-caps-deliv-strip-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(0,0,0,.2); border: 1px solid rgba(255,255,255,.2);
+    color: #fff; padding: 8px 16px; border-radius: 100px;
+    font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 600;
+    letter-spacing: .04em;
+  }
+  .app-caps-deliv-strip-pill-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: rgba(255,255,255,.7); flex-shrink: 0;
+  }
+  @media (max-width: 900px) {
+    .app-caps-deliv-section { padding: 60px 0; }
+    .app-caps-deliv-inner { padding: 0 16px; }
+    .app-caps-deliv-header { margin-bottom: 32px; }
+    .app-caps-deliv-eyebrow { font-size: 10px; padding: 5px 12px; margin-bottom: 14px; }
+    .app-caps-deliv-title { font-size: clamp(30px, 8vw, 48px); margin-bottom: 10px; }
+    .app-caps-deliv-subtitle { font-size: 13px; }
+    .app-caps-deliv-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .app-caps-deliv-card {
+      padding: 14px 12px;
+      border-radius: 12px;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      grid-template-rows: auto auto;
+      column-gap: 10px;
+      row-gap: 4px;
+    }
+    .app-caps-deliv-card-icon {
+      font-size: 20px;
+      margin-bottom: 0;
+      grid-column: 1;
+      grid-row: 1;
+      align-self: center;
+    }
+    .app-caps-deliv-card-title {
+      font-size: 11px;
+      grid-column: 2;
+      grid-row: 1;
+      align-self: center;
+      margin-bottom: 0;
+    }
+    .app-caps-deliv-card-desc {
+      font-size: 11px;
+      line-height: 1.5;
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+    .app-caps-deliv-card-check {
+      top: 10px; right: 10px;
+      width: 18px; height: 18px;
+      font-size: 9px;
+    }
+    .app-caps-deliv-strip {
+      padding: 22px 18px;
+      border-radius: 14px;
+      gap: 18px;
+    }
+    .app-caps-deliv-strip-heading { font-size: clamp(22px, 6vw, 32px); }
+    .app-caps-deliv-strip-right { gap: 8px; }
+    .app-caps-deliv-strip-pill { padding: 6px 12px; font-size: 10px; }
+  }
+  @media (max-width: 359px) {
+    .app-caps-deliv-grid { grid-template-columns: 1fr; }
+    .app-caps-deliv-card { grid-template-columns: auto 1fr; }
+  }
+  </style>
+
+  <div class="app-caps-deliv-inner">
+    <div class="app-caps-deliv-header">
+      <div class="app-caps-deliv-eyebrow"><svg class="si-inline" viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg> What We Produce</div>
+      <h2 class="app-caps-deliv-title">FULL-STACK CONTENT<br><span>PRODUCTION CAPABILITIES</span></h2>
+      <p class="app-caps-deliv-subtitle">From scripting to shooting to editing to publishing — everything your brand needs to show up consistently and look world-class.</p>
+    </div>
+    <div class="app-caps-deliv-grid">
+      <div class="app-caps-deliv-card"><div class="app-caps-deliv-card-check">✓</div><span class="app-caps-deliv-card-icon"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></span><div class="app-caps-deliv-card-title">Video Production</div><div class="app-caps-deliv-card-desc">Brand films, testimonials, product videos, and corporate content — shot and edited to cinematic standards for web and social.</div></div>
+      <div class="app-caps-deliv-card"><div class="app-caps-deliv-card-check">✓</div><span class="app-caps-deliv-card-icon"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></span><div class="app-caps-deliv-card-title">Reels & Short-Form Video</div><div class="app-caps-deliv-card-desc">Instagram Reels, YouTube Shorts, and TikTok content — scripted, shot, and edited for maximum reach and retention.</div></div>
+      <div class="app-caps-deliv-card"><div class="app-caps-deliv-card-check">✓</div><span class="app-caps-deliv-card-icon"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M4.6035 0v24h4.9317V0zm9.8613 0v24h4.9317V0z"/></svg></span><div class="app-caps-deliv-card-title">Podcast Production</div><div class="app-caps-deliv-card-desc">End-to-end podcast production — recording, editing, show notes, and distribution across Spotify, Apple, and YouTube.</div></div>
+      <div class="app-caps-deliv-card"><div class="app-caps-deliv-card-check">✓</div><span class="app-caps-deliv-card-icon"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12.678 16.672c0 2.175.002 4.565-.001 6.494-.001.576-.244.814-.817.833-7.045.078-8.927-7.871-4.468-11.334-1.95.016-4.019.007-5.986.007-1.351 0-1.414-.01-1.405-1.351.258-6.583 7.946-8.275 11.323-3.936L11.308.928c-.001-.695.212-.906.906-.925 6.409-.187 9.16 7.308 4.426 11.326l6.131.002c1.097 0 1.241.105 1.228 1.217-.223 6.723-7.802 8.376-11.321 4.124zm.002-15.284l-.003 9.972c6.56-.465 6.598-9.532.003-9.972zm-1.36 21.224l-.001-9.97c-6.927.598-6.29 9.726.002 9.97zM1.4 11.315l9.95.008c-.527-6.829-9.762-6.367-9.95-.008zm11.238 1.365c.682 6.875 9.67 6.284 9.977.01z"/></svg></span><div class="app-caps-deliv-card-title">Photography</div><div class="app-caps-deliv-card-desc">Product, lifestyle, corporate, and editorial photography — studio or on-location, styled and retouched to publication standard.</div></div>
+      <div class="app-caps-deliv-card"><div class="app-caps-deliv-card-check">✓</div><span class="app-caps-deliv-card-icon"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M4.21 0A4.201 4.201 0 0 0 0 4.21v15.58A4.201 4.201 0 0 0 4.21 24h15.58A4.201 4.201 0 0 0 24 19.79v-1.093c-.137.013-.278.02-.422.02-2.577 0-4.027-2.146-4.09-4.832a7.592 7.592 0 0 1 .022-.708c.093-1.186.475-2.241 1.105-3.022a3.885 3.885 0 0 1 1.395-1.1c.468-.237 1.127-.367 1.664-.367h.023c.101 0 .202.004.303.01V4.211A4.201 4.201 0 0 0 19.79 0Zm.198 5.583h4.165l3.588 8.435 3.59-8.435h3.864v.146l-.019.004c-.705.16-1.063.397-1.063 1.254h-.003l.003 10.274c.06.676.424.885 1.063 1.03l.02.004v.145h-4.923v-.145l.019-.005c.639-.144.994-.353 1.054-1.03V7.267l-4.745 11.15h-.261L6.15 7.569v9.445c0 .857.358 1.094 1.063 1.253l.02.004v.147H4.405v-.147l.019-.004c.705-.16 1.065-.397 1.065-1.253V6.987c0-.857-.358-1.094-1.064-1.254l-.018-.004zm19.25 3.668c-1.086.023-1.733 1.323-1.813 3.124H24V9.298a1.378 1.378 0 0 0-.342-.047Zm-1.862 3.632c-.1 1.756.86 3.239 2.204 3.634v-3.634z"/></svg></span><div class="app-caps-deliv-card-title">Blog & Long-Form Writing</div><div class="app-caps-deliv-card-desc">SEO-optimised articles, thought leadership, and long-form content that builds authority and drives organic traffic.</div></div>
+      <div class="app-caps-deliv-card"><div class="app-caps-deliv-card-check">✓</div><span class="app-caps-deliv-card-icon"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M15.852 8.981h-4.588V0h4.588c2.476 0 4.49 2.014 4.49 4.49s-2.014 4.491-4.49 4.491zM12.735 7.51h3.117c1.665 0 3.019-1.355 3.019-3.019s-1.355-3.019-3.019-3.019h-3.117V7.51zm0 1.471H8.148c-2.476 0-4.49-2.014-4.49-4.49S5.672 0 8.148 0h4.588v8.981zm-4.587-7.51c-1.665 0-3.019 1.355-3.019 3.019s1.354 3.02 3.019 3.02h3.117V1.471H8.148zm4.587 15.019H8.148c-2.476 0-4.49-2.014-4.49-4.49s2.014-4.49 4.49-4.49h4.588v8.98zM8.148 8.981c-1.665 0-3.019 1.355-3.019 3.019s1.355 3.019 3.019 3.019h3.117V8.981H8.148zM8.172 24c-2.489 0-4.515-2.014-4.515-4.49s2.014-4.49 4.49-4.49h4.588v4.441c0 2.503-2.047 4.539-4.563 4.539zm-.024-7.51a3.023 3.023 0 0 0-3.019 3.019c0 1.665 1.365 3.019 3.044 3.019 1.705 0 3.093-1.376 3.093-3.068v-2.97H8.148zm7.704 0h-.098c-2.476 0-4.49-2.014-4.49-4.49s2.014-4.49 4.49-4.49h.098c2.476 0 4.49 2.014 4.49 4.49s-2.014 4.49-4.49 4.49zm-.097-7.509c-1.665 0-3.019 1.355-3.019 3.019s1.355 3.019 3.019 3.019h.098c1.665 0 3.019-1.355 3.019-3.019s-1.355-3.019-3.019-3.019h-.098z"/></svg></span><div class="app-caps-deliv-card-title">Graphic & Social Design</div><div class="app-caps-deliv-card-desc">Static posts, carousel designs, infographics, and stories — designed in-house to maintain brand consistency at every touchpoint.</div></div>
+      <div class="app-caps-deliv-card"><div class="app-caps-deliv-card-check">✓</div><span class="app-caps-deliv-card-icon"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M23.9765 6.4168c-.105 2.338-1.739 5.5429-4.894 9.6088-3.2679 4.247-6.0258 6.3699-8.2898 6.3699-1.409 0-2.578-1.294-3.553-3.881l-1.9179-7.1138c-.719-2.584-1.488-3.878-2.312-3.878-.179 0-.806.378-1.8809 1.132l-1.129-1.457a315.06 315.06 0 003.501-3.1279c1.579-1.368 2.765-2.085 3.5539-2.159 1.867-.18 3.016 1.1 3.447 3.838.465 2.953.789 4.789.971 5.5069.5389 2.45 1.1309 3.674 1.7759 3.674.502 0 1.256-.796 2.265-2.385 1.004-1.589 1.54-2.797 1.612-3.628.144-1.371-.395-2.061-1.614-2.061-.574 0-1.167.121-1.777.391 1.186-3.8679 3.434-5.7568 6.7619-5.6368 2.4729.06 3.6279 1.664 3.4929 4.7969z"/></svg></span><div class="app-caps-deliv-card-title">Editing & Post-Production</div><div class="app-caps-deliv-card-desc">Video editing, colour grading, motion graphics, sound design, and captioning — polishing raw footage into platform-ready content.</div></div>
+      <div class="app-caps-deliv-card"><div class="app-caps-deliv-card-check">✓</div><span class="app-caps-deliv-card-icon"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.981-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046.935-.56.935-1.167V6.354c0-.606-.233-.933-.748-.887l-15.177.887c-.56.047-.747.327-.747.933zm14.337.745c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.139c-.093-.514.28-.887.747-.933zM1.936 1.035l13.31-.98c1.634-.14 2.055-.047 3.082.7l4.249 2.986c.7.513.934.653.934 1.213v16.378c0 1.026-.373 1.634-1.68 1.726l-15.458.934c-.98.047-1.448-.093-1.962-.747l-3.129-4.06c-.56-.747-.793-1.306-.793-1.96V2.667c0-.839.374-1.54 1.447-1.632z"/></svg></span><div class="app-caps-deliv-card-title">Content Strategy & Planning</div><div class="app-caps-deliv-card-desc">90-day content calendars, platform strategies, and tone of voice guides — ensuring every piece of content serves a purpose.</div></div>
+    </div>
+    <div class="app-caps-deliv-strip">
+      <div class="app-caps-deliv-strip-left">
+        <div class="app-caps-deliv-strip-tag">Everything, in-house:</div>
+        <div class="app-caps-deliv-strip-heading">ALL OF THIS — IN EVERY RETAINER.</div>
+      </div>
+      <div class="app-caps-deliv-strip-right">
+        <span class="app-caps-deliv-strip-pill"><span class="app-caps-deliv-strip-pill-dot"></span>No Outsourcing</span>
+<span class="app-caps-deliv-strip-pill"><span class="app-caps-deliv-strip-pill-dot"></span>Dedicated Content Producer</span>
+<span class="app-caps-deliv-strip-pill"><span class="app-caps-deliv-strip-pill-dot"></span>First Batch in 7 Days</span>
+
+      </div>
+    </div>
+  </div>
+  </section>
+
+  <!-- ═══ FINAL CTA — PROPOSAL FORM ═══ -->
+  <section class="wsv-final-cta" id="wsv-final-cta">
+    <canvas class="wsv-cta-canvas" id="wsvCtaCanvasContent"></canvas>
+    <div class="wsv-final-inner">
+      <div class="wsv-final-left">
+        <div class="wsv-final-tag">Let's Produce Your Content</div>
+        <h2 class="wsv-final-h" id="wsvFinalHContent">LET'S CREATE<br>CONTENT THAT <span>CONVERTS.</span></h2>
+        <p class="wsv-final-p">Partner with a studio-grade content team that scripts, shoots, edits, and publishes — so you can focus on running your business.</p>
+      </div>
+      <div class="wsv-proposal-form-wrap">
+        <div class="wsv-proposal-form">
+          <div class="wsv-pf-field">
+            <label class="wsv-pf-label" for="pfContentType">Content Type</label>
+            <select class="wsv-input wsv-select wsv-pf-input" id="pfContentType" name="service_type">
+              <option value="" disabled selected>Select Content Type ▼</option>
+              <option value="video">Video Production</option>
+<option value="reels">Reels & Short-Form Content</option>
+<option value="podcast">Podcast Production</option>
+<option value="photography">Photography</option>
+<option value="monthly-retainer">Monthly Content Retainer</option>
+
+            </select>
+          </div>
+          <!-- Company Information -->
+          <div class="wsv-pf-row">
+            <div class="wsv-pf-field">
+              <label class="wsv-pf-label" for="pfContentCompany">Company Name *</label>
+              <input class="wsv-input wsv-pf-input" type="text" id="pfContentCompany" name="company_name" placeholder="Enter Company Name">
+            </div>
+            <div class="wsv-pf-field">
+              <label class="wsv-pf-label" for="pfContentIndustry">Industry *</label>
+              <select class="wsv-input wsv-select wsv-pf-input" id="pfContentIndustry" name="industry">
+                <option value="" disabled selected>Select Industry ▼</option>
+                <option value="food">Food &amp; Beverage</option>
+                <option value="fashion">Fashion &amp; Lifestyle</option>
+                <option value="health">Health &amp; Wellness</option>
+                <option value="finance">Finance</option>
+                <option value="real-estate">Real Estate</option>
+                <option value="ecommerce">E-Commerce / Retail</option>
+                <option value="hospitality">Hospitality &amp; Travel</option>
+                <option value="tech">Technology &amp; SaaS</option>
+                <option value="education">Education</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="wsv-pf-row">
+            <div class="wsv-pf-field">
+              <label class="wsv-pf-label" for="pfContentName">Your Name</label>
+              <input class="wsv-input wsv-pf-input" type="text" id="pfContentName" name="name" placeholder="Enter Name">
+            </div>
+            <div class="wsv-pf-field">
+              <label class="wsv-pf-label" for="pfContentMobile">Mobile Number</label>
+              <input class="wsv-input wsv-pf-input" type="tel" id="pfContentMobile" name="mobile" placeholder="Enter Mobile Number">
+            </div>
+          </div>
+          <div class="wsv-pf-row">
+            <div class="wsv-pf-field">
+              <label class="wsv-pf-label" for="pfContentEmail">Email Address</label>
+              <input class="wsv-input wsv-pf-input" type="email" id="pfContentEmail" name="email" placeholder="Enter Email">
+            </div>
+            <div class="wsv-pf-field">
+              <label class="wsv-pf-label" for="pfContentBudget">Project Budget</label>
+              <select class="wsv-input wsv-select wsv-pf-input" id="pfContentBudget" name="budget">
+                <option value="" disabled selected>Select Budget ▼</option>
+                <option value="under-25k">Under ₹25,000</option>
+                <option value="25k-50k">₹25,000 – ₹50,000</option>
+                <option value="50k-1l">₹50,000 – ₹1,00,000</option>
+                <option value="1l-3l">₹1,00,000 – ₹3,00,000</option>
+                <option value="3l+">₹3,00,000+</option>
+              </select>
+            </div>
+          </div>
+          <input type="hidden" name="service" value="Content Production">
+          <button class="wsv-pf-btn" type="button" onclick="wsvSubmitProposalContent()">
+            Get My Proposal →
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <style>
+  /* ── FULL CTA SECTION STYLES ── */
+  .wsv-final-cta {
+    position: relative;
+    padding: 80px 60px;
+    background: #0a0a0a;
+    overflow: hidden;
+  }
+  .wsv-cta-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  .wsv-final-inner {
+    position: relative;
+    z-index: 2;
+    max-width: 1380px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    gap: 56px;
+    align-items: center;
+  }
+  .wsv-final-left {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .wsv-final-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: #ff5c00;
+    background: rgba(255,92,0,.08);
+    border: 1px solid rgba(255,92,0,.2);
+    padding: 6px 14px;
+    border-radius: 100px;
+    margin-bottom: 18px;
+    letter-spacing: .01em;
+    width: fit-content;
+  }
+  .wsv-final-h {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(52px, 6vw, 90px);
+    color: #fff;
+    line-height: .95;
+    margin-bottom: 14px;
+    letter-spacing: -.01em;
+  }
+  .wsv-final-h span { color: #ff5c00; }
+  .wsv-final-p {
+    font-size: 13px;
+    color: rgba(255,255,255,.42);
+    line-height: 1.65;
+    margin: 0;
+    max-width: 320px;
+  }
+  .wsv-proposal-form-wrap { display: flex; align-items: stretch; }
+  .wsv-proposal-form {
+    width: 100%;
+    background: #ff5c00;
+    border: none;
+    border-radius: 20px;
+    padding: 36px 36px 32px;
+    box-shadow: 0 24px 60px rgba(255,92,0,.35), 0 40px 80px rgba(0,0,0,.4);
+    text-align: left;
+  }
+  .wsv-pf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .wsv-pf-field { margin-bottom: 14px; display: flex; flex-direction: column; gap: 5px; }
+  .wsv-pf-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 10px; letter-spacing: .14em;
+    color: rgba(255,255,255,.75); text-transform: uppercase;
+  }
+  .wsv-pf-input {
+    width: 100%; box-sizing: border-box; padding: 11px 16px;
+    font-size: 13px; background: #ffffff !important;
+    border: 1px solid rgba(255,255,255,.3) !important;
+    color: #1a1a1a !important; border-radius: 10px;
+  }
+  .wsv-pf-input::placeholder { color: #bbb !important; }
+  .wsv-pf-input:focus {
+    border-color: rgba(255,255,255,.9) !important;
+    background: #ffffff !important;
+    outline: none; box-shadow: 0 0 0 3px rgba(255,255,255,.25);
+  }
+  .wsv-pf-input option { background: #fff; color: #1a1a1a; }
+  .wsv-pf-btn {
+    width: 100%; margin-top: 6px; padding: 14px;
+    background: #1a1a1a; border: none; border-radius: 10px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px; letter-spacing: .1em; color: #ffffff;
+    cursor: pointer; transition: background .25s, transform .2s, box-shadow .25s;
+  }
+  .wsv-pf-btn:hover {
+    background: #000; box-shadow: 0 8px 32px rgba(0,0,0,.5);
+    transform: translateY(-2px);
+  }
+  @media (max-width: 1024px) {
+    .wsv-final-inner { grid-template-columns: 1fr; gap: 48px; }
+    .wsv-final-left { text-align: center; }
+    .wsv-final-p { margin: 0 auto; max-width: 100%; }
+    .wsv-final-tag { margin: 0 auto 18px; }
+  }
+  @media (max-width: 600px) {
+    .wsv-final-cta { padding: 40px 16px; }
+    .wsv-final-h { font-size: clamp(38px, 11vw, 58px); margin-bottom: 10px; }
+    .wsv-final-p { font-size: 12px; line-height: 1.6; }
+    .wsv-final-tag { font-size: 11px; padding: 5px 12px; margin-bottom: 14px; }
+    .wsv-proposal-form {
+      padding: 20px 16px 18px;
+      border-radius: 16px;
+    }
+    .wsv-pf-row { grid-template-columns: 1fr; gap: 0; }
+    .wsv-pf-field { margin-bottom: 10px; gap: 4px; }
+    .wsv-pf-label { font-size: 9px; letter-spacing: .12em; }
+    .wsv-pf-input {
+      padding: 11px 13px;
+      font-size: 14px;
+      border-radius: 9px;
+      min-height: 44px;
+      box-sizing: border-box;
+    }
+    .wsv-pf-btn {
+      margin-top: 4px;
+      padding: 14px;
+      font-size: 15px;
+      border-radius: 9px;
+      min-height: 48px;
+    }
+  }
+  </style>
+
+  <script>
+  /* ── Particle canvas for CTA ── */
+  (function() {
+    var canvas = document.getElementById('wsvCtaCanvasContent');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var W, H;
+    function resize() { W = canvas.width = canvas.offsetWidth; H = canvas.height = canvas.offsetHeight; }
+    resize();
+    window.addEventListener('resize', resize);
+    var pts = Array.from({ length: 60 }, function() {
+      return { x: Math.random()*W, y: Math.random()*H,
+        vx: (Math.random()-.5)*.3, vy: -Math.random()*.5-.1,
+        life: Math.random(), maxLife: Math.random()*.5+.5, size: Math.random()*2+.5 };
+    });
+    function tick() {
+      ctx.clearRect(0,0,W,H);
+      pts.forEach(function(p) {
+        p.x+=p.vx; p.y+=p.vy; p.life-=.002;
+        if(p.life<=0){ p.x=Math.random()*W; p.y=H+10; p.life=p.maxLife; }
+        var a=(p.life/p.maxLife)*.5;
+        ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+        ctx.fillStyle='rgba(255,92,0,'+a+')'; ctx.fill();
+      });
+      requestAnimationFrame(tick);
+    }
+    tick();
+  })();
+
+  async function wsvSubmitProposalContent() {
+    
+    var type     = document.getElementById('pfContentType').value;
+    var company  = document.getElementById('pfContentCompany').value.trim();
+    var industry = document.getElementById('pfContentIndustry').value;
+    var name     = document.getElementById('pfContentName').value.trim();
+    var mobile   = document.getElementById('pfContentMobile').value.trim();
+    var email    = document.getElementById('pfContentEmail').value.trim();
+    var budget   = document.getElementById('pfContentBudget').value;
+
+    if (!type || !company || !industry || !name || !mobile || !email || !budget) {
+      alert('Please fill in all fields before submitting.');
+      return;
+    }
+
+    var btn = document.querySelector('#wsv-final-cta .wsv-pf-btn');
+    btn.textContent = 'Sending…';
+    btn.disabled = true;
+
+    var typeText     = document.getElementById('pfContentType').options[document.getElementById('pfContentType').selectedIndex].text;
+    var industryText = document.getElementById('pfContentIndustry').options[document.getElementById('pfContentIndustry').selectedIndex].text;
+    var budgetText   = document.getElementById('pfContentBudget').options[document.getElementById('pfContentBudget').selectedIndex].text;
+
+    var body = 'New Content Production Request\n\n'
+      + 'Service: Content Production\n'
+      + 'Type: ' + typeText + '\n'
+      + 'Company Name: ' + company + '\n'
+      + 'Industry: ' + industryText + '\n'
+      + 'Name: ' + name + '\n'
+      + 'Mobile: ' + mobile + '\n'
+      + 'Email: ' + email + '\n'
+      + 'Budget: ' + budgetText;
+
+    try {
+      var response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          access_key: '66f90d59-83e7-4136-8823-1bfeb38deb41',
+          subject: 'New Content Production Request – ' + name,
+          from_name: name,
+          email: email,
+          message: body
+        })
+      });
+      var result = await response.json();
+      if (result.success) {
+        btn.textContent = '✓ Proposal Sent!';
+        btn.style.background = '#1a5c1a';
+        setTimeout(function() { btn.textContent = 'Get My Proposal →'; btn.style.background = ''; btn.disabled = false; }, 4000);
+      } else {
+        throw new Error(result.message || 'Submission failed');
+      }
+    } catch(e) {
+      btn.textContent = 'Get My Proposal →';
+      btn.disabled = false;
+      alert('Submission failed. Please try again or email us directly at info@thesonicmedia.com');
+    }
+  }
+  </script>
+
+
+  <div class="page-footer-slot"></div>
+</div><!-- /page-svc-content -->
+
+<!-- ═══════ SHARED FLOATERS (email + whatsapp) ═══════ -->
+<!-- Email Floater -->
+<a href="mailto:info@thesonicmedia.com" class="email-float" title="Email Us">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="#fff" style="display:block;"><path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z"/></svg>
+</a>
+
+<!-- WhatsApp -->
+<a href="https://wa.me/918733087249" class="wa-float" target="_blank" title="Chat on WhatsApp">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30" fill="#fff" style="display:block;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+</a>
+
+<!-- ═══════ FUTURE VISION DETAIL MODAL ═══════ -->
+<!-- ═══════ FUTURE VISION DETAIL MODAL ═══════ -->
+<div id="fv-modal-overlay" onclick="if(event.target===this)closeFvDetail()">
+  <div id="fv-modal">
+    <button id="fv-modal-close" onclick="closeFvDetail()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    <img id="fv-modal-img" src="" alt="" />
+    <div id="fv-modal-body">
+      <div id="fv-modal-tag"></div>
+      <h2 id="fv-modal-title"></h2>
+      <div id="fv-modal-subtitle"></div>
+      <p id="fv-modal-text"></p>
+      <div id="fv-modal-bullets"></div>
+      <a href="#" id="fv-modal-cta" onclick="closeFvDetail();navigate('contact');return false;"
+        style="display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:50px;background:var(--orange);color:#fff;font-family:var(--font-heading);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;box-shadow:0 0 28px rgba(255,92,0,0.4);transition:all .3s;"
+        onmouseover="this.style.boxShadow='0 0 40px rgba(255,92,0,0.65)';this.style.transform='translateY(-2px)'"
+        onmouseout="this.style.boxShadow='0 0 28px rgba(255,92,0,0.4)';this.style.transform=''">
+        Get In Touch →
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+/* Tell app.js which page to activate on load */
+(function() {
+  window.__INITIAL_PAGE__ = 'svc-content';
+})();
+</script>
+<script src="../assets/js/app.js"></script>
+
+<!-- ═══════ SHARED FOOTER TEMPLATE ═══════ -->
+<template id="shared-footer-tpl">
+<footer>
+  <div class="footer-card">
+
+    <div class="footer-top">
+      <div class="footer-nav">
+        <a href="#" onclick="navigate('about');return false;" aria-label="About page"><span class="txt-default">ABOUT</span><span class="txt-hover">ABOUT</span></a>
+        <a href="#" onclick="navigate('services');return false;" aria-label="All services page"><span class="txt-default">SERVICES</span><span class="txt-hover">SERVICES</span></a>
+        <a href="#" onclick="navigate('contact');return false;" aria-label="Contact page"><span class="txt-default">CONTACT</span><span class="txt-hover">CONTACT</span></a>
+      </div>
+      <div class="social-icons">
+        <!-- Instagram -->
+        <a class="social-icon" href="https://www.instagram.com/thesonicmedia/" target="_blank" rel="noopener noreferrer" aria-label="Follow us on Instagram">
+          <span class="ico-default"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></span>
+          <span class="ico-hover"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></span>
+        </a>
+        <!-- Facebook -->
+        <a class="social-icon" href="https://www.facebook.com/people/The-Sonic-Media/61588527764890/?mibextid=wwXIfr&rdid=IFEcTVxzaiIAchzT&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1B78d65Kuv%2F%3Fmibextid%3DwwXIfr" target="_blank" rel="noopener noreferrer" aria-label="Follow us on Facebook">
+          <span class="ico-default"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></span>
+          <span class="ico-hover"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></span>
+        </a>
+        <!-- LinkedIn -->
+        <a class="social-icon" href="https://www.linkedin.com/company/the-sonic-media/?lipi=urn%3Ali%3Apage%3Amessaging_thread%3Bee6641e9-a42c-4ad9-8915-b2a24a0163d4" target="_blank" rel="noopener noreferrer" aria-label="Follow us on LinkedIn">
+          <span class="ico-default"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></span>
+          <span class="ico-hover"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></span>
+        </a>
+        <!-- X / Twitter -->
+        <a class="social-icon" href="https://x.com/thesonicmedia?s=21" target="_blank" rel="noopener noreferrer" aria-label="Follow us on X (Twitter)">
+          <span class="ico-default"><svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></span>
+          <span class="ico-hover"><svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></span>
+        </a>
+      </div>
+    </div>
+
+    <div class="footer-bottom-row">
+      <div class="enquiry-form">
+        <input type="text" id="footer-enquiry-input" placeholder="ENTER YOUR MOBILE NUMBER OR MAIL ID" autocomplete="off">
+        <button class="enquiry-btn" id="footer-enquiry-btn" onclick="tsmFooterEnquiry(event)" aria-label="Submit enquiry">Enquiry</button>
+      </div>
+      <div class="legal-links">
+        <span class="legal-title">Legal Links</span>
+        <a href="#" onclick="openLegalPage('privacy');return false;"><span class="txt-default">Privacy Policy</span><span class="txt-hover">Privacy Policy</span></a>
+        <a href="#" onclick="openLegalPage('terms');return false;"><span class="txt-default">Terms of Service</span><span class="txt-hover">Terms of Service</span></a>
+        <a href="#" onclick="openLegalPage('cookie');return false;"><span class="txt-default">Cookie Policy</span><span class="txt-hover">Cookie Policy</span></a>
+      </div>
+    </div>
+
+    <div class="brand-name-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9743 968" width="100%" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="wg" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+            <stop offset="0"    stop-color="#3a3a3a"/>
+            <stop offset="0.20" stop-color="#666"/>
+            <stop offset="0.45" stop-color="#999"/>
+            <stop offset="0.65" stop-color="#bebebe"/>
+            <stop offset="0.82" stop-color="#dedede"/>
+            <stop offset="1.0"  stop-color="#ffffff"/>
+          </linearGradient>
+          <mask id="tm">
+            <rect width="9743" height="968" fill="black"/>
+            <path fill="white" transform="translate(0,968) scale(1,-1)" d="M445 0V517H650V700H4V517H209V0Z"/>
+            <path fill="white" transform="translate(654,968) scale(1,-1)" d="M511 452H293V700H57V0H293V258H511V0H747V700H511Z"/>
+            <path fill="white" transform="translate(1458,968) scale(1,-1)" d="M289 270H585V440H289V522H626V700H57V0H639V178H289Z"/>
+            <path fill="white" transform="translate(2431,968) scale(1,-1)" d="M318 -16C535 -16 644 92 644 220C644 478 257 408 257 492C257 516 279 536 348 536C409 536 474 519 543 484L614 655C541 696 444 716 350 716C133 716 24 610 24 480C24 219 411 290 411 202C411 178 387 164 320 164C243 164 155 189 89 228L13 56C83 13 201 -16 318 -16Z"/>
+            <path fill="white" transform="translate(3088,968) scale(1,-1)" d="M424 -16C652 -16 819 138 819 350C819 562 652 716 424 716C196 716 29 562 29 350C29 138 196 -16 424 -16ZM424 175C337 175 267 241 267 350C267 459 337 525 424 525C511 525 581 459 581 350C581 241 511 175 424 175Z"/>
+            <path fill="white" transform="translate(3936,968) scale(1,-1)" d="M517 382 251 700H57V0H287V318L553 0H747V700H517Z"/>
+            <path fill="white" transform="translate(4740,968) scale(1,-1)" d="M293 0V700H57V0Z"/>
+            <path fill="white" transform="translate(5090,968) scale(1,-1)" d="M419 -16C556 -16 664 34 733 124L584 257C543 205 494 175 431 175C333 175 267 243 267 350C267 457 333 525 431 525C494 525 543 495 584 443L733 576C664 666 556 716 419 716C194 716 29 565 29 350C29 135 194 -16 419 -16Z"/>
+            <path fill="white" transform="translate(6134,968) scale(1,-1)" d="M895 700H701L479 327L251 700H57V0H272V308L424 63H528L680 319L682 0H897Z"/>
+            <path fill="white" transform="translate(7088,968) scale(1,-1)" d="M289 270H585V440H289V522H626V700H57V0H639V178H289Z"/>
+            <path fill="white" transform="translate(7761,968) scale(1,-1)" d="M402 0C636 0 797 133 797 350C797 567 636 700 402 700H57V0ZM293 516H392C491 516 559 457 559 350C559 243 491 184 392 184H293Z"/>
+            <path fill="white" transform="translate(8587,968) scale(1,-1)" d="M293 0V700H57V0Z"/>
+            <path fill="white" transform="translate(8937,968) scale(1,-1)" d="M825 0 519 700H287L-19 0H221L268 122H534L581 0ZM401 468 469 292H333Z"/>
+          </mask>
+        </defs>
+        <rect width="9743" height="968" fill="url(#wg)" mask="url(#tm)"/>
+      </svg>
+    </div>
+
+  </div>
+</footer>
+</template>
+
+</body>
+</html>

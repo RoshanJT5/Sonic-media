@@ -1,0 +1,3164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard — The Sonic Media</title>
+<!-- Do NOT index or follow secret admin route -->
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+<link rel="preconnect" href="https://plytoawhcvzdjtrgtnrn.supabase.co" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="https://res.cloudinary.com/dq2nrpky0/image/upload/v1779787887/favicon_oalxfi.png">
+
+<!-- Supabase JS Client pinned to 2.49.1 with SRI integrity check -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js" integrity="sha384-YieCqqg9gQufX7+5HcFvCEg/n3KUEdl8/Jb+A6J0npf1mB740VayvwKjTrtCeUoy" crossorigin="anonymous"></script>
+
+<script>
+// Automatically strip .html from admin URL in browser address bar
+(function cleanAdminUrl() {
+  if (typeof window === 'undefined' || window.location.protocol === 'file:') return;
+  const p = window.location.pathname;
+  if (p.endsWith('.html')) {
+    const cleanPath = p.replace(/\.html$/, '');
+    try {
+      history.replaceState(null, '', cleanPath + window.location.search + window.location.hash);
+    } catch (_) {}
+  }
+})();
+</script>
+
+
+<style>
+:root {
+  --bg-dark: #080808;
+  --bg-card: #121212;
+  --bg-card-hover: #171717;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-focus: rgba(255, 92, 0, 0.45);
+  --orange: #FF5C00;
+  --orange-glow: rgba(255, 92, 0, 0.25);
+  --orange-subtle: rgba(255, 92, 0, 0.1);
+  --text-main: #F5F0EB;
+  --text-muted: rgba(245, 240, 235, 0.6);
+  --text-dim: rgba(245, 240, 235, 0.35);
+  --success: #10B981;
+  --danger: #EF4444;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --font-heading: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ══════════ LOGIN SHIELD ══════════ */
+#loginShield {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 50% 30%, rgba(255, 92, 0, 0.08), transparent 70%), #080808;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 40px rgba(255, 92, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--orange), transparent);
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.login-logo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  margin-bottom: 16px;
+}
+
+.login-title {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 8px;
+}
+
+.login-title span {
+  color: var(--orange);
+}
+
+.login-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.form-input, .form-textarea, .form-select {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  color: var(--text-main);
+  font-family: var(--font-body);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.form-input:focus, .form-textarea:focus, .form-select:focus {
+  border-color: var(--orange);
+  background: rgba(255, 92, 0, 0.02);
+  box-shadow: 0 0 14px var(--orange-glow);
+}
+
+.form-textarea {
+  min-height: 90px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.form-help {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 5px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--orange);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 12px 22px;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.btn:hover {
+  background: #ff7020;
+  box-shadow: 0 4px 20px var(--orange-glow);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-main);
+  border: 1px solid var(--border-subtle);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+  transform: none;
+}
+
+.btn-danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.btn-danger:hover {
+  background: var(--danger);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
+}
+
+.btn-sm {
+  padding: 7px 12px;
+  font-size: 11px;
+}
+
+.btn-full {
+  width: 100%;
+}
+
+.alert-box {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  margin-bottom: 20px;
+  display: none;
+}
+
+.alert-danger {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+/* ══════════ APP LAYOUT ══════════ */
+#appView {
+  display: none;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Header */
+.admin-navbar {
+  background: rgba(18, 18, 18, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 14px 28px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand-section {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.brand-logo {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.brand-name {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.badge-secret {
+  background: var(--orange-subtle);
+  border: 1px solid rgba(255, 92, 0, 0.3);
+  color: var(--orange);
+  font-family: var(--font-heading);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 3px 8px;
+  border-radius: 50px;
+  text-transform: uppercase;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--success);
+  margin-right: 8px;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 8px var(--success);
+}
+
+/* Main Container */
+.admin-container {
+  max-width: 1300px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px 24px;
+  flex: 1;
+}
+
+/* Page Tabs */
+.tab-nav {
+  display: flex;
+  gap: 10px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 28px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  padding: 12px 18px;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tab-btn:hover {
+  color: var(--text-main);
+}
+
+.tab-btn.active {
+  color: var(--orange);
+  border-bottom-color: var(--orange);
+}
+
+.tab-count {
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 50px;
+  color: var(--text-main);
+}
+
+.tab-btn.active .tab-count {
+  background: var(--orange-subtle);
+  color: var(--orange);
+}
+
+/* Tab Panels */
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.active {
+  display: block;
+}
+
+/* Section Controls */
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.panel-title {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.panel-desc {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Data Table / Cards Grid */
+.items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.item-row {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  display: grid;
+  grid-template-columns: 40px 70px 1fr 140px auto;
+  align-items: center;
+  gap: 16px;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.item-row:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.item-order {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--orange);
+}
+
+.item-thumb {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  background: #1a1a1a;
+  border: 1px solid var(--border-subtle);
+}
+
+.item-info {
+  min-width: 0;
+}
+
+.item-name {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+
+.item-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.item-tag-pill {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+}
+
+.item-badge {
+  background: var(--orange-subtle);
+  color: var(--orange);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 50px;
+  border: 1px solid rgba(255, 92, 0, 0.2);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.item-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-dialog {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  max-width: 860px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85);
+  overflow: hidden;
+  position: relative;
+}
+
+.modal-dialog form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.modal-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #111113;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.modal-title {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.modal-close {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  background: rgba(255, 92, 0, 0.15);
+  border-color: rgba(255, 92, 0, 0.3);
+  color: var(--orange);
+}
+
+.modal-body {
+  padding: 24px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  min-height: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--orange) rgba(255, 255, 255, 0.05);
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 7px;
+}
+.modal-body::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+.modal-body::-webkit-scrollbar-thumb {
+  background: var(--orange);
+  border-radius: 4px;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  background: #111113;
+  flex-shrink: 0;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+}
+
+/* Modal Internal Tab Switcher (Card vs Inside Article Page) */
+.modal-tab-bar {
+  display: flex;
+  gap: 10px;
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.modal-tab-pill {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  border-radius: 50px;
+  padding: 8px 18px;
+  font-family: var(--font-heading);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.modal-tab-pill:hover {
+  background: rgba(255, 92, 0, 0.15);
+  border-color: rgba(255, 92, 0, 0.35);
+  color: #fff;
+}
+
+.modal-tab-pill.active {
+  background: #FF5C00;
+  color: #080808;
+  border-color: #FF5C00;
+  box-shadow: 0 0 16px rgba(255, 92, 0, 0.35);
+}
+
+.modal-section-divider {
+  border: none;
+  border-top: 1px solid var(--border-subtle);
+  margin: 24px 0 16px;
+}
+
+.modal-section-title {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--orange);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+}
+
+.upload-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* SEO Keyword Recommendation Box */
+.seo-recommend-box {
+  background: linear-gradient(135deg, rgba(255, 92, 0, 0.06), rgba(20, 20, 22, 0.6));
+  border: 1px dashed rgba(255, 92, 0, 0.35);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-top: 10px;
+}
+.seo-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.seo-chips-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 28px;
+}
+.seo-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50px;
+  padding: 6px 14px;
+  font-size: 11px;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.seo-chip:hover {
+  background: rgba(255, 92, 0, 0.2);
+  border-color: var(--orange);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.seo-chip.added {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #34d399;
+}
+
+/* Gallery Images Editor */
+.gallery-card {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  margin-bottom: 12px;
+  display: grid;
+  grid-template-columns: 80px 1fr 34px;
+  gap: 14px;
+  align-items: start;
+}
+.gallery-thumb-preview {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-sm);
+  background: #111;
+  border: 1px solid var(--border-subtle);
+  object-fit: cover;
+  display: block;
+}
+.gallery-btn-remove {
+  background: none;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  transition: all 0.2s;
+}
+.gallery-btn-remove:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+}
+
+/* Quick Formatting Toolbar */
+.formatting-toolbar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.format-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-family: var(--font-heading);
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+.format-btn:hover {
+  background: rgba(255, 92, 0, 0.15);
+  border-color: var(--orange);
+  color: #fff;
+}
+.format-btn:active {
+  transform: translateY(1px);
+}
+
+/* Toast */
+#toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #18181b;
+  border: 1px solid var(--orange);
+  color: var(--text-main);
+  padding: 14px 22px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px var(--orange-glow);
+  z-index: 10000;
+  display: none;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Responsive */
+@media (max-width: 850px) {
+  .item-row {
+    grid-template-columns: 30px 50px 1fr;
+    grid-template-rows: auto auto;
+    gap: 10px;
+  }
+  .item-badge {
+    grid-column: 2 / span 2;
+    justify-self: start;
+  }
+  .item-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<!-- Instant session restore check from sessionStorage before DOM render to prevent UI flash -->
+<script>
+(function() {
+  try {
+    var raw = window.sessionStorage.getItem('sonicmedia_admin_session');
+    if (raw) {
+      var s = JSON.parse(raw);
+      var now = Math.floor(Date.now() / 1000);
+      if (s && s.expires_at && now < s.expires_at) {
+        document.write('<style id="preAuthStyle">#loginShield { display: none !important; } #appView { display: flex !important; }</style>');
+      }
+    }
+  } catch(e) {}
+})();
+</script>
+
+<!-- ════════════ LOGIN SHIELD ════════════ -->
+<div id="loginShield">
+  <div class="login-card">
+    <div class="login-header">
+      <img src="https://res.cloudinary.com/dq2nrpky0/image/upload/v1779787887/favicon_oalxfi.png" alt="Sonic Media Logo" class="login-logo" />
+      <h1 class="login-title">THE SONIC MEDIA <span>ADMIN</span></h1>
+      <p class="login-sub">Enter your authorized credentials to access customization controls.</p>
+    </div>
+
+    <div id="loginAlert" class="alert-box alert-danger"></div>
+
+    <div id="loginForm" class="login-fields">
+      <div class="form-group">
+        <label class="form-label" for="loginEmail">Admin Email</label>
+        <input type="email" id="loginEmail" class="form-input" placeholder="name@domain.com" autocomplete="username" onkeydown="if(event.key==='Enter'){event.preventDefault();handleLogin();}" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" class="form-input" placeholder="••••••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter'){event.preventDefault();handleLogin();}" />
+      </div>
+
+      <button type="button" id="loginBtn" class="btn btn-full" onclick="handleLogin()">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align:middle;margin-right:6px;"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg><span id="loginBtnText">Unlock Dashboard</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════ MAIN APP VIEW ════════════ -->
+<div id="appView">
+  <!-- Navbar -->
+  <header class="admin-navbar">
+    <div class="brand-section">
+      <img src="https://res.cloudinary.com/dq2nrpky0/image/upload/v1779787887/favicon_oalxfi.png" alt="Sonic Media Logo" class="brand-logo" />
+      <div>
+        <div class="brand-name">THE SONIC MEDIA</div>
+        <div style="font-size: 11px; color: var(--text-muted); font-weight: 500;">Admin Management Portal</div>
+      </div>
+      <span class="badge-secret">Hidden Portal</span>
+    </div>
+
+    <div class="nav-actions">
+      <div class="status-indicator" style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--success);margin-right:8px;">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="#3ECF8E" style="vertical-align:middle;margin-right:4px;"><path d="M21.362 9.354H12V.312a.312.312 0 0 0-.532-.22L.103 11.458a.313.313 0 0 0 .22.533H9.7v9.042c0 .278.337.417.533.22l11.365-11.366a.313.313 0 0 0-.236-.533z"/></svg>
+        <span>Connected to Supabase</span>
+      </div>
+      <div class="session-badge" style="display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.04); border:1px solid var(--border-subtle); padding:6px 12px; border-radius:var(--radius-sm); font-size:12px; color:var(--text-muted);">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="var(--orange)" style="flex-shrink:0;"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+        <span id="sessionUserDisplay">Admin</span>
+      </div>
+      <a href="/?live_edit=true" target="_blank" class="btn btn-secondary btn-sm" style="background:rgba(255,92,0,0.14);border-color:rgba(255,92,0,0.35);color:#FF5C00;font-weight:700;"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Visual Live CMS</a>
+      <a href="/?preview=true" target="_blank" class="btn btn-secondary btn-sm" title="Preview site cleanly as a visitor without any editing toolkit"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>Preview Site</a>
+      <button type="button" id="btnAdminSignOut" onclick="window.handleLogout()" class="btn btn-secondary btn-sm" title="End admin session"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>Sign Out</button>
+    </div>
+  </header>
+
+  <!-- Container -->
+  <main class="admin-container">
+    <!-- Tabs Header -->
+    <nav class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab('portfolio', this)">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>
+        <span>Portfolio</span>
+        <span class="tab-count" id="countPortfolio">0</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('casestudies', this)">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+        <span>Case Studies</span>
+        <span class="tab-count" id="countCaseStudies">0</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('journal', this)">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg>
+        <span>Journal Reads</span>
+        <span class="tab-count" id="countJournal">0</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('headers', this)">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+        <span>Section Headers</span>
+      </button>
+    </nav>
+
+    <!-- TAB 1: PORTFOLIO -->
+    <section id="tab-portfolio" class="tab-panel active">
+      <div class="panel-head">
+        <div>
+          <h2 class="panel-title">Portfolio Projects</h2>
+          <p class="panel-desc">Manage client projects, metrics, gallery photos, and deliverables shown on the Portfolio & Home pages.</p>
+        </div>
+        <button class="btn" onclick="openPortfolioModal()"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Add New Project</button>
+      </div>
+      <div class="items-list" id="portfolioListContainer">
+        <!-- Rendered via JS -->
+      </div>
+    </section>
+
+    <!-- TAB 2: CASE STUDIES -->
+    <section id="tab-casestudies" class="tab-panel">
+      <div class="panel-head">
+        <div>
+          <h2 class="panel-title">Case Studies</h2>
+          <p class="panel-desc">Customize tactical case study cards, filter categories, and excerpts shown on Case Studies & Home pages.</p>
+        </div>
+        <button class="btn" onclick="openCaseStudyModal()"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Add Case Study</button>
+      </div>
+      <div class="items-list" id="caseStudiesListContainer">
+        <!-- Rendered via JS -->
+      </div>
+    </section>
+
+    <!-- TAB 3: JOURNAL -->
+    <section id="tab-journal" class="tab-panel">
+      <div class="panel-head">
+        <div>
+          <h2 class="panel-title">Journal / Fresh Reads</h2>
+          <p class="panel-desc">Publish and update agency insights, marketing playbooks, and read-time details.</p>
+        </div>
+        <button class="btn" onclick="openJournalModal()"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>Add Journal Post</button>
+      </div>
+      <div class="items-list" id="journalListContainer">
+        <!-- Rendered via JS -->
+      </div>
+    </section>
+
+    <!-- TAB 4: SECTION HEADERS -->
+    <section id="tab-headers" class="tab-panel">
+      <div class="panel-head">
+        <div>
+          <h2 class="panel-title">Section Headings & Taglines</h2>
+          <p class="panel-desc">Customize the eyebrow tags, main titles, highlighted words, and descriptions for the 3 customizable pages.</p>
+        </div>
+        <button class="btn" onclick="saveSectionHeaders()"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>Save All Headings</button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 24px;">
+        <!-- Portfolio Headers -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 24px;">
+          <h3 style="font-family: var(--font-heading); font-size: 16px; margin-bottom: 16px; color: var(--orange);">Portfolio Section Headings</h3>
+          <div class="form-group">
+            <label class="form-label">Eyebrow Tag</label>
+            <input type="text" id="headerPortEyebrow" class="form-input" placeholder="Featured Work" />
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Title Main</label>
+              <input type="text" id="headerPortTitleMain" class="form-input" placeholder="Results" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Title Sub</label>
+              <input type="text" id="headerPortTitleSub" class="form-input" placeholder="That" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Highlighted Word (Italic)</label>
+            <input type="text" id="headerPortTitleEm" class="form-input" placeholder="Speak" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tagline Description</label>
+            <textarea id="headerPortTagline" class="form-textarea" placeholder="Every project is a movement..."></textarea>
+          </div>
+        </div>
+
+        <!-- Case Studies Headers -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 24px;">
+          <h3 style="font-family: var(--font-heading); font-size: 16px; margin-bottom: 16px; color: var(--orange);">Case Studies Section Headings</h3>
+          <div class="form-group">
+            <label class="form-label">Section Tag</label>
+            <input type="text" id="headerCaseTag" class="form-input" placeholder="Case Studies" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Title Main Prefix</label>
+            <input type="text" id="headerCaseTitleMain" class="form-input" placeholder="Insights & " />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Title Highlighted Span</label>
+            <input type="text" id="headerCaseTitleSpan" class="form-input" placeholder="Ideas" />
+          </div>
+        </div>
+
+        <!-- Journal Headers -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 24px;">
+          <h3 style="font-family: var(--font-heading); font-size: 16px; margin-bottom: 16px; color: var(--orange);">Journal Section Headings</h3>
+          <div class="form-group">
+            <label class="form-label">Section Tag</label>
+            <input type="text" id="headerJournalTag" class="form-input" placeholder="Journal" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Title Main Prefix</label>
+            <input type="text" id="headerJournalTitleMain" class="form-input" placeholder="Fresh " />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Title Highlighted Span</label>
+            <input type="text" id="headerJournalTitleSpan" class="form-input" placeholder="Reads" />
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ════════════ PORTFOLIO MODAL ════════════ -->
+<div id="portfolioModal" class="modal-overlay">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <h3 class="modal-title" id="portModalTitle">Edit Portfolio Item</h3>
+      <div style="margin-left:auto;margin-right:12px;display:flex;gap:8px;align-items:center;">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="const pid=document.getElementById('portIdOriginal').value||document.getElementById('portId').value; if(pid) window.open('/project?id=' + encodeURIComponent(pid), '_blank');" title="Open inside project page in new tab"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>Preview Live Page ↗</button>
+        <button type="submit" form="portfolioForm" class="btn btn-sm" id="portHeaderSaveBtn" style="font-weight:700;display:inline-flex;align-items:center;gap:6px;box-shadow:0 0 14px rgba(255,92,0,0.35);"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>Save Project</button>
+      </div>
+      <button class="modal-close" onclick="closeModal('portfolioModal')" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:block;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+    <div class="modal-tab-bar">
+      <button type="button" class="modal-tab-pill active" id="portTabBtnCard" onclick="switchPortModalTab('card')">
+        📇 Step 1: Front Card & Listing Info
+      </button>
+      <button type="button" class="modal-tab-pill" id="portTabBtnArticle" onclick="switchPortModalTab('article')">
+        📄 Step 2: Inner Page Article & Showcase (Image 2)
+      </button>
+    </div>
+    <form id="portfolioForm" onsubmit="savePortfolioItem(event)">
+      <div class="modal-body">
+        <input type="hidden" id="portIdOriginal" />
+
+        <!-- ═══ STEP 1: FRONT CARD & LISTING INFO ═══ -->
+        <div id="portSectionCard" class="port-modal-section">
+          <div class="modal-section-title">
+            <span>Front Card & Listing Details (Homepage / Grid)</span>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Unique Slug ID</label>
+              <input type="text" id="portId" class="form-input" placeholder="e.g. nexahealth" required />
+              <div class="form-help">Lowercase letters, numbers, and hyphens only (e.g. spicy-theory-kitchen).</div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Display Number</label>
+              <input type="text" id="portNum" class="form-input" placeholder="01" required />
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Category</label>
+              <input type="text" id="portCat" class="form-input" placeholder="Branding & Advertising Solutions" required oninput="triggerSeoDebounced('portfolio')" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Display Order (Sort)</label>
+              <input type="number" id="portOrder" class="form-input" placeholder="1" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Project Name / Card Headline</label>
+            <input type="text" id="portName" class="form-input" placeholder="Spice Theory Kitchen — Restaurant Menu & Packaging Design" required oninput="triggerSeoDebounced('portfolio')" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Cover / Card Hero Image URL</label>
+            <div class="upload-row">
+              <input type="url" id="portImg" class="form-input" placeholder="https://images.unsplash.com/..." required />
+              <label class="btn btn-secondary btn-sm" style="cursor:pointer; white-space:nowrap;">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" style="vertical-align:middle;margin-right:5px;"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>Upload File<input type="file" accept="image/*" style="display:none;" onchange="uploadAsset(this, 'portImg')" />
+              </label>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Metric Value</label>
+              <input type="text" id="portMetricVal" class="form-input" placeholder="Live or Completed or +340%" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Metric Label</label>
+              <input type="text" id="portMetricLbl" class="form-input" placeholder="Brand Delivered or lcpladvisory.com" />
+            </div>
+          </div>
+
+          <!-- SEO KEYWORD RECOMMENDATION ENGINE -->
+          <hr class="modal-section-divider">
+          <div class="modal-section-title">
+            <span>Search Engine Optimization & Tags</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">SEO Keywords & Tags (comma separated)</label>
+            <input type="text" id="portTags" class="form-input" placeholder="Restaurant Branding, Packaging Design, F&B Marketing Ahmedabad, Print Design" />
+          </div>
+
+          <div class="seo-recommend-box">
+            <div class="seo-header-row">
+              <div>
+                <div style="font-family:var(--font-heading); font-size:12px; font-weight:800; color:var(--orange); display:flex; align-items:center; gap:6px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--orange);display:inline-block;vertical-align:middle;margin-right:4px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><span>SMART SEO KEYWORD RECOMMENDATIONS</span>
+                </div>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">
+                  AI-driven keyword suggestions generated from your project name, category, location, and deep-dive writeup. Click any chip to add it instantly.
+                </div>
+              </div>
+              <div style="display:flex; gap:8px;">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="recommendKeywords('portfolio')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:4px;"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>Generate Suggestions</button>
+                <button type="button" class="btn btn-sm" onclick="addAllKeywords('portfolio')">＋ Add All</button>
+              </div>
+            </div>
+            <div id="portSeoChips" class="seo-chips-wrap">
+              <span style="font-size:12px; color:var(--text-muted); font-style:italic;">Click "Generate Suggestions" or fill in details above to view targeted keyword chips.</span>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:28px; padding-top:16px; border-top:1px solid var(--border-subtle);">
+            <span style="font-size:12px; color:var(--text-muted);">Step 1 of 2: Front card details completed</span>
+            <button type="button" class="btn btn-secondary" onclick="switchPortModalTab('article')" style="color:var(--orange); border-color:rgba(255,92,0,0.4); font-weight:700;">
+              Next: Edit Inside Page Article & Deliverables (Image 2) →
+            </button>
+          </div>
+        </div>
+
+        <!-- ═══ STEP 2: INNER PAGE ARTICLE & DELIVERABLES (SHOWN IN IMAGE 2) ═══ -->
+        <div id="portSectionArticle" class="port-modal-section" style="display:none;">
+          <div style="background:rgba(255,92,0,0.08); border:1px solid rgba(255,92,0,0.3); border-radius:var(--radius-md); padding:16px 20px; margin-bottom:22px; display:flex; gap:14px; align-items:flex-start;">
+            <div style="font-size:22px; line-height:1;">📄</div>
+            <div>
+              <div style="font-family:var(--font-heading); font-size:13px; font-weight:800; color:var(--orange); letter-spacing:0.04em;">
+                INNER PROJECT PAGE & FULL ARTICLE CONTENT (IMAGE 2)
+              </div>
+              <div style="font-size:12px; color:var(--text-muted); margin-top:3px; line-height:1.5;">
+                Every field in this section directly updates the live dedicated project page at <code>/project?id=your-slug</code>. It controls the headline, client background, the challenge, the solution, deliverables list, visual showcase photos, and deep-dive case story.
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-section-title">
+            <span>Inside Page Header & Subtitle</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Inside Page Subtitle / Focus Area</label>
+            <input type="text" id="portSubtitle" class="form-input" placeholder="Restaurant Menu & Packaging Design" oninput="triggerSeoDebounced('portfolio')" />
+            <div class="form-help">Appears beneath the giant project title on the inside page.</div>
+          </div>
+
+          <div class="modal-section-title" style="margin-top:20px;">
+            <span>Project Metadata Badges (The 5 Metric Cards in Image 2)</span>
+          </div>
+
+          <div class="grid-3">
+            <div class="form-group">
+              <label class="form-label">Project Type</label>
+              <input type="text" id="portType" class="form-input" placeholder="Branding Project" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Project Status</label>
+              <input type="text" id="portStatus" class="form-input" placeholder="Completed" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Location</label>
+              <input type="text" id="portLocation" class="form-input" placeholder="Ahmedabad, Gujarat" oninput="triggerSeoDebounced('portfolio')" />
+            </div>
+          </div>
+
+          <div class="grid-3">
+            <div class="form-group">
+              <label class="form-label">Industry</label>
+              <input type="text" id="portIndustry" class="form-input" placeholder="Food & Beverage" oninput="triggerSeoDebounced('portfolio')" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Year</label>
+              <input type="text" id="portYear" class="form-input" placeholder="2026" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Live Project / Website URL (Optional)</label>
+              <input type="url" id="portLiveUrl" class="form-input" placeholder="https://spicetheorykitchen.com or leave blank" />
+            </div>
+          </div>
+
+          <hr class="modal-section-divider">
+          <div class="modal-section-title">
+            <span>Project Narrative (The 3 Narrative Cards in Image 2)</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">About the Client / Brand</label>
+            <textarea id="portAbout" class="form-textarea" style="min-height:90px;" placeholder="Spice Theory Kitchen is a modern food brand focused on premium Indian fusion meals and takeaway services..." oninput="triggerSeoDebounced('portfolio')"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">The Challenge</label>
+            <textarea id="portChallenge" class="form-textarea" style="min-height:90px;" placeholder="The brand needed visually appealing menus and packaging that felt premium while maintaining readability and strong brand consistency..." oninput="triggerSeoDebounced('portfolio')"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">The Solution</label>
+            <textarea id="portSolution" class="form-textarea" style="min-height:90px;" placeholder="Designed a complete branding system including menu layouts, takeaway packaging, and promotional print materials aligned with the restaurant's modern identity..." oninput="triggerSeoDebounced('portfolio')"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Key Deliverables (one per line, shown in Key Deliverables card)</label>
+            <textarea id="portDeliverables" class="form-textarea" style="min-height:100px;" placeholder="Menu card design&#10;Food packaging design&#10;Flyers & table-top creatives&#10;Brand typography & color styling&#10;Print-ready production files"></textarea>
+          </div>
+
+          <!-- SHOWCASE GALLERY IMAGES (THE 5 DELIVERABLES IN IMAGE 2) -->
+          <hr class="modal-section-divider">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+            <div>
+              <div class="modal-section-title" style="margin-bottom:2px;">
+                <span>Showcase Visual Deliverables & Gallery Photos (Shown in Image 2)</span>
+              </div>
+              <p style="font-size:12px; color:var(--text-muted); margin-bottom:0;">
+                These high-resolution gallery items display in the inner page under "Project Gallery — Key Deliverables".
+              </p>
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="addPortfolioGalleryItem()">+ Add Showcase Image</button>
+          </div>
+
+          <div id="portGalleryList">
+            <!-- Rendered dynamically -->
+          </div>
+
+          <!-- FULL IN-DEPTH ARTICLE WRITEUP (BLOG SYSTEM) -->
+          <hr class="modal-section-divider">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <div>
+              <div class="modal-section-title" style="margin-bottom:2px;">
+                <span>Full Long-Form Case Study / Blog Article (Optional Extended Story)</span>
+              </div>
+              <div style="font-size:11px; color:var(--text-muted);">
+                Want to write a full blog post or detailed case study article? Write rich text with headings, paragraphs, and quotes below.
+              </div>
+            </div>
+            <div class="formatting-toolbar">
+              <button type="button" class="format-btn" onclick="insertHtmlFormat('portArticleBody', 'h2')">+ H2 Title</button>
+              <button type="button" class="format-btn" onclick="insertHtmlFormat('portArticleBody', 'p')">+ Paragraph</button>
+              <button type="button" class="format-btn" onclick="insertHtmlFormat('portArticleBody', 'strong')">+ Highlight</button>
+              <button type="button" class="format-btn" onclick="insertHtmlFormat('portArticleBody', 'blockquote')">+ Quote</button>
+              <button type="button" class="format-btn" onclick="insertHtmlFormat('portArticleBody', 'ul')">+ Bullet List</button>
+            </div>
+          </div>
+          <textarea id="portArticleBody" class="form-textarea" style="min-height:160px; font-family:monospace; font-size:12px; line-height:1.6;" placeholder="Extended case study story, methodology, client interview, or results analysis..."></textarea>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:28px; padding-top:16px; border-top:1px solid var(--border-subtle);">
+            <button type="button" class="btn btn-secondary" onclick="switchPortModalTab('card')">
+              ← Back to Step 1: Front Card Info
+            </button>
+            <button type="submit" class="btn" style="box-shadow:0 0 16px rgba(255,92,0,0.35);">💾 Save Project & All Content</button>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('portfolioModal')">Cancel</button>
+        <button type="submit" class="btn" id="portSaveBtn">Save Project & Content</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ════════════ CASE STUDY MODAL ════════════ -->
+<div id="caseStudyModal" class="modal-overlay">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <h3 class="modal-title" id="caseModalTitle">Edit Case Study</h3>
+      <div style="margin-left:auto;margin-right:12px;display:flex;gap:8px;align-items:center;">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="const cid=document.getElementById('caseIdOriginal').value||document.getElementById('caseId').value; if(cid) window.open('/case-study?id=' + encodeURIComponent(cid), '_blank');" title="Open case study page in new tab"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>Preview Live Page ↗</button>
+        <button type="submit" form="caseStudyForm" class="btn btn-sm" id="caseHeaderSaveBtn" style="font-weight:700;display:inline-flex;align-items:center;gap:6px;box-shadow:0 0 14px rgba(255,92,0,0.35);"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>Save Case Study</button>
+      </div>
+      <button class="modal-close" onclick="closeModal('caseStudyModal')" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:block;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+    <form id="caseStudyForm" onsubmit="saveCaseStudy(event)">
+      <div class="modal-body">
+        <input type="hidden" id="caseIdOriginal" />
+
+        <div class="modal-section-title">
+          <span>Card & Header Details</span>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Unique Slug ID</label>
+            <input type="text" id="caseId" class="form-input" placeholder="d2c-growth-playbook" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Display Order (Sort)</label>
+            <input type="number" id="caseOrder" class="form-input" placeholder="1" required />
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Category Code</label>
+            <select id="caseCat" class="form-select" onchange="updateCatLabel(this.value); triggerSeoDebounced('casestudy');" required>
+              <option value="strategy">strategy (Strategy)</option>
+              <option value="performance">performance (Performance)</option>
+              <option value="seo">seo (SEO)</option>
+              <option value="social">social (Social Media)</option>
+              <option value="branding">branding (Branding)</option>
+              <option value="technology">technology (Technology)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Category Label</label>
+            <input type="text" id="caseCatLabel" class="form-input" placeholder="Strategy" required />
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Publication Date</label>
+            <input type="text" id="caseDate" class="form-input" placeholder="May 18, 2026" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Cover Image URL</label>
+            <div class="upload-row">
+              <input type="url" id="caseImg" class="form-input" placeholder="https://images.unsplash.com/..." required />
+              <label class="btn btn-secondary btn-sm" style="cursor:pointer; white-space:nowrap;">
+                Upload
+                <input type="file" accept="image/*" style="display:none;" onchange="uploadAsset(this, 'caseImg')" />
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Case Study Main Title</label>
+          <input type="text" id="caseTitle" class="form-input" placeholder="How Indian D2C Brands Can Scale from ₹5L to ₹50L Monthly Revenue in 6 Months" required oninput="triggerSeoDebounced('casestudy')" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Excerpt / Card Summary</label>
+          <textarea id="caseExcerpt" class="form-textarea" placeholder="The exact growth blueprint — paid media architecture, retention flows, and CRO..." required oninput="triggerSeoDebounced('casestudy')"></textarea>
+        </div>
+
+        <!-- SEO KEYWORDS ENGINE -->
+        <hr class="modal-section-divider">
+        <div class="modal-section-title">
+          <span>SEO Keywords & Discovery Tags</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">SEO Keywords / Tags (comma separated)</label>
+          <input type="text" id="caseTags" class="form-input" placeholder="D2C Growth India, CRO Optimization, ROAS Strategy, Performance Marketing" />
+        </div>
+
+        <div class="seo-recommend-box">
+          <div class="seo-header-row">
+            <div>
+              <div style="font-family:var(--font-heading); font-size:12px; font-weight:800; color:var(--orange); display:flex; align-items:center; gap:6px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--orange);display:inline-block;vertical-align:middle;margin-right:4px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><span>SMART SEO KEYWORD RECOMMENDATIONS</span>
+              </div>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">
+                Recommendations generated based on your title, category, and tactical playbooks.
+              </div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="recommendKeywords('casestudy')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:4px;"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>Generate Suggestions</button>
+              <button type="button" class="btn btn-sm" onclick="addAllKeywords('casestudy')">＋ Add All</button>
+            </div>
+          </div>
+          <div id="caseSeoChips" class="seo-chips-wrap">
+            <span style="font-size:12px; color:var(--text-muted); font-style:italic;">Click "Generate Suggestions" to produce target SEO chips.</span>
+          </div>
+        </div>
+
+        <!-- DEEP-DIVE CASE STUDY BODY & IMAGES -->
+        <hr class="modal-section-divider">
+        <div class="modal-section-title">
+          <span>Deep-Dive Article & Data Proof</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Subtitle / Sub-headline</label>
+          <input type="text" id="caseSubtitle" class="form-input" placeholder="The Exact Growth Blueprint That Delivered 10× Revenue for Our D2C Clients" oninput="triggerSeoDebounced('casestudy')" />
+        </div>
+
+        <!-- Proof Images List -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px; margin-bottom:10px;">
+          <label class="form-label" style="margin-bottom:0; font-weight:700; color:var(--text-main);">Case Study Proof & Architecture Images</label>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="addCaseGalleryItem()">+ Add Proof Image</button>
+        </div>
+        <div id="caseGalleryList">
+          <!-- Rendered dynamically -->
+        </div>
+
+        <div class="form-group" style="margin-top:16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label class="form-label" style="margin-bottom:0;">Full Article Writeup (HTML Supported)</label>
+            <div class="formatting-toolbar">
+              <button type="button" class="format-btn" onclick="insertHtmlFormat('caseBody', 'h2')">+ H2 Title</button>
+              <button type="button" class="format-btn" onclick="insertHtmlFormat('caseBody', 'p')">+ Paragraph</button>
+              <button type="button" class="format-btn" onclick="insertHtmlFormat('caseBody', 'strong')">+ Highlight</button>
+              <button type="button" class="format-btn" onclick="insertHtmlFormat('caseBody', 'blockquote')">+ Quote</button>
+              <button type="button" class="format-btn" onclick="insertHtmlFormat('caseBody', 'ul')">+ Bullet List</button>
+            </div>
+          </div>
+          <textarea id="caseBody" class="form-textarea" style="min-height:240px; font-family:monospace; font-size:12px; line-height:1.6;" placeholder="Full case study article body content with headings, paragraphs, and evidence..."></textarea>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('caseStudyModal')">Cancel</button>
+        <button type="submit" class="btn" id="caseSaveBtn">Save Case Study & Content</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ════════════ JOURNAL MODAL ════════════ -->
+<div id="journalModal" class="modal-overlay">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <h3 class="modal-title" id="journalModalTitle">Edit Journal Article</h3>
+      <div style="margin-left:auto;margin-right:12px;display:flex;gap:8px;align-items:center;">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="const jid=document.getElementById('journalIdOriginal').value||document.getElementById('journalId').value; if(jid) window.open('/article?id=' + encodeURIComponent(jid), '_blank');" title="Open article page in new tab"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>Preview Live Page ↗</button>
+        <button type="submit" form="journalForm" class="btn btn-sm" id="journalHeaderSaveBtn" style="font-weight:700;display:inline-flex;align-items:center;gap:6px;box-shadow:0 0 14px rgba(255,92,0,0.35);"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>Save Post</button>
+      </div>
+      <button class="modal-close" onclick="closeModal('journalModal')" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:block;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+    <form id="journalForm" onsubmit="saveJournalPost(event)">
+      <div class="modal-body">
+        <input type="hidden" id="journalIdOriginal" />
+
+        <div class="modal-section-title">
+          <span>Article Details</span>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Unique Slug ID</label>
+            <input type="text" id="journalId" class="form-input" placeholder="blog-google-ai-seo" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Display Order (Sort)</label>
+            <input type="number" id="journalOrder" class="form-input" placeholder="1" required />
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Article Number</label>
+            <input type="text" id="journalNum" class="form-input" placeholder="01" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <input type="text" id="journalCat" class="form-input" placeholder="SEO" required oninput="triggerSeoDebounced('journal')" />
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Read Time</label>
+            <input type="text" id="journalReadTime" class="form-input" placeholder="7 min read" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Publication Date</label>
+            <input type="text" id="journalDate" class="form-input" placeholder="May 2026" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Article Title</label>
+          <input type="text" id="journalTitle" class="form-input" placeholder="How Google AI Overviews Are Changing SEO in India..." required oninput="triggerSeoDebounced('journal')" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Thumbnail URL</label>
+          <div class="upload-row">
+            <input type="url" id="journalThumb" class="form-input" placeholder="https://images.unsplash.com/..." />
+            <label class="btn btn-secondary btn-sm" style="cursor:pointer; white-space:nowrap;">
+              Upload
+              <input type="file" accept="image/*" style="display:none;" onchange="uploadAsset(this, 'journalThumb')" />
+            </label>
+          </div>
+        </div>
+
+        <!-- SEO KEYWORDS ENGINE -->
+        <hr class="modal-section-divider">
+        <div class="modal-section-title">
+          <span>SEO Keywords & Discovery Tags</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">SEO Keywords / Tags (comma separated)</label>
+          <input type="text" id="journalTags" class="form-input" placeholder="Google AI Overviews, SEO Strategy India, Search Engine Optimization, Content Marketing" />
+        </div>
+
+        <div class="seo-recommend-box">
+          <div class="seo-header-row">
+            <div>
+              <div style="font-family:var(--font-heading); font-size:12px; font-weight:800; color:var(--orange); display:flex; align-items:center; gap:6px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--orange);display:inline-block;vertical-align:middle;margin-right:4px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><span>SMART SEO KEYWORD RECOMMENDATIONS</span>
+              </div>
+              <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">
+                Keywords generated from your journal title, article themes, and marketing topics.
+              </div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button type="button" class="btn btn-secondary btn-sm" onclick="recommendKeywords('journal')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:4px;"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>Generate Suggestions</button>
+              <button type="button" class="btn btn-sm" onclick="addAllKeywords('journal')">＋ Add All</button>
+            </div>
+          </div>
+          <div id="journalSeoChips" class="seo-chips-wrap">
+            <span style="font-size:12px; color:var(--text-muted); font-style:italic;">Click "Generate Suggestions" to view target SEO chips.</span>
+          </div>
+        </div>
+
+        <!-- DEEP-DIVE ARTICLE BODY & SUBTITLE -->
+        <hr class="modal-section-divider">
+        <div class="modal-section-title">
+          <span>Full Article Body & Deep Dive</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Subtitle / Hook</label>
+          <input type="text" id="journalSubtitle" class="form-input" placeholder="Google's AI Overviews are live in India. Here is what happened to our clients' search traffic..." oninput="triggerSeoDebounced('journal')" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Featured Image Caption</label>
+          <input type="text" id="journalImgCap" class="form-input" placeholder="AI Overviews occupy prime real estate above traditional organic results." />
+        </div>
+
+        <div class="form-group">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label class="form-label" style="margin-bottom:0;">Full Article Content (HTML Supported)</label>
+            <div class="formatting-toolbar">
+              <button type="button" class="format-btn" onclick="insertHtmlFormat('journalContent', 'h2')">+ H2 Title</button>
+              <button type="button" class="format-btn" onclick="insertHtmlFormat('journalContent', 'p')">+ Paragraph</button>
+              <button type="button" class="format-btn" onclick="insertHtmlFormat('journalContent', 'strong')">+ Highlight</button>
+              <button type="button" class="format-btn" onclick="insertHtmlFormat('journalContent', 'blockquote')">+ Quote</button>
+              <button type="button" class="format-btn" onclick="insertHtmlFormat('journalContent', 'ul')">+ Bullet List</button>
+            </div>
+          </div>
+          <textarea id="journalContent" class="form-textarea" style="min-height:240px; font-family:monospace; font-size:12px; line-height:1.6;" placeholder="Full article writeup with headings and paragraphs..."></textarea>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('journalModal')">Cancel</button>
+        <button type="submit" class="btn" id="journalSaveBtn">Save Article & Content</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ════════════ TOAST NOTIFICATION ════════════ -->
+<div id="toast">
+  <span>✓</span>
+  <span id="toastMsg">Changes saved successfully!</span>
+</div>
+
+<!-- ════════════ ADMIN JAVASCRIPT LOGIC ════════════ -->
+<script>
+const SUPABASE_URL = 'https://plytoawhcvzdjtrgtnrn.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBseXRvYXdoY3Z6ZGp0cmd0bnJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5NjkyNTYsImV4cCI6MjEwNzU0NTI1Nn0.AxpKzQf5LL-ePbmtsxELKQdip3bYp9hBp9xYugybelc';
+const ADMIN_STORAGE_KEY = 'sonicmedia_admin_session';
+
+var sb = null;
+function getSupabase() {
+  if (!sb) {
+    if (window.supabase && typeof window.supabase.createClient === 'function') {
+      sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+        auth: {
+          storage: window.sessionStorage,
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: false
+        }
+      });
+      setupAuthListener(sb);
+    } else {
+      throw new Error('Supabase client library is still loading. Please try again in 1 second.');
+    }
+  }
+  return sb;
+}
+
+// Local State
+let state = {
+  portfolio: [],
+  casestudies: [],
+  journal: [],
+  headers: {}
+};
+
+// ── Session Storage Utilities ──
+function saveSessionToStorage(session, user) {
+  if (!session) return;
+  const sessionPayload = {
+    user_id: user?.id || session.user?.id,
+    email: user?.email || session.user?.email || 'admin@thesonicmedia.com',
+    role: 'admin',
+    access_token: session.access_token,
+    refresh_token: session.refresh_token,
+    expires_at: session.expires_at, // Epoch seconds
+    saved_at: Date.now()
+  };
+  try {
+    window.sessionStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(sessionPayload));
+    window.localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(sessionPayload));
+  } catch (err) {
+    console.warn('Could not save to storage:', err);
+  }
+}
+
+function getStoredSession() {
+  try {
+    const raw = window.sessionStorage.getItem(ADMIN_STORAGE_KEY) || window.localStorage.getItem(ADMIN_STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (e) {
+    return null;
+  }
+}
+
+function clearStoredSession() {
+  try {
+    window.sessionStorage.removeItem(ADMIN_STORAGE_KEY);
+    window.localStorage.removeItem(ADMIN_STORAGE_KEY);
+    for (let i = window.sessionStorage.length - 1; i >= 0; i--) {
+      const key = window.sessionStorage.key(i);
+      if (key && (key.startsWith('sb-') || key.includes('auth-token'))) {
+        window.sessionStorage.removeItem(key);
+      }
+    }
+    for (let i = window.localStorage.length - 1; i >= 0; i--) {
+      const key = window.localStorage.key(i);
+      if (key && (key.startsWith('sb-') || key.includes('auth-token'))) {
+        window.localStorage.removeItem(key);
+      }
+    }
+  } catch (err) {
+    console.warn('Could not clear storage:', err);
+  }
+}
+
+let _expirationTimer = null;
+function scheduleExpirationWatcher(expiresAtSec) {
+  if (_expirationTimer) {
+    clearTimeout(_expirationTimer);
+    _expirationTimer = null;
+  }
+  if (!expiresAtSec) return;
+
+  const nowSec = Math.floor(Date.now() / 1000);
+  const remainingSec = expiresAtSec - nowSec;
+
+  if (remainingSec <= 0) {
+    handleLogout(true, 'Your admin session has expired. Please log in again.');
+    return;
+  }
+
+  const remainingMs = Math.min(remainingSec * 1000, 2147483647);
+  _expirationTimer = setTimeout(() => {
+    handleLogout(true, 'Your admin session has expired. Please log in again.');
+  }, remainingMs);
+}
+
+// ── UI View Helpers ──
+function showDashboard() {
+  document.getElementById('loginShield').style.display = 'none';
+  document.getElementById('appView').style.display = 'flex';
+  document.body.style.overflow = 'auto';
+}
+
+function showLoginShield() {
+  const preAuthStyle = document.getElementById('preAuthStyle');
+  if (preAuthStyle) preAuthStyle.remove();
+  document.getElementById('loginShield').style.display = 'flex';
+  document.getElementById('appView').style.display = 'none';
+}
+
+function updateUserDisplay(email) {
+  const el = document.getElementById('sessionUserDisplay');
+  if (el && email) el.textContent = email;
+}
+
+// ── Auth Listener ──
+let _authListenerAttached = false;
+function setupAuthListener(client) {
+  if (_authListenerAttached || !client || !client.auth) return;
+  _authListenerAttached = true;
+
+  client.auth.onAuthStateChange((event, session) => {
+    console.log('[SonicAdmin] Auth state event:', event);
+    if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+      if (session) {
+        saveSessionToStorage(session, session.user);
+        scheduleExpirationWatcher(session.expires_at);
+        updateUserDisplay(session.user?.email);
+      }
+    } else if (event === 'SIGNED_OUT') {
+      clearStoredSession();
+      showLoginShield();
+    }
+  });
+}
+
+// ── Authentication Check ──
+async function checkAuth() {
+  try {
+    const client = getSupabase();
+    
+    // Check if session in sessionStorage is expired
+    const stored = getStoredSession();
+    const nowSec = Math.floor(Date.now() / 1000);
+    if (stored && stored.expires_at && nowSec >= stored.expires_at) {
+      console.warn('Stored session is expired.');
+      await handleLogout(true, 'Your admin session has expired. Please log in again.');
+      return;
+    }
+
+    let { data: { session }, error } = await client.auth.getSession();
+    
+    // If Supabase didn't auto-restore but we have an unexpired session in sessionStorage, restore it!
+    if (!session && stored && stored.access_token && stored.refresh_token && nowSec < stored.expires_at) {
+      try {
+        const setRes = await client.auth.setSession({
+          access_token: stored.access_token,
+          refresh_token: stored.refresh_token
+        });
+        if (setRes.data?.session) {
+          session = setRes.data.session;
+        }
+      } catch (err) {
+        console.warn('Could not restore session from tokens:', err);
+      }
+    }
+
+    if (session && session.user) {
+      // Check if session has expired
+      if (session.expires_at && nowSec >= session.expires_at) {
+        await handleLogout(true, 'Your admin session has expired. Please log in again.');
+        return;
+      }
+
+      // Valid session! Keep user logged in across page reloads/sessions
+      saveSessionToStorage(session, session.user);
+      scheduleExpirationWatcher(session.expires_at);
+      updateUserDisplay(session.user.email);
+      showDashboard();
+      loadAllData();
+    } else {
+      // No active session
+      clearStoredSession();
+      showLoginShield();
+      const logoutNotice = window.sessionStorage.getItem('just_logged_out');
+      if (logoutNotice) {
+        window.sessionStorage.removeItem('just_logged_out');
+        showToast(logoutNotice);
+      }
+    }
+  } catch (err) {
+    console.debug('Waiting for Supabase client...', err);
+    setTimeout(checkAuth, 250);
+  }
+}
+
+async function handleLogin(e) {
+  if (e) {
+    if (typeof e.preventDefault === 'function') e.preventDefault();
+    if (typeof e.stopPropagation === 'function') e.stopPropagation();
+  }
+  const alertEl = document.getElementById('loginAlert');
+  const btn = document.getElementById('loginBtn');
+  const btnText = document.getElementById('loginBtnText');
+  alertEl.style.display = 'none';
+
+  let email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+
+  if (!email || !password) {
+    alertEl.textContent = 'Please enter both your admin email and password.';
+    alertEl.style.display = 'block';
+    return;
+  }
+
+  btnText.textContent = 'Verifying credentials...';
+  btn.disabled = true;
+
+  try {
+    const client = getSupabase();
+    console.log('[SonicAdmin] Authenticating with Supabase...');
+    const { data, error } = await client.auth.signInWithPassword({ email, password });
+    
+    if (error) {
+      console.error('[SonicAdmin] Sign-in error:', error.message || error);
+      throw error;
+    }
+
+    if (!data || !data.session) {
+      throw new Error('Supabase did not return a valid session. Please verify your connection.');
+    }
+
+    console.log('[SonicAdmin] Login successful! Admin session established.');
+
+    // Save session in sessionStorage
+    saveSessionToStorage(data.session, data.user);
+    scheduleExpirationWatcher(data.session.expires_at);
+    updateUserDisplay(data.user.email);
+
+    // Immediately transition to the dashboard panel
+    showDashboard();
+    showToast('Welcome back! Admin session established.');
+    
+    // Load fresh data
+    loadAllData();
+  } catch (err) {
+    alertEl.textContent = err.message || 'Invalid admin credentials.';
+    alertEl.style.display = 'block';
+  } finally {
+    btnText.textContent = 'Unlock Dashboard';
+    btn.disabled = false;
+  }
+}
+
+async function handleLogout(silent = false, alertReason = null) {
+  if (_expirationTimer) {
+    clearTimeout(_expirationTimer);
+    _expirationTimer = null;
+  }
+
+  // 1. Clear session storage and local admin keys
+  clearStoredSession();
+  try {
+    window.sessionStorage.clear();
+    window.localStorage.removeItem(ADMIN_STORAGE_KEY);
+    for (let i = window.localStorage.length - 1; i >= 0; i--) {
+      const k = window.localStorage.key(i);
+      if (k && (k.startsWith('sb-') || k.includes('auth-token') || k.includes('sonicmedia'))) {
+        window.localStorage.removeItem(k);
+      }
+    }
+    window.sessionStorage.setItem('just_logged_out', alertReason || 'Admin session ended. Logged out securely.');
+  } catch(e) {}
+
+  // 2. Sign out in background
+  try {
+    const client = getSupabase();
+    if (client && client.auth) {
+      client.auth.signOut().catch(() => {});
+    }
+  } catch(e) {}
+
+  // 3. Remove any injected pre-auth CSS
+  try {
+    const preAuthStyle = document.getElementById('preAuthStyle');
+    if (preAuthStyle) preAuthStyle.remove();
+    document.querySelectorAll('#preAuthStyle').forEach(el => el.remove());
+  } catch(e) {}
+
+  // 4. Reset input values
+  const emailEl = document.getElementById('loginEmail');
+  const passEl = document.getElementById('loginPassword');
+  if (emailEl) emailEl.value = '';
+  if (passEl) passEl.value = '';
+
+  // 5. Hide dashboard view and show login shield immediately
+  showLoginShield();
+
+  // 6. Reload clean URL so in-memory state is completely purged
+  window.location.reload();
+}
+
+window.handleLogout = handleLogout;
+
+// Periodic check for session expiration (every 15s)
+setInterval(() => {
+  const stored = getStoredSession();
+  if (stored && stored.expires_at) {
+    const now = Math.floor(Date.now() / 1000);
+    if (now >= stored.expires_at) {
+      console.warn('Periodic check: session expired.');
+      handleLogout(true, 'Your admin session has expired. Please log in again.');
+    }
+  }
+}, 15000);
+
+// ── Tab Navigation ──
+function switchTab(tabName, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + tabName).classList.add('active');
+}
+
+// ── Load All Data ──
+async function loadAllData() {
+  try {
+    const client = getSupabase();
+    const [portsRes, casesRes, journalsRes, headersRes] = await Promise.all([
+      client.from('portfolio_items').select('*').order('display_order', { ascending: true }),
+      client.from('case_studies').select('*').order('display_order', { ascending: true }),
+      client.from('journal_posts').select('*').order('display_order', { ascending: true }),
+      client.from('site_content').select('*')
+    ]);
+
+    state.portfolio = portsRes.data || [];
+    state.casestudies = casesRes.data || [];
+    state.journal = journalsRes.data || [];
+
+    // Map headers
+    if (headersRes.data) {
+      headersRes.data.forEach(h => { state.headers[h.key] = h.data; });
+    }
+
+    renderPortfolio();
+    renderCaseStudies();
+    renderJournal();
+    populateHeaders();
+    checkUrlAutoOpen();
+  } catch (err) {
+    console.error('Failed to load dashboard data:', err);
+    showToast('Failed to load data from Supabase');
+  }
+}
+
+// ── Auto Open Edit Modal from URL Parameter (?edit=portfolio&id=xxx) ──
+function checkUrlAutoOpen() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const editType = params.get('edit');
+    const editId = params.get('id');
+    const startTab = params.get('tab') || 'article';
+    if (!editId) return;
+
+    if (editType === 'portfolio') {
+      switchTab('portfolio');
+      setTimeout(() => {
+        editPortfolioItem(editId, startTab);
+      }, 150);
+    } else if (editType === 'casestudy') {
+      switchTab('casestudies');
+      setTimeout(() => {
+        editCaseStudy(editId);
+      }, 150);
+    } else if (editType === 'journal') {
+      switchTab('journal');
+      setTimeout(() => {
+        editJournalPost(editId);
+      }, 150);
+    }
+  } catch (e) {
+    console.debug('checkUrlAutoOpen error:', e);
+  }
+}
+
+// ── Render Portfolio ──
+function renderPortfolio() {
+  document.getElementById('countPortfolio').textContent = state.portfolio.length;
+  const container = document.getElementById('portfolioListContainer');
+  if (state.portfolio.length === 0) {
+    container.innerHTML = `<div style="padding:40px;text-align:center;color:var(--text-muted);">No portfolio projects found.</div>`;
+    return;
+  }
+
+  container.innerHTML = state.portfolio.map(item => `
+    <div class="item-row">
+      <div class="item-order">${item.num}</div>
+      <img src="${item.img}" alt="${escapeHtml(item.name)}" class="item-thumb" onerror="this.src='https://placehold.co/60x60/121212/FF5C00?text=IMG'">
+      <div class="item-info">
+        <div class="item-name">${escapeHtml(item.name)}</div>
+        <div class="item-meta">
+          <span style="color:var(--orange);font-weight:600;">${escapeHtml(item.cat)}</span>
+          ${(item.tags || []).map(t => `<span class="item-tag-pill">${escapeHtml(t)}</span>`).join('')}
+        </div>
+      </div>
+      <div class="item-badge">${escapeHtml(item.metric_val || '—')} ${escapeHtml(item.metric_lbl || '')}</div>
+      <div class="item-actions">
+        <button class="btn btn-secondary btn-sm" onclick="editPortfolioItem('${item.id}', 'card')" title="Edit front card headline, category, hero image, and metrics"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>Edit Card</button>
+        <button class="btn btn-secondary btn-sm" onclick="editPortfolioItem('${item.id}', 'article')" title="Edit inside page: About, Challenge, Solution, Deliverables, and Gallery" style="color:var(--orange);border-color:rgba(255,92,0,0.4);font-weight:600;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>Edit Inside Page (Image 2) ↗</button>
+        <button class="btn btn-secondary btn-sm" onclick="window.open('/project?id=' + encodeURIComponent('${item.id}'), '_blank')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>View Live ↗</button>
+        <button class="btn btn-danger btn-sm" onclick="deletePortfolioItem('${item.id}')"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── Render Case Studies ──
+function renderCaseStudies() {
+  document.getElementById('countCaseStudies').textContent = state.casestudies.length;
+  const container = document.getElementById('caseStudiesListContainer');
+  if (state.casestudies.length === 0) {
+    container.innerHTML = `<div style="padding:40px;text-align:center;color:var(--text-muted);">No case studies found.</div>`;
+    return;
+  }
+
+  container.innerHTML = state.casestudies.map(item => `
+    <div class="item-row">
+      <div class="item-order">#${item.display_order}</div>
+      <img src="${item.img}" alt="${escapeHtml(item.title)}" class="item-thumb" onerror="this.src='https://placehold.co/60x60/121212/FF5C00?text=IMG'">
+      <div class="item-info">
+        <div class="item-name">${escapeHtml(item.title)}</div>
+        <div class="item-meta">
+          <span style="color:var(--orange);font-weight:600;">${escapeHtml(item.cat_label)}</span>
+          <span>${escapeHtml(item.date)}</span>
+          <span style="color:var(--text-dim);">${escapeHtml(item.excerpt.slice(0, 75))}...</span>
+        </div>
+      </div>
+      <div class="item-badge" style="text-transform:capitalize;">${escapeHtml(item.cat)}</div>
+      <div class="item-actions">
+        <button class="btn btn-secondary btn-sm" onclick="editCaseStudy('${item.id}')"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>Edit</button>
+        <button class="btn btn-secondary btn-sm" onclick="window.open('/case-study?id=' + encodeURIComponent('${item.id}'), '_blank')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>View Live ↗</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteCaseStudy('${item.id}')"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── Render Journal ──
+function renderJournal() {
+  document.getElementById('countJournal').textContent = state.journal.length;
+  const container = document.getElementById('journalListContainer');
+  if (state.journal.length === 0) {
+    container.innerHTML = `<div style="padding:40px;text-align:center;color:var(--text-muted);">No journal articles found.</div>`;
+    return;
+  }
+
+  container.innerHTML = state.journal.map(item => `
+    <div class="item-row">
+      <div class="item-order">${item.num}</div>
+      <img src="${item.thumb_url || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=80&q=80'}" alt="${escapeHtml(item.title)}" class="item-thumb" onerror="this.src='https://placehold.co/60x60/121212/FF5C00?text=IMG'">
+      <div class="item-info">
+        <div class="item-name">${escapeHtml(item.title)}</div>
+        <div class="item-meta">
+          <span style="color:var(--orange);font-weight:600;">${escapeHtml(item.cat)}</span>
+          <span>${escapeHtml(item.read_time)}</span>
+          <span>${escapeHtml(item.date)}</span>
+        </div>
+      </div>
+      <div class="item-badge">#${item.display_order}</div>
+      <div class="item-actions">
+        <button class="btn btn-secondary btn-sm" onclick="editJournalPost('${item.id}')"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>Edit</button>
+        <button class="btn btn-secondary btn-sm" onclick="window.open('/article?id=' + encodeURIComponent('${item.id}'), '_blank')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>View Live ↗</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteJournalPost('${item.id}')"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── Populate Headers Tab ──
+function populateHeaders() {
+  const p = state.headers.portfolio || {};
+  document.getElementById('headerPortEyebrow').value = p.eyebrow || 'Featured Work';
+  document.getElementById('headerPortTitleMain').value = p.titleMain || 'Results';
+  document.getElementById('headerPortTitleSub').value = p.titleSub || 'That';
+  document.getElementById('headerPortTitleEm').value = p.titleEm || 'Speak';
+  document.getElementById('headerPortTagline').value = p.tagline || '';
+
+  const c = state.headers.casestudies || {};
+  document.getElementById('headerCaseTag').value = c.tag || 'Case Studies';
+  document.getElementById('headerCaseTitleMain').value = c.titleMain || 'Insights & ';
+  document.getElementById('headerCaseTitleSpan').value = c.titleSpan || 'Ideas';
+
+  const j = state.headers.journal || {};
+  document.getElementById('headerJournalTag').value = j.tag || 'Journal';
+  document.getElementById('headerJournalTitleMain').value = j.titleMain || 'Fresh ';
+  document.getElementById('headerJournalTitleSpan').value = j.titleSpan || 'Reads';
+}
+
+async function saveSectionHeaders() {
+  const pData = {
+    eyebrow: document.getElementById('headerPortEyebrow').value.trim(),
+    titleMain: document.getElementById('headerPortTitleMain').value.trim(),
+    titleSub: document.getElementById('headerPortTitleSub').value.trim(),
+    titleEm: document.getElementById('headerPortTitleEm').value.trim(),
+    tagline: document.getElementById('headerPortTagline').value.trim()
+  };
+  const cData = {
+    tag: document.getElementById('headerCaseTag').value.trim(),
+    titleMain: document.getElementById('headerCaseTitleMain').value.trim(),
+    titleSpan: document.getElementById('headerCaseTitleSpan').value.trim()
+  };
+  const jData = {
+    tag: document.getElementById('headerJournalTag').value.trim(),
+    titleMain: document.getElementById('headerJournalTitleMain').value.trim(),
+    titleSpan: document.getElementById('headerJournalTitleSpan').value.trim()
+  };
+
+function invalidateWebsiteCache() {
+  try {
+    localStorage.removeItem('tsm_supabase_cache');
+    localStorage.setItem('tsm_cache_invalidated_at', Date.now().toString());
+  } catch (_) {}
+}
+
+  try {
+    const client = getSupabase();
+    await Promise.all([
+      client.from('site_content').upsert({ key: 'portfolio', data: pData, updated_at: new Date() }),
+      client.from('site_content').upsert({ key: 'casestudies', data: cData, updated_at: new Date() }),
+      client.from('site_content').upsert({ key: 'journal', data: jData, updated_at: new Date() })
+    ]);
+    invalidateWebsiteCache();
+    showToast('Section headings saved successfully!');
+    loadAllData();
+  } catch (err) {
+    alert('Error saving headings: ' + err.message);
+  }
+}
+
+// ── Portfolio CRUD & Gallery State ──
+let currentPortfolioGallery = [];
+
+function switchPortModalTab(tab) {
+  const cardSec = document.getElementById('portSectionCard');
+  const articleSec = document.getElementById('portSectionArticle');
+  const cardBtn = document.getElementById('portTabBtnCard');
+  const articleBtn = document.getElementById('portTabBtnArticle');
+  if (tab === 'article') {
+    if (cardSec) cardSec.style.display = 'none';
+    if (articleSec) articleSec.style.display = 'block';
+    if (cardBtn) cardBtn.classList.remove('active');
+    if (articleBtn) articleBtn.classList.add('active');
+    const modalBody = document.querySelector('#portfolioModal .modal-body');
+    if (modalBody) modalBody.scrollTop = 0;
+  } else {
+    if (cardSec) cardSec.style.display = 'block';
+    if (articleSec) articleSec.style.display = 'none';
+    if (cardBtn) cardBtn.classList.add('active');
+    if (articleBtn) articleBtn.classList.remove('active');
+    const modalBody = document.querySelector('#portfolioModal .modal-body');
+    if (modalBody) modalBody.scrollTop = 0;
+  }
+}
+window.switchPortModalTab = switchPortModalTab;
+
+function openPortfolioModal() {
+  document.getElementById('portModalTitle').textContent = 'Add New Portfolio Project';
+  document.getElementById('portIdOriginal').value = '';
+  document.getElementById('portId').value = '';
+  document.getElementById('portId').disabled = false;
+  document.getElementById('portNum').value = String(state.portfolio.length + 1).padStart(2, '0');
+  document.getElementById('portOrder').value = state.portfolio.length + 1;
+  document.getElementById('portCat').value = 'Branding & Advertising Solutions';
+  document.getElementById('portName').value = '';
+  document.getElementById('portTags').value = '';
+  document.getElementById('portImg').value = '';
+  document.getElementById('portMetricVal').value = 'Completed';
+  document.getElementById('portMetricLbl').value = '';
+  document.getElementById('portSubtitle').value = '';
+  document.getElementById('portType').value = 'Branding Project';
+  document.getElementById('portStatus').value = 'Completed';
+  document.getElementById('portLocation').value = 'Ahmedabad, Gujarat';
+  document.getElementById('portIndustry').value = 'Food & Beverage';
+  document.getElementById('portYear').value = '2026';
+  document.getElementById('portLiveUrl').value = '';
+  document.getElementById('portAbout').value = '';
+  document.getElementById('portChallenge').value = '';
+  document.getElementById('portSolution').value = '';
+  document.getElementById('portDeliverables').value = '';
+  if (document.getElementById('portArticleBody')) document.getElementById('portArticleBody').value = '';
+  
+  currentPortfolioGallery = [];
+  renderPortfolioGallery();
+  recommendKeywords('portfolio');
+  switchPortModalTab('card');
+  openModal('portfolioModal');
+}
+
+function editPortfolioItem(id, startTab = 'card') {
+  const item = state.portfolio.find(p => p.id === id);
+  if (!item) return;
+
+  document.getElementById('portModalTitle').textContent = 'Edit Portfolio Project';
+  document.getElementById('portIdOriginal').value = item.id;
+  document.getElementById('portId').value = item.id;
+  document.getElementById('portId').disabled = true;
+  document.getElementById('portNum').value = item.num || '';
+  document.getElementById('portOrder').value = item.display_order || 1;
+  document.getElementById('portCat').value = item.cat || '';
+  document.getElementById('portName').value = item.name || '';
+  document.getElementById('portTags').value = (item.tags || []).join(', ');
+  document.getElementById('portImg').value = item.img || '';
+  document.getElementById('portMetricVal').value = item.metric_val || '';
+  document.getElementById('portMetricLbl').value = item.metric_lbl || '';
+
+  const d = item.details || {};
+  document.getElementById('portSubtitle').value = d.subtitle || '';
+  document.getElementById('portType').value = d.type || 'Branding Project';
+  document.getElementById('portStatus').value = d.status || item.metric_val || 'Completed';
+  document.getElementById('portLocation').value = d.location || 'Ahmedabad, Gujarat';
+  document.getElementById('portIndustry').value = d.industry || item.cat || '';
+  document.getElementById('portYear').value = d.year || '2026';
+  document.getElementById('portLiveUrl').value = d.liveUrl || '';
+  document.getElementById('portAbout').value = d.about || '';
+  document.getElementById('portChallenge').value = d.challenge || '';
+  document.getElementById('portSolution').value = d.solution || '';
+  document.getElementById('portDeliverables').value = Array.isArray(d.deliverables) ? d.deliverables.join('\n') : '';
+  if (document.getElementById('portArticleBody')) document.getElementById('portArticleBody').value = d.articleBody || d.body || '';
+
+  // Load existing gallery images
+  if (Array.isArray(d.images) && d.images.length > 0) {
+    currentPortfolioGallery = JSON.parse(JSON.stringify(d.images));
+  } else {
+    currentPortfolioGallery = [{
+      url: item.img || '',
+      title: item.name || 'Project Showcase',
+      desc: d.about || ''
+    }];
+  }
+
+  renderPortfolioGallery();
+  recommendKeywords('portfolio');
+  switchPortModalTab(startTab === 'article' ? 'article' : 'card');
+  openModal('portfolioModal');
+}
+
+function renderPortfolioGallery() {
+  const container = document.getElementById('portGalleryList');
+  if (!container) return;
+
+  if (currentPortfolioGallery.length === 0) {
+    container.innerHTML = `
+      <div style="background:rgba(255,255,255,0.02); border:1px dashed var(--border-subtle); border-radius:var(--radius-sm); padding:24px; text-align:center; color:var(--text-muted); font-size:12px;">
+        No showcase images added yet. Click <strong>"+ Add Showcase Image"</strong> above to showcase deliverables.
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = currentPortfolioGallery.map((img, idx) => `
+    <div class="gallery-card" data-idx="${idx}">
+      <img src="${escapeHtml(img.url || '')}" class="gallery-thumb-preview" onerror="this.src='https://placehold.co/80x80/121212/FF5C00?text=IMG'" alt="Preview">
+      <div>
+        <div class="upload-row" style="margin-bottom:8px;">
+          <input type="url" class="form-input" placeholder="Image URL (https://...)" value="${escapeHtml(img.url || '')}" oninput="updatePortfolioGalleryItem(${idx}, 'url', this.value, this)" style="font-size:12px; padding:6px 10px;" required>
+          <label class="btn btn-secondary btn-sm" style="cursor:pointer; white-space:nowrap; padding:6px 10px; font-size:11px;">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>Upload
+            <input type="file" accept="image/*" style="display:none;" onchange="uploadGalleryAsset(this, 'portfolio', ${idx})">
+          </label>
+        </div>
+        <input type="text" class="form-input" placeholder="Deliverable Title (e.g. Menu Card Design)" value="${escapeHtml(img.title || '')}" oninput="updatePortfolioGalleryItem(${idx}, 'title', this.value)" style="margin-bottom:6px; font-size:12px; padding:6px 10px;">
+        <textarea class="form-textarea" placeholder="Description of this deliverable / asset..." oninput="updatePortfolioGalleryItem(${idx}, 'desc', this.value)" style="min-height:54px; font-size:12px; padding:6px 10px;">${escapeHtml(img.desc || '')}</textarea>
+      </div>
+      <button type="button" class="gallery-btn-remove" onclick="removePortfolioGalleryItem(${idx})" title="Remove Showcase Image">✕</button>
+    </div>
+  `).join('');
+}
+
+function addPortfolioGalleryItem() {
+  currentPortfolioGallery.push({
+    url: '',
+    title: '',
+    desc: ''
+  });
+  renderPortfolioGallery();
+}
+
+function removePortfolioGalleryItem(idx) {
+  currentPortfolioGallery.splice(idx, 1);
+  renderPortfolioGallery();
+}
+
+function updatePortfolioGalleryItem(idx, field, val, inputEl) {
+  if (!currentPortfolioGallery[idx]) return;
+  currentPortfolioGallery[idx][field] = val;
+  if (field === 'url' && inputEl) {
+    const card = inputEl.closest('.gallery-card');
+    if (card) {
+      const img = card.querySelector('.gallery-thumb-preview');
+      if (img) img.src = val || 'https://placehold.co/80x80/121212/FF5C00?text=IMG';
+    }
+  }
+}
+
+async function savePortfolioItem(e) {
+  e.preventDefault();
+  const originalId = document.getElementById('portIdOriginal').value;
+  const id = originalId || document.getElementById('portId').value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-');
+  const btn = document.getElementById('portSaveBtn');
+  const btnHeader = document.getElementById('portHeaderSaveBtn');
+  if (btn) btn.disabled = true;
+  if (btnHeader) btnHeader.disabled = true;
+
+  const deliverables = document.getElementById('portDeliverables').value
+    .split('\n')
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  const tags = document.getElementById('portTags').value
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  const cleanGallery = currentPortfolioGallery
+    .filter(img => img.url && img.url.trim().length > 0)
+    .map(img => ({
+      url: img.url.trim(),
+      title: img.title ? img.title.trim() : document.getElementById('portName').value.trim(),
+      desc: img.desc ? img.desc.trim() : (document.getElementById('portAbout').value.trim() || document.getElementById('portName').value.trim())
+    }));
+
+  const liveUrlVal = document.getElementById('portLiveUrl').value.trim();
+  const articleBodyVal = document.getElementById('portArticleBody') ? document.getElementById('portArticleBody').value.trim() : '';
+
+  const details = {
+    title: document.getElementById('portName').value.trim(),
+    subtitle: document.getElementById('portSubtitle').value.trim() || document.getElementById('portCat').value.trim(),
+    category: document.getElementById('portCat').value.trim(),
+    type: document.getElementById('portType').value.trim() || 'Branding Project',
+    status: document.getElementById('portStatus').value.trim() || document.getElementById('portMetricVal').value.trim() || 'Completed',
+    location: document.getElementById('portLocation').value.trim() || 'Ahmedabad, Gujarat',
+    industry: document.getElementById('portIndustry').value.trim() || document.getElementById('portCat').value.trim(),
+    year: document.getElementById('portYear').value.trim() || '2026',
+    liveUrl: liveUrlVal.length > 0 ? liveUrlVal : undefined,
+    metric: document.getElementById('portMetricVal').value.trim() + (document.getElementById('portMetricLbl').value.trim() ? ' ' + document.getElementById('portMetricLbl').value.trim() : ''),
+    about: document.getElementById('portAbout').value.trim(),
+    challenge: document.getElementById('portChallenge').value.trim(),
+    solution: document.getElementById('portSolution').value.trim(),
+    articleBody: articleBodyVal,
+    tags: tags.length > 0 ? tags : [document.getElementById('portCat').value.trim()],
+    deliverables: deliverables.length > 0 ? deliverables : ['Execution & Delivery', 'Brand Architecture'],
+    images: cleanGallery.length > 0 ? cleanGallery : [{
+      url: document.getElementById('portImg').value.trim(),
+      title: document.getElementById('portName').value.trim(),
+      desc: document.getElementById('portAbout').value.trim() || document.getElementById('portName').value.trim()
+    }]
+  };
+
+  const payload = {
+    id: id,
+    num: document.getElementById('portNum').value.trim(),
+    display_order: parseInt(document.getElementById('portOrder').value) || 1,
+    cat: document.getElementById('portCat').value.trim(),
+    name: document.getElementById('portName').value.trim(),
+    tags: details.tags,
+    img: document.getElementById('portImg').value.trim(),
+    metric_val: document.getElementById('portMetricVal').value.trim(),
+    metric_lbl: document.getElementById('portMetricLbl').value.trim(),
+    details: details,
+    updated_at: new Date()
+  };
+
+  try {
+    const { error } = await getSupabase().from('portfolio_items').upsert(payload);
+    if (error) throw error;
+    invalidateWebsiteCache();
+    closeModal('portfolioModal');
+    showToast('Portfolio project and all inner content saved successfully!');
+    loadAllData();
+  } catch (err) {
+    alert('Failed to save project: ' + err.message);
+  } finally {
+    if (btn) btn.disabled = false;
+    if (btnHeader) btnHeader.disabled = false;
+  }
+}
+
+async function deletePortfolioItem(id) {
+  if (!confirm(`Are you sure you want to delete portfolio project "${id}"? This cannot be undone.`)) return;
+  try {
+    const { error } = await getSupabase().from('portfolio_items').delete().eq('id', id);
+    if (error) throw error;
+    invalidateWebsiteCache();
+    showToast('Project deleted successfully.');
+    loadAllData();
+  } catch (err) {
+    alert('Failed to delete item: ' + err.message);
+  }
+}
+
+// ── Case Studies CRUD & Gallery State ──
+let currentCaseGallery = [];
+
+function updateCatLabel(val) {
+  const map = {
+    'strategy': 'Strategy',
+    'performance': 'Performance',
+    'seo': 'SEO',
+    'social': 'Social Media',
+    'branding': 'Branding',
+    'technology': 'Technology'
+  };
+  document.getElementById('caseCatLabel').value = map[val] || val;
+}
+
+function openCaseStudyModal() {
+  document.getElementById('caseModalTitle').textContent = 'Add Case Study';
+  document.getElementById('caseIdOriginal').value = '';
+  document.getElementById('caseId').value = '';
+  document.getElementById('caseId').disabled = false;
+  document.getElementById('caseOrder').value = state.casestudies.length + 1;
+  document.getElementById('caseCat').value = 'strategy';
+  document.getElementById('caseCatLabel').value = 'Strategy';
+  document.getElementById('caseDate').value = 'May 2026';
+  document.getElementById('caseImg').value = '';
+  document.getElementById('caseTitle').value = '';
+  document.getElementById('caseExcerpt').value = '';
+  document.getElementById('caseSubtitle').value = '';
+  document.getElementById('caseTags').value = '';
+  document.getElementById('caseBody').value = '';
+  
+  currentCaseGallery = [];
+  renderCaseGallery();
+  recommendKeywords('casestudy');
+  openModal('caseStudyModal');
+}
+
+function editCaseStudy(id) {
+  const item = state.casestudies.find(c => c.id === id);
+  if (!item) return;
+
+  document.getElementById('caseModalTitle').textContent = 'Edit Case Study';
+  document.getElementById('caseIdOriginal').value = item.id;
+  document.getElementById('caseId').value = item.id;
+  document.getElementById('caseId').disabled = true;
+  document.getElementById('caseOrder').value = item.display_order || 1;
+  document.getElementById('caseCat').value = item.cat || 'strategy';
+  document.getElementById('caseCatLabel').value = item.cat_label || 'Strategy';
+  document.getElementById('caseDate').value = item.date || '';
+  document.getElementById('caseImg').value = item.img || '';
+  document.getElementById('caseTitle').value = item.title || '';
+  document.getElementById('caseExcerpt').value = item.excerpt || '';
+
+  const d = item.details || {};
+  document.getElementById('caseSubtitle').value = d.subtitle || item.excerpt || '';
+  document.getElementById('caseTags').value = (item.tags && item.tags.length > 0) ? item.tags.join(', ') : (d.tags ? d.tags.join(', ') : '');
+  document.getElementById('caseBody').value = d.body || item.excerpt || '';
+
+  if (Array.isArray(d.images) && d.images.length > 0) {
+    currentCaseGallery = JSON.parse(JSON.stringify(d.images));
+  } else {
+    currentCaseGallery = [{
+      url: item.img || '',
+      caption: item.title || 'Case Evidence'
+    }];
+  }
+
+  renderCaseGallery();
+  recommendKeywords('casestudy');
+  openModal('caseStudyModal');
+}
+
+function renderCaseGallery() {
+  const container = document.getElementById('caseGalleryList');
+  if (!container) return;
+
+  if (currentCaseGallery.length === 0) {
+    container.innerHTML = `
+      <div style="background:rgba(255,255,255,0.02); border:1px dashed var(--border-subtle); border-radius:var(--radius-sm); padding:20px; text-align:center; color:var(--text-muted); font-size:12px;">
+        No proof images added yet. Click <strong>"+ Add Proof Image"</strong> to include charts, funnels, or dashboard visuals.
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = currentCaseGallery.map((img, idx) => `
+    <div class="gallery-card" data-idx="${idx}">
+      <img src="${escapeHtml(img.url || '')}" class="gallery-thumb-preview" onerror="this.src='https://placehold.co/80x80/121212/FF5C00?text=IMG'" alt="Preview">
+      <div>
+        <div class="upload-row" style="margin-bottom:8px;">
+          <input type="url" class="form-input" placeholder="Proof Image URL (https://...)" value="${escapeHtml(img.url || '')}" oninput="updateCaseGalleryItem(${idx}, 'url', this.value, this)" style="font-size:12px; padding:6px 10px;" required>
+          <label class="btn btn-secondary btn-sm" style="cursor:pointer; white-space:nowrap; padding:6px 10px; font-size:11px;">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>Upload
+            <input type="file" accept="image/*" style="display:none;" onchange="uploadGalleryAsset(this, 'casestudy', ${idx})">
+          </label>
+        </div>
+        <input type="text" class="form-input" placeholder="Caption / Context (e.g. Revenue tracking dashboard...)" value="${escapeHtml(img.caption || '')}" oninput="updateCaseGalleryItem(${idx}, 'caption', this.value)" style="font-size:12px; padding:6px 10px;">
+      </div>
+      <button type="button" class="gallery-btn-remove" onclick="removeCaseGalleryItem(${idx})" title="Remove Proof Image">✕</button>
+    </div>
+  `).join('');
+}
+
+function addCaseGalleryItem() {
+  currentCaseGallery.push({ url: '', caption: '' });
+  renderCaseGallery();
+}
+
+function removeCaseGalleryItem(idx) {
+  currentCaseGallery.splice(idx, 1);
+  renderCaseGallery();
+}
+
+function updateCaseGalleryItem(idx, field, val, inputEl) {
+  if (!currentCaseGallery[idx]) return;
+  currentCaseGallery[idx][field] = val;
+  if (field === 'url' && inputEl) {
+    const card = inputEl.closest('.gallery-card');
+    if (card) {
+      const img = card.querySelector('.gallery-thumb-preview');
+      if (img) img.src = val || 'https://placehold.co/80x80/121212/FF5C00?text=IMG';
+    }
+  }
+}
+
+async function saveCaseStudy(e) {
+  e.preventDefault();
+  const originalId = document.getElementById('caseIdOriginal').value;
+  const id = originalId || document.getElementById('caseId').value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-');
+  const btn = document.getElementById('caseSaveBtn');
+  const btnHeader = document.getElementById('caseHeaderSaveBtn');
+  if (btn) btn.disabled = true;
+  if (btnHeader) btnHeader.disabled = true;
+
+  const tags = document.getElementById('caseTags').value
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  const cleanGallery = currentCaseGallery
+    .filter(img => img.url && img.url.trim().length > 0)
+    .map(img => ({
+      url: img.url.trim(),
+      caption: img.caption ? img.caption.trim() : document.getElementById('caseTitle').value.trim()
+    }));
+
+  const details = {
+    title: document.getElementById('caseTitle').value.trim(),
+    subtitle: document.getElementById('caseSubtitle').value.trim() || document.getElementById('caseExcerpt').value.trim(),
+    category: document.getElementById('caseCatLabel').value.trim(),
+    date: document.getElementById('caseDate').value.trim(),
+    tags: tags,
+    images: cleanGallery.length > 0 ? cleanGallery : [{
+      url: document.getElementById('caseImg').value.trim(),
+      caption: document.getElementById('caseTitle').value.trim()
+    }],
+    body: document.getElementById('caseBody').value.trim()
+  };
+
+  const payload = {
+    id: id,
+    display_order: parseInt(document.getElementById('caseOrder').value) || 1,
+    cat: document.getElementById('caseCat').value.trim(),
+    cat_label: document.getElementById('caseCatLabel').value.trim(),
+    date: document.getElementById('caseDate').value.trim(),
+    img: document.getElementById('caseImg').value.trim(),
+    title: document.getElementById('caseTitle').value.trim(),
+    excerpt: document.getElementById('caseExcerpt').value.trim(),
+    tags: tags,
+    details: details,
+    updated_at: new Date()
+  };
+
+  try {
+    const { error } = await getSupabase().from('case_studies').upsert(payload);
+    if (error) throw error;
+    invalidateWebsiteCache();
+    closeModal('caseStudyModal');
+    showToast('Case study and in-depth article saved successfully!');
+    loadAllData();
+  } catch (err) {
+    alert('Failed to save case study: ' + err.message);
+  } finally {
+    if (btn) btn.disabled = false;
+    if (btnHeader) btnHeader.disabled = false;
+  }
+}
+
+async function deleteCaseStudy(id) {
+  if (!confirm(`Are you sure you want to delete case study "${id}"?`)) return;
+  try {
+    const { error } = await getSupabase().from('case_studies').delete().eq('id', id);
+    if (error) throw error;
+    invalidateWebsiteCache();
+    showToast('Case study deleted successfully.');
+    loadAllData();
+  } catch (err) {
+    alert('Failed to delete item: ' + err.message);
+  }
+}
+
+// ── Journal CRUD ──
+function openJournalModal() {
+  document.getElementById('journalModalTitle').textContent = 'Add Journal Article';
+  document.getElementById('journalIdOriginal').value = '';
+  document.getElementById('journalId').value = '';
+  document.getElementById('journalId').disabled = false;
+  document.getElementById('journalNum').value = String(state.journal.length + 1).padStart(2, '0');
+  document.getElementById('journalOrder').value = state.journal.length + 1;
+  document.getElementById('journalCat').value = 'SEO';
+  document.getElementById('journalReadTime').value = '7 min read';
+  document.getElementById('journalDate').value = 'May 2026';
+  document.getElementById('journalTitle').value = '';
+  document.getElementById('journalThumb').value = '';
+  document.getElementById('journalTags').value = '';
+  document.getElementById('journalSubtitle').value = '';
+  document.getElementById('journalImgCap').value = '';
+  document.getElementById('journalContent').value = '';
+  
+  recommendKeywords('journal');
+  openModal('journalModal');
+}
+
+function editJournalPost(id) {
+  const item = state.journal.find(j => j.id === id);
+  if (!item) return;
+
+  document.getElementById('journalModalTitle').textContent = 'Edit Journal Article';
+  document.getElementById('journalIdOriginal').value = item.id;
+  document.getElementById('journalId').value = item.id;
+  document.getElementById('journalId').disabled = true;
+  document.getElementById('journalNum').value = item.num || '';
+  document.getElementById('journalOrder').value = item.display_order || 1;
+  document.getElementById('journalCat').value = item.cat || '';
+  document.getElementById('journalReadTime').value = item.read_time || '';
+  document.getElementById('journalDate').value = item.date || '';
+  document.getElementById('journalTitle').value = item.title || '';
+  document.getElementById('journalThumb').value = item.thumb_url || '';
+
+  const d = item.details || {};
+  document.getElementById('journalSubtitle').value = d.subtitle || '';
+  document.getElementById('journalImgCap').value = d.imgCap || '';
+  document.getElementById('journalTags').value = (item.tags && item.tags.length > 0) ? item.tags.join(', ') : (d.tags ? d.tags.join(', ') : '');
+  document.getElementById('journalContent').value = item.content || d.body || '';
+
+  recommendKeywords('journal');
+  openModal('journalModal');
+}
+
+async function saveJournalPost(e) {
+  e.preventDefault();
+  const originalId = document.getElementById('journalIdOriginal').value;
+  const id = originalId || document.getElementById('journalId').value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-');
+  const btn = document.getElementById('journalSaveBtn');
+  const btnHeader = document.getElementById('journalHeaderSaveBtn');
+  if (btn) btn.disabled = true;
+  if (btnHeader) btnHeader.disabled = true;
+
+  const tags = document.getElementById('journalTags').value
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  const contentVal = document.getElementById('journalContent').value.trim();
+
+  const details = {
+    title: document.getElementById('journalTitle').value.trim(),
+    subtitle: document.getElementById('journalSubtitle').value.trim(),
+    category: document.getElementById('journalCat').value.trim(),
+    readTime: document.getElementById('journalReadTime').value.trim(),
+    date: document.getElementById('journalDate').value.trim(),
+    img: document.getElementById('journalThumb').value.trim(),
+    imgCap: document.getElementById('journalImgCap').value.trim(),
+    tags: tags,
+    body: contentVal
+  };
+
+  const payload = {
+    id: id,
+    num: document.getElementById('journalNum').value.trim(),
+    display_order: parseInt(document.getElementById('journalOrder').value) || 1,
+    title: document.getElementById('journalTitle').value.trim(),
+    cat: document.getElementById('journalCat').value.trim(),
+    read_time: document.getElementById('journalReadTime').value.trim(),
+    date: document.getElementById('journalDate').value.trim(),
+    thumb_url: document.getElementById('journalThumb').value.trim(),
+    content: contentVal,
+    tags: tags,
+    details: details,
+    updated_at: new Date()
+  };
+
+  try {
+    const { error } = await getSupabase().from('journal_posts').upsert(payload);
+    if (error) throw error;
+    invalidateWebsiteCache();
+    closeModal('journalModal');
+    showToast('Journal article and content saved successfully!');
+    loadAllData();
+  } catch (err) {
+    alert('Failed to save article: ' + err.message);
+  } finally {
+    if (btn) btn.disabled = false;
+    if (btnHeader) btnHeader.disabled = false;
+  }
+}
+
+async function deleteJournalPost(id) {
+  if (!confirm(`Are you sure you want to delete journal article "${id}"?`)) return;
+  try {
+    const { error } = await getSupabase().from('journal_posts').delete().eq('id', id);
+    if (error) throw error;
+    invalidateWebsiteCache();
+    showToast('Journal article deleted successfully.');
+    loadAllData();
+  } catch (err) {
+    alert('Failed to delete article: ' + err.message);
+  }
+}
+
+// ── Smart SEO Keyword Recommendation Engine ──
+function generateSeoKeywords(fields) {
+  const combined = [
+    fields.title || '',
+    fields.subtitle || '',
+    fields.category || '',
+    fields.industry || '',
+    fields.location || '',
+    fields.challenge || '',
+    fields.solution || '',
+    fields.about || '',
+    fields.excerpt || '',
+    fields.content || ''
+  ].join(' ').toLowerCase();
+
+  const results = new Set();
+  const loc = (fields.location || '').split(',')[0].trim();
+  const city = loc.length > 2 ? loc : 'India';
+
+  // 1. Core Category + Location combos
+  if (fields.category) {
+    results.add(`${fields.category} ${city}`);
+    results.add(`${fields.category} Agency`);
+  }
+  if (fields.industry) {
+    results.add(`${fields.industry} Branding`);
+    results.add(`${fields.industry} Marketing`);
+  }
+
+  // 2. Keyword trigger dictionaries for high-intent queries
+  const triggers = [
+    {
+      match: ['food', 'restaurant', 'dining', 'packaging', 'takeaway', 'kitchen', 'menu', 'meal', 'cafe'],
+      keywords: [
+        `Restaurant Branding ${city}`,
+        'Food Packaging Design',
+        'Restaurant Menu Card Design',
+        'F&B Marketing Agency',
+        'Tabletop Creatives & Print Design',
+        'Brand Typography & Styling',
+        'Food Takeaway Packaging',
+        'Hospitality Brand Identity'
+      ]
+    },
+    {
+      match: ['web', 'website', 'design', 'development', 'cro', 'landing', 'ui', 'ux'],
+      keywords: [
+        `Web Design Agency ${city}`,
+        'Responsive Website Development',
+        'High-Converting Landing Pages',
+        'UI/UX Design Studio',
+        'Mobile-First Website Design',
+        'Conversion Rate Optimisation'
+      ]
+    },
+    {
+      match: ['d2c', 'ecom', 'ecommerce', 'shopify', 'revenue', 'scaling', 'cart'],
+      keywords: [
+        'Indian D2C Growth Agency',
+        'E-Commerce CRO Checklist',
+        'D2C Brand Scaling Playbook',
+        'Shopify Conversion Optimization',
+        'Full-Funnel Paid Media',
+        'Customer Lifetime Value (CLTV)'
+      ]
+    },
+    {
+      match: ['whatsapp', 'messaging', 'broadcast', 'opt-in', 'api'],
+      keywords: [
+        'WhatsApp Marketing 2026',
+        'WhatsApp Business API Flows',
+        'Conversational Commerce India',
+        'Automated Retention Campaigns',
+        'High-ROAS WhatsApp Marketing'
+      ]
+    },
+    {
+      match: ['seo', 'google', 'maps', 'local', 'search', 'rank', 'ranking'],
+      keywords: [
+        `Local SEO Services ${city}`,
+        'Google Maps Local Pack Ranking',
+        'Google Business Profile Optimisation',
+        'Google AI Overviews SEO',
+        'Search Engine Optimization India',
+        'Local Citation Building'
+      ]
+    },
+    {
+      match: ['video', 'reels', 'instagram', 'shorts', 'tiktok', 'social', 'content'],
+      keywords: [
+        'Short-Form Video Production',
+        'Instagram Reels Strategy 2026',
+        'Viral Social Media Creatives',
+        'Video Marketing ROI India',
+        'Content Production Studio'
+      ]
+    },
+    {
+      match: ['meta', 'roas', 'ads', 'google ads', 'paid', 'campaign', 'ppc'],
+      keywords: [
+        'Google Ads Management India',
+        'Meta Ads 10X ROAS Blueprint',
+        'Performance Marketing Agency',
+        'High-Intent Paid Acquisition',
+        'Retargeting Campaign Architecture'
+      ]
+    },
+    {
+      match: ['fashion', 'apparel', 'photoshoot', 'ethnic', 'model', 'shoot', 'styling'],
+      keywords: [
+        'Fashion Brand Creative Direction',
+        'Campaign Moodboards & Styling',
+        'Fashion Catalog Creatives',
+        'Lookbook Photoshoot Direction'
+      ]
+    },
+    {
+      match: ['tax', 'consultation', 'advisory', 'finance', 'compliance', 'gst'],
+      keywords: [
+        'Financial Advisory Web Design',
+        'Tax Consultation Branding',
+        'Corporate Trust Building'
+      ]
+    }
+  ];
+
+  triggers.forEach(t => {
+    const hits = t.match.filter(word => combined.includes(word));
+    if (hits.length > 0) {
+      t.keywords.forEach(kw => results.add(kw));
+    }
+  });
+
+  // 3. Meaningful Title phrase extraction
+  if (fields.title) {
+    const cleanTitle = fields.title.replace(/[—–\-|:]/g, ' ');
+    const words = cleanTitle.split(/\s+/).filter(w => w.length > 3 && !['with', 'from', 'that', 'this', 'into', 'what', 'your', 'have', 'more', 'about'].includes(w.toLowerCase()));
+    if (words.length >= 2) {
+      results.add(words.slice(0, 3).join(' '));
+    }
+  }
+
+  return Array.from(results).slice(0, 12);
+}
+
+function recommendKeywords(type) {
+  let fields = {};
+  let targetInputId = '';
+  let containerId = '';
+
+  if (type === 'portfolio') {
+    fields = {
+      title: document.getElementById('portName').value,
+      subtitle: document.getElementById('portSubtitle').value,
+      category: document.getElementById('portCat').value,
+      industry: document.getElementById('portIndustry').value,
+      location: document.getElementById('portLocation').value,
+      challenge: document.getElementById('portChallenge').value,
+      solution: document.getElementById('portSolution').value,
+      about: document.getElementById('portAbout').value
+    };
+    targetInputId = 'portTags';
+    containerId = 'portSeoChips';
+  } else if (type === 'casestudy') {
+    fields = {
+      title: document.getElementById('caseTitle').value,
+      subtitle: document.getElementById('caseSubtitle').value,
+      category: document.getElementById('caseCatLabel').value,
+      excerpt: document.getElementById('caseExcerpt').value,
+      content: document.getElementById('caseBody').value
+    };
+    targetInputId = 'caseTags';
+    containerId = 'caseSeoChips';
+  } else if (type === 'journal') {
+    fields = {
+      title: document.getElementById('journalTitle').value,
+      subtitle: document.getElementById('journalSubtitle').value,
+      category: document.getElementById('journalCat').value,
+      content: document.getElementById('journalContent').value
+    };
+    targetInputId = 'journalTags';
+    containerId = 'journalSeoChips';
+  }
+
+  const keywords = generateSeoKeywords(fields);
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  const currentTagsRaw = document.getElementById(targetInputId).value;
+  const currentTags = currentTagsRaw.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+
+  if (keywords.length === 0) {
+    container.innerHTML = `<span style="font-size:12px;color:var(--text-muted);font-style:italic;">Enter more project details above to unlock keyword recommendations.</span>`;
+    return;
+  }
+
+  container.innerHTML = keywords.map(kw => {
+    const isAdded = currentTags.includes(kw.toLowerCase());
+    return `
+      <button type="button" class="seo-chip ${isAdded ? 'added' : ''}" onclick="addKeywordTag('${type}', '${escapeHtml(kw)}', this)">
+        <span>${isAdded ? '✓ ' + escapeHtml(kw) : '+ ' + escapeHtml(kw)}</span>
+      </button>
+    `;
+  }).join('');
+}
+
+function addKeywordTag(type, keyword, chipEl) {
+  let targetInputId = '';
+  if (type === 'portfolio') targetInputId = 'portTags';
+  else if (type === 'casestudy') targetInputId = 'caseTags';
+  else if (type === 'journal') targetInputId = 'journalTags';
+
+  const input = document.getElementById(targetInputId);
+  if (!input) return;
+
+  let current = input.value.split(',').map(s => s.trim()).filter(Boolean);
+  const exists = current.some(t => t.toLowerCase() === keyword.toLowerCase());
+
+  if (!exists) {
+    current.push(keyword);
+    input.value = current.join(', ');
+    showToast(`Added SEO keyword: "${keyword}"`);
+  }
+
+  if (chipEl) {
+    chipEl.classList.add('added');
+    chipEl.innerHTML = `<span>✓ ${escapeHtml(keyword)}</span>`;
+  }
+}
+
+function addAllKeywords(type) {
+  let containerId = '';
+  let targetInputId = '';
+  if (type === 'portfolio') { containerId = 'portSeoChips'; targetInputId = 'portTags'; }
+  else if (type === 'casestudy') { containerId = 'caseSeoChips'; targetInputId = 'caseTags'; }
+  else if (type === 'journal') { containerId = 'journalSeoChips'; targetInputId = 'journalTags'; }
+
+  const container = document.getElementById(containerId);
+  const input = document.getElementById(targetInputId);
+  if (!container || !input) return;
+
+  let current = input.value.split(',').map(s => s.trim()).filter(Boolean);
+  const chips = container.querySelectorAll('.seo-chip');
+  let addedCount = 0;
+
+  chips.forEach(chip => {
+    const text = chip.textContent.replace(/^[+✓]\s*/, '').trim();
+    if (text && !current.some(t => t.toLowerCase() === text.toLowerCase())) {
+      current.push(text);
+      chip.classList.add('added');
+      chip.innerHTML = `<span>✓ ${escapeHtml(text)}</span>`;
+      addedCount++;
+    }
+  });
+
+  input.value = current.join(', ');
+  showToast(`Added ${addedCount} recommended SEO keywords!`);
+}
+
+let _seoDebounceTimer = null;
+function triggerSeoDebounced(type) {
+  clearTimeout(_seoDebounceTimer);
+  _seoDebounceTimer = setTimeout(() => {
+    recommendKeywords(type);
+  }, 450);
+}
+
+// ── Quick Formatting Toolbar Helper ──
+function insertHtmlFormat(textareaId, format) {
+  const textarea = document.getElementById(textareaId);
+  if (!textarea) return;
+
+  const start = textarea.selectionStart || 0;
+  const end = textarea.selectionEnd || 0;
+  const selectedText = textarea.value.substring(start, end);
+  let snippet = '';
+
+  switch (format) {
+    case 'h2':
+      snippet = `\n<h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#F5F0EB;margin:32px 0 14px;">${selectedText || 'Section Heading'}</h2>\n`;
+      break;
+    case 'p':
+      snippet = `\n<p>${selectedText || 'Enter narrative explanation or strategy insight here...'}</p>\n`;
+      break;
+    case 'strong':
+      snippet = `<strong style="color:#FF5C00;">${selectedText || 'Key Takeaway:'}</strong> `;
+      break;
+    case 'blockquote':
+      snippet = `\n<blockquote style="border-left:3px solid #FF5C00;padding-left:16px;color:#F5F0EB;font-style:italic;margin:20px 0;">"${selectedText || 'Quote, client feedback, or high-impact metric outcome'}"</blockquote>\n`;
+      break;
+    case 'ul':
+      snippet = `\n<ul style="margin:16px 0 16px 24px;line-height:1.8;">\n  <li>${selectedText || 'Core execution deliverable 1'}</li>\n  <li>Measurable impact or performance milestone 2</li>\n</ul>\n`;
+      break;
+    default:
+      snippet = selectedText;
+  }
+
+  const before = textarea.value.substring(0, start);
+  const after = textarea.value.substring(end);
+  textarea.value = before + snippet + after;
+  textarea.focus();
+  textarea.setSelectionRange(start + snippet.length, start + snippet.length);
+}
+
+// ── Gallery Asset Upload to Supabase Storage ──
+async function uploadGalleryAsset(input, type, idx) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+
+  const ALLOWED = ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif'];
+  if (!ALLOWED.includes(file.type)) {
+    alert('Invalid file type. Only JPG, PNG, WebP, AVIF, or GIF images are allowed.');
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    alert('File is too large. Maximum file size is 5 MB.');
+    return;
+  }
+
+  const ext = file.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+  const randId = window.crypto?.randomUUID ? crypto.randomUUID() : (Date.now() + '_' + Math.random().toString(36).substring(2, 9));
+  const fileName = `${new Date().getFullYear()}/${randId}.${ext}`;
+  showToast('Uploading deliverable asset to Supabase Storage...');
+
+  try {
+    const { error } = await getSupabase().storage
+      .from('sonicmedia-assets')
+      .upload(fileName, file, { cacheControl: '3600', upsert: true });
+
+    if (error) throw error;
+
+    const { data: { publicUrl } } = getSupabase().storage
+      .from('sonicmedia-assets')
+      .getPublicUrl(fileName);
+
+    if (type === 'portfolio') {
+      if (currentPortfolioGallery[idx]) {
+        currentPortfolioGallery[idx].url = publicUrl;
+        renderPortfolioGallery();
+      }
+    } else if (type === 'casestudy') {
+      if (currentCaseGallery[idx]) {
+        currentCaseGallery[idx].url = publicUrl;
+        renderCaseGallery();
+      }
+    }
+    showToast('Asset uploaded successfully!');
+  } catch (err) {
+    alert('Upload failed: ' + err.message);
+  }
+}
+
+// ── General Asset Upload to Supabase Storage ──
+async function uploadAsset(input, targetInputId) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+
+  const ALLOWED = ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif'];
+  if (!ALLOWED.includes(file.type)) {
+    alert('Invalid file type. Only JPG, PNG, WebP, AVIF, or GIF images are allowed.');
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    alert('File is too large. Maximum file size is 5 MB.');
+    return;
+  }
+
+  const ext = file.name.split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+  const randId = window.crypto?.randomUUID ? crypto.randomUUID() : (Date.now() + '_' + Math.random().toString(36).substring(2, 9));
+  const fileName = `${new Date().getFullYear()}/${randId}.${ext}`;
+  showToast('Uploading image to Supabase Storage...');
+
+  try {
+    const { error } = await getSupabase().storage
+      .from('sonicmedia-assets')
+      .upload(fileName, file, { cacheControl: '3600', upsert: true });
+
+    if (error) throw error;
+
+    const { data: { publicUrl } } = getSupabase().storage
+      .from('sonicmedia-assets')
+      .getPublicUrl(fileName);
+
+    document.getElementById(targetInputId).value = publicUrl;
+    showToast('Image uploaded successfully!');
+  } catch (err) {
+    alert('Upload failed: ' + err.message);
+  }
+}
+
+// ── Modal & UI Helpers ──
+function openModal(id) {
+  document.getElementById(id).style.display = 'flex';
+}
+function closeModal(id) {
+  document.getElementById(id).style.display = 'none';
+}
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  toast.style.display = 'flex';
+  setTimeout(() => { toast.style.display = 'none'; }, 3500);
+}
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// On Page Load
+document.addEventListener('DOMContentLoaded', checkAuth);
+</script>
+</body>
+</html>

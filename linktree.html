@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>thesonicmedia</title>
+<link rel="icon" type="image/png" href="https://res.cloudinary.com/dq2nrpky0/image/upload/v1779787887/favicon_oalxfi.png">
+<link rel="apple-touch-icon" href="https://res.cloudinary.com/dq2nrpky0/image/upload/v1779787887/favicon_oalxfi.png">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #000; display: flex; justify-content: center; min-height: 100vh; }
+  .wrap { position: relative; width: 100%; max-width: 608px; margin: 0 auto; display: block; }
+  .wrap img { width: 100%; display: block; user-select: none; pointer-events: none; }
+  a.hs {
+    position: absolute; display: block; cursor: pointer; text-decoration: none;
+    border-radius: 18px; -webkit-tap-highlight-color: transparent; outline: none;
+    transition: transform 180ms ease, filter 180ms ease;
+  }
+  a.hs:hover  { transform: scale(1.04); filter: brightness(1.15) drop-shadow(0 0 8px rgba(255,255,255,0.15)); }
+  a.hs:active { transform: scale(0.96); filter: brightness(0.9); }
+  a.hs.circle { border-radius: 50%; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <img src="https://res.cloudinary.com/dq2nrpky0/image/upload/v1782370161/LINKTREE-02-01_t3qbtg.jpg" alt="thesonicmedia linktree" draggable="false">
+  <a class="hs circle" href="https://thesonicmedia.com" target="_blank" rel="noopener" aria-label="Back / Website" style="left:4.44%;top:1.57%;width:10%;height:4.29%;"></a>
+  <a class="hs circle" href="tel:+919157707249" aria-label="Call Sanju Khatwani" style="left:70.37%;top:1.14%;width:11.85%;height:4.86%;"></a>
+  <a class="hs circle" href="tel:+918733087249" aria-label="Call Mohit Kalwani" style="left:83.7%;top:1.14%;width:11.85%;height:4.86%;"></a>
+  <a class="hs" href="https://thesonicmedia.com" target="_blank" rel="noopener" aria-label="Website" style="left:8.78%;top:28.51%;width:35.96%;height:13.89%;"></a>
+  <a class="hs" href="https://www.instagram.com/thesonicmedia/" target="_blank" rel="noopener" aria-label="Instagram" style="left:55.26%;top:28.51%;width:35.93%;height:13.89%;"></a>
+  <a class="hs" href="https://wa.me/918733087249" target="_blank" rel="noopener" aria-label="WhatsApp Mohit Kalwani" style="left:8.78%;top:46.55%;width:35.96%;height:13.89%;"></a>
+  <a class="hs" href="https://wa.me/919157707249" target="_blank" rel="noopener" aria-label="WhatsApp Sanju Khatwani" style="left:55.26%;top:46.55%;width:35.93%;height:13.89%;"></a>
+  <a class="hs" href="https://www.facebook.com/people/The-Sonic-Media/61588527764890/" target="_blank" rel="noopener" aria-label="Facebook" style="left:8.78%;top:64.54%;width:35.96%;height:13.89%;"></a>
+  <a class="hs" href="https://www.linkedin.com/company/the-sonic-media/" target="_blank" rel="noopener" aria-label="LinkedIn" style="left:55.26%;top:64.54%;width:35.93%;height:13.89%;"></a>
+  <a class="hs" href="https://www.threads.com/@thesonicmedia/" target="_blank" rel="noopener" aria-label="Threads" style="left:8.78%;top:82.52%;width:35.96%;height:13.89%;"></a>
+  <a class="hs" href="https://x.com/thesonicmedia" target="_blank" rel="noopener" aria-label="X (Twitter)" style="left:55.26%;top:82.52%;width:35.93%;height:13.89%;"></a>
+</div>
+
+<!-- ASSISTIVE TOUCH -->
+<div id="assistive-touch" title="Quick Enquiry" aria-label="Open Enquiry Form">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="26" height="26">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+  </svg>
+</div>
+
+<!-- ENQUIRY MODAL -->
+<div id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div id="modal-box">
+    <div id="modal-header">
+      <span id="modal-title">Quick Enquiry</span>
+      <button id="modal-close" aria-label="Close">&times;</button>
+    </div>
+
+    <div id="enquiry-form">
+
+      <!-- Mobile / Email toggled field -->
+      <div class="field-label">
+        <div id="contact-tabs">
+          <button class="ctab active" data-type="mobile">Mobile Number</button>
+          <button class="ctab" data-type="email">Mail ID</button>
+        </div>
+        <input type="tel"   id="input-mobile" placeholder="+91 00000 00000" maxlength="15" inputmode="tel">
+        <input type="email" id="input-email"  placeholder="you@example.com" inputmode="email" style="display:none;">
+      </div>
+
+      <!-- Enquiry About — custom dropdown -->
+      <div class="field-label">Enquiry About
+        <div id="dropdown-wrap">
+          <div id="dropdown-trigger">
+            <span id="dropdown-label">Select services…</span>
+            <svg id="dropdown-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div id="dropdown-panel">
+            <div id="dd-actions">
+              <button id="select-all-btn" type="button">Select All</button>
+              <button id="deselect-all-btn" type="button">Deselect All</button>
+            </div>
+            <div class="dd-item" data-val="Website Development"><span>Website Development</span><div class="chk"></div></div>
+            <div class="dd-item" data-val="Mobile App Development"><span>Mobile App Development</span><div class="chk"></div></div>
+            <div class="dd-item" data-val="Search Engine Optimization"><span>Search Engine Optimization</span><div class="chk"></div></div>
+            <div class="dd-item" data-val="Social Media Management"><span>Social Media Management</span><div class="chk"></div></div>
+            <div class="dd-item" data-val="Performance Marketing"><span>Performance Marketing</span><div class="chk"></div></div>
+            <div class="dd-item" data-val="Influencer Marketing"><span>Influencer Marketing</span><div class="chk"></div></div>
+            <div class="dd-item" data-val="E-Commerce Marketing"><span>E-Commerce Marketing</span><div class="chk"></div></div>
+            <div class="dd-item" data-val="Content Production & Photo/Video"><span>Content Production &amp; Photo/Video</span><div class="chk"></div></div>
+            <div class="dd-item" data-val="Branding & Advertising Solutions"><span>Branding &amp; Advertising Solutions</span><div class="chk"></div></div>
+            <div class="dd-item" data-val="AI Doodling / Editing"><span>AI Doodling / Editing</span><div class="chk"></div></div>
+          </div>
+        </div>
+        <div id="selected-tags" style="display:none"></div>
+      </div>
+
+      <!-- Message -->
+      <div class="field-label">Message
+        <textarea id="enquiry-msg" placeholder="Tell us a little more about your requirements…" rows="5"></textarea>
+      </div>
+
+      <button id="submit-btn">Send Enquiry</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Assistive Touch */
+  #assistive-touch {
+    position: fixed; bottom: 32px; right: 20px;
+    width: 56px; height: 56px; border-radius: 50%;
+    background: linear-gradient(135deg, #ff6b35, #f7c948);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 9999;
+    box-shadow: 0 4px 18px rgba(255,107,53,0.55);
+    animation: pulse-ring 2.2s ease-out infinite;
+    transition: transform 180ms ease; user-select: none;
+  }
+  #assistive-touch:hover  { transform: scale(1.1); }
+  #assistive-touch:active { transform: scale(0.94); }
+  @keyframes pulse-ring {
+    0%   { box-shadow: 0 4px 18px rgba(255,107,53,0.55), 0 0 0 0 rgba(255,107,53,0.4); }
+    60%  { box-shadow: 0 4px 18px rgba(255,107,53,0.55), 0 0 0 14px rgba(255,107,53,0); }
+    100% { box-shadow: 0 4px 18px rgba(255,107,53,0.55), 0 0 0 0 rgba(255,107,53,0); }
+  }
+
+  /* Overlay */
+  #modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6); z-index: 10000;
+    align-items: flex-end; justify-content: center; padding: 0 0 88px;
+  }
+  #modal-overlay.open { display: flex; animation: fade-in 180ms ease; }
+  @keyframes fade-in { from { opacity:0; } to { opacity:1; } }
+
+  /* Modal box */
+  #modal-box {
+    background: #fff; border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 20px; width: min(390px, calc(100vw - 20px));
+    max-height: 92vh; overflow-y: auto;
+    animation: slide-up 220ms cubic-bezier(.22,1,.36,1);
+    scrollbar-width: none;
+  }
+  #modal-box::-webkit-scrollbar { display: none; }
+  @keyframes slide-up { from { transform: translateY(30px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+
+  #modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 18px 14px; border-bottom: 1px solid rgba(0,0,0,0.08);
+    position: sticky; top: 0; background: #fff; z-index: 2;
+  }
+  #modal-title { font-family: sans-serif; font-size: 15px; font-weight: 600; color: #1a1a1a; }
+  #modal-close { background: none; border: none; color: rgba(0,0,0,0.35); font-size: 24px; line-height: 1; cursor: pointer; transition: color 120ms; }
+  #modal-close:hover { color: #000; }
+
+  /* Form */
+  #enquiry-form { padding: 22px 18px 32px; display: flex; flex-direction: column; gap: 22px; }
+  .field-label { display: flex; flex-direction: column; gap: 8px; font-family: sans-serif; font-size: 11px; font-weight: 600; color: rgba(0,0,0,0.4); text-transform: uppercase; letter-spacing: 0.7px; }
+
+  /* Contact tabs */
+  #contact-tabs { display: flex; background: rgba(0,0,0,0.06); border-radius: 10px; padding: 3px; gap: 3px; }
+  .ctab {
+    flex: 1; padding: 8px 10px; border: none; border-radius: 8px;
+    background: none; color: rgba(0,0,0,0.4);
+    font-family: sans-serif; font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all 150ms; text-transform: none; letter-spacing: 0;
+  }
+  .ctab.active { background: linear-gradient(135deg, #ff6b35, #f7c948); color: #fff; font-weight: 600; }
+
+  /* Inputs */
+  #enquiry-form input, #enquiry-form textarea {
+    background: #f5f5f5; border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 10px; color: #1a1a1a; font-family: sans-serif; font-size: 14px;
+    padding: 11px 13px; outline: none; transition: border-color 150ms; width: 100%;
+  }
+  #enquiry-form input::placeholder, #enquiry-form textarea::placeholder { color: rgba(0,0,0,0.28); }
+  #enquiry-form input:focus, #enquiry-form textarea:focus { border-color: #ff6b35; }
+  #enquiry-form textarea { resize: none; font-family: sans-serif; }
+
+  /* Custom dropdown */
+  #dropdown-wrap { position: relative; }
+  #dropdown-trigger {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #f5f5f5; border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 10px; padding: 11px 13px; cursor: pointer;
+    transition: border-color 150ms; user-select: none;
+  }
+  #dropdown-trigger:hover, #dropdown-wrap.open #dropdown-trigger { border-color: #ff6b35; }
+  #dropdown-label { font-family: sans-serif; font-size: 14px; color: rgba(0,0,0,0.32); text-transform: none; letter-spacing: 0; font-weight: 400; }
+  #dropdown-label.has-val { color: #1a1a1a; }
+  #dropdown-arrow { stroke: rgba(0,0,0,0.35); transition: transform 200ms; flex-shrink: 0; }
+  #dropdown-wrap.open #dropdown-arrow { transform: rotate(180deg); }
+
+  #dropdown-panel {
+    display: none; position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+    background: #fff; border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 12px; overflow: hidden; z-index: 50;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    max-height: 260px; overflow-y: auto; scrollbar-width: none;
+  }
+  #dropdown-panel::-webkit-scrollbar { display: none; }
+  #dropdown-wrap.open #dropdown-panel { display: block; animation: dd-in 150ms ease; }
+  @keyframes dd-in { from { opacity:0; transform: translateY(-6px); } to { opacity:1; transform: translateY(0); } }
+
+  #dd-actions {
+    display: flex; gap: 1px; background: rgba(0,0,0,0.04);
+    border-bottom: 1px solid rgba(0,0,0,0.07);
+  }
+  #select-all-btn, #deselect-all-btn {
+    flex: 1; padding: 9px; background: none; border: none;
+    font-family: sans-serif; font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: background 150ms; text-transform: none; letter-spacing: 0;
+  }
+  #select-all-btn { color: #ff6b35; border-right: 1px solid rgba(0,0,0,0.07); }
+  #select-all-btn:hover { background: rgba(255,107,53,0.08); }
+  #deselect-all-btn { color: rgba(0,0,0,0.4); }
+  #deselect-all-btn:hover { background: rgba(0,0,0,0.04); }
+
+  .dd-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 11px 14px; cursor: pointer; border-bottom: 1px solid rgba(0,0,0,0.05);
+    transition: background 120ms; gap: 10px;
+  }
+  .dd-item:last-child { border-bottom: none; }
+  .dd-item:hover { background: rgba(0,0,0,0.03); }
+  .dd-item.selected { background: rgba(255,107,53,0.07); }
+  .dd-item span { font-family: sans-serif; font-size: 13px; color: rgba(0,0,0,0.65); text-transform: none; letter-spacing: 0; font-weight: 400; flex: 1; }
+  .dd-item.selected span { color: #1a1a1a; }
+  .chk {
+    width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,0.2);
+    flex-shrink: 0; transition: all 150ms; display: flex; align-items: center; justify-content: center;
+  }
+  .dd-item.selected .chk { background: linear-gradient(135deg, #ff6b35, #f7c948); border-color: transparent; }
+  .dd-item.selected .chk::after { content: '✓'; font-size: 11px; color: #fff; font-weight: 700; }
+
+  /* Submit */
+  #submit-btn {
+    width: 100%; padding: 13px; border: none; border-radius: 12px;
+    background: linear-gradient(135deg, #ff6b35, #f7c948);
+    color: #fff; font-family: sans-serif; font-size: 14px; font-weight: 700;
+    cursor: pointer; transition: background 300ms, transform 100ms, opacity 150ms;
+  }
+  #submit-btn:hover  { opacity: 0.9; }
+  #submit-btn:active { transform: scale(0.97); }
+  #submit-btn.done { background: #22c55e; cursor: default; opacity: 1 !important; transform: none !important; }
+</style>
+
+<script>
+  const overlay   = document.getElementById('modal-overlay');
+  const form      = document.getElementById('enquiry-form');
+  const ddWrap    = document.getElementById('dropdown-wrap');
+  const ddLabel   = document.getElementById('dropdown-label');
+  const tagsEl    = document.getElementById('selected-tags');
+
+  // Open / close modal
+  document.getElementById('assistive-touch').addEventListener('click', () => overlay.classList.add('open'));
+  document.getElementById('modal-close').addEventListener('click', () => { overlay.classList.remove('open'); ddWrap.classList.remove('open'); });
+  overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.classList.remove('open'); ddWrap.classList.remove('open'); } });
+
+  // Contact tabs
+  document.querySelectorAll('.ctab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.ctab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      if (btn.dataset.type === 'mobile') {
+        document.getElementById('input-mobile').style.display = '';
+        document.getElementById('input-email').style.display = 'none';
+      } else {
+        document.getElementById('input-mobile').style.display = 'none';
+        document.getElementById('input-email').style.display = '';
+      }
+    });
+  });
+
+  // Dropdown open/close
+  document.getElementById('dropdown-trigger').addEventListener('click', e => {
+    e.stopPropagation();
+    ddWrap.classList.toggle('open');
+  });
+  document.addEventListener('click', e => {
+    if (!ddWrap.contains(e.target)) ddWrap.classList.remove('open');
+  });
+
+  function getSelected() {
+    return [...document.querySelectorAll('.dd-item.selected')].map(i => i.dataset.val);
+  }
+
+  function updateTags() {
+    const sel = getSelected();
+    ddLabel.textContent = sel.length ? sel.length + ' service' + (sel.length > 1 ? 's' : '') + ' selected' : 'Select services…';
+    ddLabel.classList.toggle('has-val', sel.length > 0);
+    tagsEl.innerHTML = '';
+    sel.forEach(val => {
+      const tag = document.createElement('div');
+      tag.className = 'stag';
+      tag.innerHTML = `<span>${val}</span><span class="stag-x" data-val="${val}">&times;</span>`;
+      tagsEl.appendChild(tag);
+    });
+    tagsEl.querySelectorAll('.stag-x').forEach(x => {
+      x.addEventListener('click', () => {
+        document.querySelector(`.dd-item[data-val="${x.dataset.val}"]`).classList.remove('selected');
+        updateTags();
+      });
+    });
+  }
+
+  // Item toggle
+  document.querySelectorAll('.dd-item').forEach(item => {
+    item.addEventListener('click', () => { item.classList.toggle('selected'); updateTags(); });
+  });
+
+  document.getElementById('select-all-btn').addEventListener('click', e => {
+    e.stopPropagation();
+    document.querySelectorAll('.dd-item').forEach(i => i.classList.add('selected'));
+    updateTags();
+  });
+  document.getElementById('deselect-all-btn').addEventListener('click', e => {
+    e.stopPropagation();
+    document.querySelectorAll('.dd-item').forEach(i => i.classList.remove('selected'));
+    updateTags();
+  });
+
+  // Submit
+  document.getElementById('submit-btn').addEventListener('click', () => {
+    const btn = document.getElementById('submit-btn');
+    if (btn.classList.contains('done')) return;
+    const isMobile = document.querySelector('.ctab.active').dataset.type === 'mobile';
+    const contact  = isMobile ? document.getElementById('input-mobile').value.trim() : document.getElementById('input-email').value.trim();
+    const message  = document.getElementById('enquiry-msg').value.trim();
+    const selected = getSelected();
+
+    if (!contact) { alert('Please enter your ' + (isMobile ? 'mobile number.' : 'email ID.')); return; }
+
+    const label    = isMobile ? 'Mobile' : 'Email';
+    const services = selected.length ? '\n\nServices:\n' + selected.map((s, i) => `${i + 1}. ${s}`).join('\n') : '';
+    const msg = `New Enquiry from Linktree\n\n${label}: ${contact}${services}${message ? '\n\nMessage: ' + message : ''}`;
+
+    fetch('https://api.web3forms.com/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        access_key: '66f90d59-83e7-4136-8823-1bfeb38deb41',
+        subject:    'New Enquiry from Linktree',
+        from_name:  'Linktree Enquiry',
+        [isMobile ? 'phone' : 'email']: contact,
+        message:    msg,
+      })
+    }).catch(() => {});
+
+    btn.textContent = 'Submitted';
+    btn.classList.add('done');
+  });
+</script>
+<!-- SCRATCH CARD OVERLAY -->
+<div id="sc-overlay">
+  <div id="sc-box">
+    <button id="sc-close" aria-label="Close">&#10005;</button>
+    <p id="sc-hint">Scratch to reveal your discount!</p>
+    <div id="sc-wrap">
+      <canvas id="sc-canvas"></canvas>
+      <div id="sc-reward">
+        <div id="sc-pct">--</div>
+        <div id="sc-off">OFF</div>
+        <button id="sc-claim">Claim Your Discount</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CLAIM POPUP -->
+<div id="cl-overlay" hidden>
+  <div id="cl-box">
+    <button id="cl-close" aria-label="Close">&#10005;</button>
+    <div id="cl-head">Claim Your Discount</div>
+    <div id="cl-sub">Enter your mobile or email to receive your code</div>
+    <div id="cl-tabs">
+      <button class="cltab active" data-type="mobile">Mobile Number</button>
+      <button class="cltab" data-type="email">Mail ID</button>
+    </div>
+    <input type="tel"   id="cl-input" placeholder="Mobile number" inputmode="tel">
+    <div id="cl-err" hidden></div>
+    <button id="cl-submit">Submit</button>
+  </div>
+</div>
+
+<style>
+  #sc-overlay {
+    display:none; position:fixed; inset:0;
+    background:rgba(0,0,0,0.72); z-index:20000;
+    align-items:center; justify-content:center;
+  }
+  #sc-overlay.open { display:flex; animation:sc-fade 280ms ease; }
+  @keyframes sc-fade { from{opacity:0} to{opacity:1} }
+
+  #sc-box {
+    position:relative; background:#1c1c1c;
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:22px; padding:28px 24px 26px;
+    width:min(340px,calc(100vw - 28px));
+    text-align:center;
+    animation:sc-pop 320ms cubic-bezier(.22,1,.36,1);
+  }
+  @keyframes sc-pop { from{transform:scale(0.88);opacity:0} to{transform:scale(1);opacity:1} }
+
+  #sc-close {
+    position:absolute; top:13px; right:15px;
+    background:none; border:none; color:rgba(255,255,255,0.4);
+    font-size:18px; cursor:pointer; line-height:1; padding:4px;
+    transition:color 120ms;
+  }
+  #sc-close:hover { color:#fff; }
+
+  #sc-hint {
+    font-family:sans-serif; font-size:13px;
+    color:rgba(255,255,255,0.55); margin-bottom:16px;
+    letter-spacing:0.3px;
+  }
+
+  #sc-wrap {
+    position:relative; width:100%; aspect-ratio:1/1;
+    border-radius:14px; overflow:hidden;
+    background:#fff;
+    cursor:crosshair;
+  }
+
+  #sc-canvas {
+    position:absolute; inset:0; width:100%; height:100%;
+    border-radius:14px; touch-action:none; z-index:1;
+    transition:opacity 400ms ease;
+  }
+
+  #sc-reward {
+    position:absolute; inset:0;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:6px;
+    z-index:0;
+  }
+  #sc-pct {
+    font-family:sans-serif; font-size:64px; font-weight:800;
+    color:#ff6b35; line-height:1;
+  }
+  #sc-off {
+    font-family:sans-serif; font-size:18px; font-weight:700;
+    color:#ff6b35; letter-spacing:4px;
+  }
+  #sc-claim {
+    margin-top:12px; padding:10px 26px; border:none; border-radius:30px;
+    background:#ff6b35; color:#fff;
+    font-family:sans-serif; font-size:13px; font-weight:700;
+    cursor:pointer;
+    opacity:0; pointer-events:none; transform:scale(0.85);
+    transition:opacity 300ms ease, transform 300ms ease;
+  }
+  #sc-claim.show { opacity:1; pointer-events:auto; transform:scale(1); }
+  #sc-claim.show:hover  { opacity:0.9; transform:scale(1.04); }
+  #sc-claim.show:active { transform:scale(0.96); }
+
+  /* Claim popup */
+  #cl-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,0.72);
+    z-index:21000; display:flex; align-items:center; justify-content:center;
+  }
+  #cl-overlay[hidden] { display:none; }
+
+  #cl-box {
+    position:relative; background:#fff;
+    border:1px solid rgba(0,0,0,0.08);
+    border-radius:20px; padding:28px 22px 26px;
+    width:min(320px,calc(100vw - 28px));
+    animation:sc-pop 280ms cubic-bezier(.22,1,.36,1);
+    display:flex; flex-direction:column; gap:12px;
+  }
+  #cl-close {
+    position:absolute; top:13px; right:15px;
+    background:none; border:none; color:rgba(0,0,0,0.3);
+    font-size:18px; cursor:pointer; line-height:1; padding:4px;
+    transition:color 120ms;
+  }
+  #cl-close:hover { color:#000; }
+  #cl-head {
+    font-family:sans-serif; font-size:16px; font-weight:700;
+    color:#1a1a1a; text-align:center;
+  }
+  #cl-sub {
+    font-family:sans-serif; font-size:12px;
+    color:rgba(0,0,0,0.45); text-align:center; line-height:1.5;
+  }
+  #cl-tabs { display:flex; background:rgba(0,0,0,0.06); border-radius:10px; padding:3px; gap:3px; }
+  .cltab {
+    flex:1; padding:8px 10px; border:none; border-radius:8px;
+    background:none; color:rgba(0,0,0,0.4);
+    font-family:sans-serif; font-size:13px; font-weight:500;
+    cursor:pointer; transition:all 150ms;
+  }
+  .cltab.active { background:linear-gradient(135deg,#ff6b35,#f7c948); color:#fff; font-weight:600; }
+  #cl-box input {
+    background:#f7f7f7; border:1px solid rgba(0,0,0,0.12);
+    border-radius:10px; color:#1a1a1a; font-family:sans-serif; font-size:14px;
+    padding:11px 13px; outline:none; transition:border-color 150ms; width:100%;
+  }
+  #cl-box input::placeholder { color:rgba(0,0,0,0.28); }
+  #cl-box input:focus { border-color:#ff6b35; }
+  #cl-err {
+    font-family:sans-serif; font-size:12px; color:#ff6b35;
+    text-align:center; margin-top:-4px;
+  }
+  #cl-submit {
+    width:100%; padding:13px; border:none; border-radius:12px;
+    background:linear-gradient(135deg,#ff6b35,#f7c948);
+    color:#fff; font-family:sans-serif; font-size:14px; font-weight:700;
+    cursor:pointer; transition:opacity 150ms,transform 100ms,background 300ms;
+    margin-top:2px;
+  }
+  #cl-submit:hover  { opacity:0.9; }
+  #cl-submit:active { transform:scale(0.97); }
+  #cl-submit.done {
+    background:#22c55e; cursor:default;
+    transform:none !important; opacity:1 !important;
+  }
+</style>
+
+<script>
+(function(){
+  var discount = Math.floor(Math.random()*11)+5;
+  var revealed = false;
+  var scratchPct = 0;
+
+  setTimeout(function(){ document.getElementById('sc-overlay').classList.add('open'); }, 10000);
+
+  document.getElementById('sc-close').addEventListener('click', function(){
+    document.getElementById('sc-overlay').classList.remove('open');
+  });
+  document.getElementById('sc-overlay').addEventListener('click', function(e){
+    if(e.target === this) this.classList.remove('open');
+  });
+
+  var canvas = document.getElementById('sc-canvas');
+  var ctx = canvas.getContext('2d');
+  var reward = document.getElementById('sc-reward');
+  var claimBtn = document.getElementById('sc-claim');
+
+  document.getElementById('sc-pct').textContent = discount + '%';
+
+  function resizeCanvas(){
+    var wrap = document.getElementById('sc-wrap');
+    canvas.width  = wrap.offsetWidth;
+    canvas.height = wrap.offsetHeight;
+    drawScratch();
+  }
+
+  function drawScratch(){
+    var w=canvas.width, h=canvas.height;
+    ctx.clearRect(0,0,w,h);
+
+    /* solid orange base */
+    ctx.fillStyle='#ff6b35';
+    ctx.fillRect(0,0,w,h);
+
+    /* diagonal darker orange stripe texture */
+    ctx.save();
+    ctx.globalAlpha=0.18;
+    ctx.fillStyle='#c94a15';
+    var step=28;
+    for(var x=-h; x<w+h; x+=step){
+      ctx.fillRect(x,0,step/2,h);
+    }
+    ctx.restore();
+
+    /* TSM TSM TSM text all over */
+    ctx.save();
+    ctx.font='700 15px sans-serif';
+    ctx.textAlign='left';
+    ctx.textBaseline='middle';
+    ctx.fillStyle='rgba(255,255,255,0.22)';
+    var tw=54, th=26;
+    var cols2=Math.ceil(w/tw)+2, rows2=Math.ceil(h/th)+2;
+    for(var r=0;r<rows2;r++){
+      for(var c=0;c<cols2;c++){
+        var ox=(r%2===0?0:tw/2);
+        ctx.fillText('TSM',(c*tw+ox-tw),r*th+th/2);
+      }
+    }
+    ctx.restore();
+  }
+
+  /* smooth stroke — draw a filled circle AND a thick line to last point */
+  var lastX=null, lastY=null;
+  function scratchAt(x,y){
+    ctx.globalCompositeOperation='destination-out';
+    ctx.lineWidth=44;
+    ctx.lineCap='round';
+    ctx.lineJoin='round';
+    ctx.beginPath();
+    if(lastX!==null){
+      ctx.moveTo(lastX,lastY);
+      ctx.lineTo(x,y);
+      ctx.stroke();
+    }
+    /* also fill a circle so first touch has no gap */
+    ctx.beginPath();
+    ctx.arc(x,y,22,0,Math.PI*2);
+    ctx.fill();
+    ctx.globalCompositeOperation='source-over';
+    lastX=x; lastY=y;
+    checkReveal();
+  }
+  function endStroke(){ lastX=null; lastY=null; }
+
+  var checkTick=0;
+  function checkReveal(){
+    if(revealed) return;
+    /* throttle pixel count to every 8 calls */
+    if(++checkTick%8!==0) return;
+    var data=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+    var total=data.length/4, cleared=0;
+    for(var i=3;i<data.length;i+=4){ if(data[i]<128) cleared++; }
+    var pct=cleared/total;
+    if(pct>=0.35){
+      revealed=true;
+      canvas.style.opacity='0';
+      canvas.style.pointerEvents='none';
+      claimBtn.classList.add('show');
+    }
+  }
+
+  var painting=false;
+  function getPos(e){
+    var r=canvas.getBoundingClientRect();
+    var scaleX=canvas.width/r.width, scaleY=canvas.height/r.height;
+    if(e.touches){ return{x:(e.touches[0].clientX-r.left)*scaleX, y:(e.touches[0].clientY-r.top)*scaleY}; }
+    return{x:(e.clientX-r.left)*scaleX, y:(e.clientY-r.top)*scaleY};
+  }
+  canvas.addEventListener('mousedown',  function(e){painting=true; var p=getPos(e); scratchAt(p.x,p.y);});
+  canvas.addEventListener('mousemove',  function(e){if(!painting)return; var p=getPos(e); scratchAt(p.x,p.y);});
+  canvas.addEventListener('mouseup',    function(){painting=false; endStroke();});
+  canvas.addEventListener('mouseleave', function(){painting=false; endStroke();});
+  canvas.addEventListener('touchstart', function(e){e.preventDefault(); painting=true; var p=getPos(e); scratchAt(p.x,p.y);},{passive:false});
+  canvas.addEventListener('touchmove',  function(e){e.preventDefault(); if(!painting)return; var p=getPos(e); scratchAt(p.x,p.y);},{passive:false});
+  canvas.addEventListener('touchend',   function(){painting=false; endStroke();});
+  canvas.addEventListener('touchcancel',function(){painting=false; endStroke();});
+
+  var scOverlay=document.getElementById('sc-overlay');
+  var observer=new MutationObserver(function(){
+    if(scOverlay.classList.contains('open')){ setTimeout(resizeCanvas,40); }
+  });
+  observer.observe(scOverlay,{attributes:true,attributeFilter:['class']});
+
+  // Claim button → open claim popup
+  document.getElementById('sc-claim').addEventListener('click', function(){
+    document.getElementById('cl-overlay').hidden = false;
+  });
+
+  // Close claim popup
+  document.getElementById('cl-close').addEventListener('click', function(){
+    document.getElementById('cl-overlay').hidden = true;
+  });
+  document.getElementById('cl-overlay').addEventListener('click', function(e){
+    if(e.target === this) this.hidden = true;
+  });
+
+  // Tab switching — single input
+  var clInput = document.getElementById('cl-input');
+  var clType  = 'mobile';
+  document.querySelectorAll('.cltab').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.cltab').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      clType = btn.dataset.type;
+      clInput.value = '';
+      document.getElementById('cl-err').hidden = true;
+      if(clType === 'mobile'){
+        clInput.type        = 'tel';
+        clInput.inputMode   = 'tel';
+        clInput.placeholder = 'Mobile number';
+      } else {
+        clInput.type        = 'email';
+        clInput.inputMode   = 'email';
+        clInput.placeholder = 'Email address';
+      }
+      clInput.focus();
+    });
+  });
+
+  // Claim submit
+  document.getElementById('cl-submit').addEventListener('click', function(){
+    var btn   = this;
+    if(btn.classList.contains('done')) return;
+    var val   = clInput.value.trim();
+    var errEl = document.getElementById('cl-err');
+    errEl.hidden = true;
+
+    if(!val){
+      errEl.textContent = 'Please enter your ' + (clType==='mobile' ? 'mobile number.' : 'email address.');
+      errEl.hidden = false; return;
+    }
+    if(clType==='mobile' && val.length < 7){
+      errEl.textContent = 'Enter a valid mobile number.';
+      errEl.hidden = false; return;
+    }
+    if(clType==='email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)){
+      errEl.textContent = 'Enter a valid email address.';
+      errEl.hidden = false; return;
+    }
+
+    btn.textContent = 'Submitting…';
+    btn.disabled = true;
+
+    var payload = {
+      access_key: '66f90d59-83e7-4136-8823-1bfeb38deb41',
+      subject:    'Discount Claim — ' + discount + '% OFF',
+      from_name:  'Linktree Scratch Card',
+      message:    'Discount: ' + discount + '%\n' + (clType==='mobile' ? 'Mobile: ' : 'Email: ') + val
+    };
+    if(clType==='mobile') payload.phone = val;
+    else payload.email = val;
+
+    fetch('https://api.web3forms.com/submit', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    }).finally(function(){
+      btn.textContent = 'Submitted';
+      btn.classList.add('done');
+      btn.disabled = false;
+    });
+  });
+})();
+</script>
+</body>
+</html>

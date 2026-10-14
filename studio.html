@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio — The Sonic Media</title>
+<link rel="icon" type="image/png" href="https://res.cloudinary.com/dq2nrpky0/image/upload/v1779787887/favicon_oalxfi.png">
+<link rel="apple-touch-icon" href="https://res.cloudinary.com/dq2nrpky0/image/upload/v1779787887/favicon_oalxfi.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/styles.css">
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Krona+One&display=swap" rel="stylesheet">
+<link rel="canonical" href="https://thesonicmedia.com/studio">
+<meta property="og:url" content="https://thesonicmedia.com/studio">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="The Sonic Media">
+<meta property="og:title" content="Portfolio — The Sonic Media | Digital Marketing & Design Work">
+<meta property="og:description" content="Explore The Sonic Media's portfolio of web design, branding, content production, and digital marketing projects for clients across India.">
+<meta property="og:image" content="https://images.unsplash.com/photo-1558655146-d09347e92766?w=1200&q=80">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="en_IN">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@thesonicmedia">
+<meta name="twitter:title" content="Portfolio — The Sonic Media | Digital Marketing & Design Work">
+<meta name="twitter:description" content="Explore The Sonic Media's portfolio of web design, branding, content production, and digital marketing projects for clients across India.">
+<meta name="twitter:image" content="https://images.unsplash.com/photo-1558655146-d09347e92766?w=1200&q=80">
+<meta name="robots" content="index, follow">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "CollectionPage",
+      "@id": "https://thesonicmedia.com/studio#page",
+      "name": "Portfolio — The Sonic Media",
+      "description": "Award-winning digital marketing and design portfolio",
+      "url": "https://thesonicmedia.com/studio",
+      "isPartOf": {"@id": "https://thesonicmedia.com/#website"}
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type":"ListItem","position":1,"name":"Home","item":"https://thesonicmedia.com/"},
+        {"@type":"ListItem","position":2,"name":"Portfolio","item":"https://thesonicmedia.com/studio"}
+      ]
+    }
+  ]
+}
+</script>
+</head>
+
+<body>
+
+<!-- Cursor -->
+<div id="cursor"></div>
+<div id="cursor-follower"></div>
+<canvas id="cursor-trail"></canvas>
+<div id="mouse-glow"></div>
+<!-- Scroll progress -->
+<div id="sp"></div>
+
+<!-- ═══════ NAVBAR ═══════ -->
+<nav id="navbar">
+  <div class="nav-left" onclick="navigate('home')">
+    <img src="https://res.cloudinary.com/dq2nrpky0/image/upload/v1779787887/favicon_oalxfi.png" alt="The Sonic Media Logo" style="width:36px;height:36px;object-fit:contain;flex-shrink:0;" />
+    <div class="nav-brand">
+      THE SONIC MEDIA
+    </div>
+  </div>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#" onclick="navigate('home');return false;" data-page="home" class="active-link">Home</a></li>
+    <li><a href="#" onclick="navigate('about');return false;" data-page="about">About</a></li>
+    <li class="has-drop">
+      <button onclick="return false;">Services <span class="drop-arrow"><svg class="drop-arrow-svg" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:inline-block;vertical-align:middle;margin-left:3px;"><polyline points="6 9 12 15 18 9"></polyline></svg></span></button>
+      <div class="dropdown">
+        <a href="#" onclick="navigate('services');return false;" style="border-bottom:1px solid rgba(255,255,255,.07);margin-bottom:6px;padding-bottom:14px;color:var(--orange);font-weight:700;"><span class="drop-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M1.371 5.476L11.943 0l10.686 5.476-10.686 5.495zm3.36 4.81l7.212 3.547 7.288-3.547-7.288 3.738zm0 4.153l7.212 3.547 7.288-3.547-7.288 3.738z"/></svg></span>All Services</a>
+        <a href="#" onclick="navigate('svc-web');return false;"><span class="drop-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M1.5 0h21l-1.91 21.563L11.977 24l-8.565-2.438zm16.95 6.077H5.55l.386 4.364H17.84zm-4.805 7.73l-.22.253-.008.01-1.44.407-1.44-.407-.098-1.077H6.11l.24 2.67 5.627 1.56 5.627-1.56.634-7.11H8.084l-.196-2.182h10.973z"/></svg></span>Website Development</a>
+        <a href="#" onclick="navigate('svc-app');return false;"><span class="drop-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.18c.64-.78 1.08-1.86.96-2.94-1 .04-2.14.67-2.82 1.46-.59.68-1.12 1.77-.98 2.83 1.11.09 2.21-.57 2.84-1.35z"/></svg></span>Mobile App Development</a>
+        <a href="#" onclick="navigate('svc-seo');return false;"><span class="drop-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12.01 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24zm0 2.18a9.82 9.82 0 1 1 0 19.64 9.82 9.82 0 0 1 0-19.64zm2.18 4.36l-4.36 4.36 2.18 2.18 4.36-4.36-2.18-2.18zm-5.45 6.54l-2.18 2.18 2.18 2.18 2.18-2.18-2.18-2.18z"/></svg></span>Search Engine Optimization</a>
+        <a href="#" onclick="navigate('svc-smm');return false;"><span class="drop-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M6.915 4.03c-2.342 0-4.37 1.432-5.26 3.488C.72 9.68 1.09 12.03 2.6 13.79c1.67 1.94 4.08 2.88 6.44 2.88 2.37 0 4.79-.94 6.46-2.88 1.51-1.76 1.88-4.11.95-6.27-.89-2.06-2.92-3.49-5.26-3.49H6.915zm8.97 7.02c-.78 1.5-2.2 2.65-3.88 2.65-1.67 0-3.1-1.15-3.87-2.65-.5-1-.5-2.18 0-3.18.78-1.5 2.2-2.65 3.88-2.65 1.67 0 3.1 1.15 3.87 2.65.5 1 .5 2.18 0 3.18z"/></svg></span>Social Media Management</a>
+        <a href="#" onclick="navigate('svc-perf');return false;"><span class="drop-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M3.9998 22.9291C1.7908 22.9291 0 21.1383 0 18.9293s1.7908-3.9998 3.9998-3.9998 3.9998 1.7908 3.9998 3.9998-1.7908 3.9998-3.9998 3.9998zm19.4643-6.0004L15.4632 3.072C14.3586 1.1587 11.9121.5028 9.9988 1.6074S7.4295 5.1585 8.5341 7.0718l8.0009 13.8567c1.1046 1.9133 3.5511 2.5679 5.4644 1.4646 1.9134-1.1046 2.568-3.5511 1.4647-5.4644zM7.5137 4.8438L1.5645 15.1484A4.5 4.5 0 0 1 4 14.4297c2.5597-.0075 4.6248 2.1585 4.4941 4.7148l3.2168-5.5723-3.6094-6.25c-.4499-.7793-.6322-1.6394-.5878-2.4784z"/></svg></span>Performance Marketing &amp; Paid Ads</a>
+        <a href="#" onclick="navigate('svc-inf');return false;"><span class="drop-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></span>Influencer Marketing</a>
+        <a href="#" onclick="navigate('svc-ecom');return false;"><span class="drop-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M15.337 23.979l7.216-1.561s-2.604-17.613-2.625-17.73c-.018-.116-.114-.192-.211-.192s-1.929-.136-1.929-.136-1.275-1.274-1.439-1.411c-.045-.037-.075-.057-.121-.074l-.914 21.104h.023zM11.71 11.305s-.81-.424-1.774-.424c-1.447 0-1.504.906-1.504 1.141 0 1.232 3.24 1.715 3.24 4.629 0 2.295-1.44 3.76-3.406 3.76-2.354 0-3.54-1.465-3.54-1.465l.646-2.086s1.245 1.066 2.28 1.066c.675 0 .975-.545.975-.932 0-1.619-2.654-1.694-2.654-4.359-.034-2.237 1.571-4.416 4.827-4.416 1.257 0 1.875.361 1.875.361l-.945 2.715-.02.01zM11.17.83c.136 0 .271.038.405.135-.984.465-2.064 1.639-2.508 3.992-.656.213-1.293.405-1.889.578C7.697 3.75 8.951.84 11.17.84V.83zm1.235 2.949v.135c-.754.232-1.583.484-2.394.736.466-1.777 1.333-2.645 2.085-2.971.193.501.309 1.176.309 2.1zm.539-2.234c.694.074 1.141.867 1.429 1.755-.349.114-.735.231-1.158.366v-.252c0-.752-.096-1.371-.271-1.871v.002zm2.992 1.289c-.02 0-.06.021-.078.021s-.289.075-.714.21c-.423-1.233-1.176-2.37-2.508-2.37h-.115C12.135.209 11.669 0 11.265 0 8.159 0 6.675 3.877 6.21 5.846c-1.194.365-2.063.636-2.16.674-.675.213-.694.232-.772.87-.075.462-1.83 14.063-1.83 14.063L15.009 24l.927-21.166z"/></svg></span>E-Commerce Marketing</a>
+        <a href="#" onclick="navigate('svc-content');return false;"><span class="drop-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></span>Content Production &amp; Photo/Videography</a>
+        <a href="#" onclick="navigate('svc-brand');return false;"><span class="drop-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M15.852 8.981h-4.588V0h4.588c2.476 0 4.49 2.014 4.49 4.49s-2.014 4.491-4.49 4.491zM12.735 7.51h3.117c1.665 0 3.019-1.355 3.019-3.019s-1.355-3.019-3.019-3.019h-3.117V7.51zm0 1.471H8.148c-2.476 0-4.49-2.014-4.49-4.49S5.672 0 8.148 0h4.588v8.981zm-4.587-7.51c-1.665 0-3.019 1.355-3.019 3.019s1.354 3.02 3.019 3.02h3.117V1.471H8.148zm4.587 15.019H8.148c-2.476 0-4.49-2.014-4.49-4.49s2.014-4.49 4.49-4.49h4.588v8.98zM8.148 8.981c-1.665 0-3.019 1.355-3.019 3.019s1.355 3.019 3.019 3.019h3.117V8.981H8.148zM8.172 24c-2.489 0-4.515-2.014-4.515-4.49s2.014-4.49 4.49-4.49h4.588v4.441c0 2.503-2.047 4.539-4.563 4.539zm-.024-7.51a3.023 3.023 0 0 0-3.019 3.019c0 1.665 1.365 3.019 3.044 3.019 1.705 0 3.093-1.376 3.093-3.068v-2.97H8.148zm7.704 0h-.098c-2.476 0-4.49-2.014-4.49-4.49s2.014-4.49 4.49-4.49h.098c2.476 0 4.49 2.014 4.49 4.49s-2.014 4.49-4.49 4.49zm-.097-7.509c-1.665 0-3.019 1.355-3.019 3.019s1.355 3.019 3.019 3.019h.098c1.665 0 3.019-1.355 3.019-3.019s-1.355-3.019-3.019-3.019h-.098z"/></svg></span>Branding &amp; Advertising Solutions</a>
+        <a href="#" onclick="navigate('svc-ai');return false;"><span class="drop-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M11.04 19.32Q12 21.51 12 24q0-2.49.93-4.68.96-2.19 2.58-3.81t3.81-2.55Q21.51 12 24 12q-2.49 0-4.68-.93a12.3 12.3 0 0 1-3.81-2.58 12.3 12.3 0 0 1-2.58-3.81Q12 2.49 12 0q0 2.49-.96 4.68-.93 2.19-2.55 3.81a12.3 12.3 0 0 1-3.81 2.58Q2.49 12 0 12q2.49 0 4.68.96 2.19.93 3.81 2.55t2.55 3.81"/></svg></span>AI Doodling/Editing</a>
+      </div>
+    </li>
+    <li><a href="#" onclick="navigate('studio');return false;" data-page="studio">Portfolio</a></li>
+    <li><a href="#" onclick="navigate('casestudies');return false;" data-page="casestudies">Case Studies</a></li>
+    <li><a href="#" onclick="navigate('journal');return false;" data-page="journal">Journal</a></li>
+    <li><a href="#" onclick="navigate('future');return false;" data-page="future">Future Vision</a></li>
+    <li><a href="#" onclick="navigate('faq');return false;" data-page="faq">FAQ</a></li>
+    <li><a href="#" onclick="navigate('contact');return false;" data-page="contact" class="nav-cta">Contact</a></li>
+  </ul>
+  <button class="ham" id="ham" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- Mobile Nav Drawer -->
+<div class="mob-nav" id="mobNav">
+  <!-- Backdrop -->
+  <div class="mob-nav-backdrop" id="mobBackdrop" onclick="closeMob()"></div>
+
+  <!-- Drawer -->
+  <div class="mob-nav-drawer">
+
+    <!-- Header -->
+    <div class="mob-nav-header">
+      <div class="mob-nav-brand">
+        <img src="https://res.cloudinary.com/dq2nrpky0/image/upload/v1779787887/favicon_oalxfi.png" alt="The Sonic Media" />
+        THE SONIC MEDIA
+      </div>
+      <button class="mob-close" id="mobClose" aria-label="Close menu"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    </div>
+
+    <!-- Body -->
+    <div class="mob-nav-body">
+
+      <!-- Main nav -->
+      <div class="mob-nav-section-label">Navigation</div>
+
+      <button class="mob-nav-link" onclick="navigate('home');closeMob()" data-mob-page="home">
+        Home <span class="mob-nav-link-arrow"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span>
+      </button>
+      <button class="mob-nav-link" onclick="navigate('about');closeMob()" data-mob-page="about">
+        About <span class="mob-nav-link-arrow"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span>
+      </button>
+
+      <!-- Services accordion -->
+      <button class="mob-services-toggle" id="mobSvcToggle" onclick="toggleMobServices()" aria-expanded="false">
+        Services
+        <span class="mob-acc-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg></span>
+      </button>
+      <div class="mob-services-submenu" id="mobSvcSubmenu">
+        <button class="mob-svc-all" onclick="navigate('services');closeMob()">
+          <span class="mob-svc-item-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M1.371 5.476L11.943 0l10.686 5.476-10.686 5.495zm3.36 4.81l7.212 3.547 7.288-3.547-7.288 3.738zm0 4.153l7.212 3.547 7.288-3.547-7.288 3.738z"/></svg></span> All Services
+        </button>
+        <button class="mob-svc-item" onclick="navigate('svc-web');closeMob()">
+          <span class="mob-svc-item-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M1.5 0h21l-1.91 21.563L11.977 24l-8.565-2.438zm16.95 6.077H5.55l.386 4.364H17.84zm-4.805 7.73l-.22.253-.008.01-1.44.407-1.44-.407-.098-1.077H6.11l.24 2.67 5.627 1.56 5.627-1.56.634-7.11H8.084l-.196-2.182h10.973z"/></svg></span> Website Development
+        </button>
+        <button class="mob-svc-item" onclick="navigate('svc-app');closeMob()">
+          <span class="mob-svc-item-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.18c.64-.78 1.08-1.86.96-2.94-1 .04-2.14.67-2.82 1.46-.59.68-1.12 1.77-.98 2.83 1.11.09 2.21-.57 2.84-1.35z"/></svg></span> Mobile App Development
+        </button>
+        <button class="mob-svc-item" onclick="navigate('svc-seo');closeMob()">
+          <span class="mob-svc-item-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12.01 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24zm0 2.18a9.82 9.82 0 1 1 0 19.64 9.82 9.82 0 0 1 0-19.64zm2.18 4.36l-4.36 4.36 2.18 2.18 4.36-4.36-2.18-2.18zm-5.45 6.54l-2.18 2.18 2.18 2.18 2.18-2.18-2.18-2.18z"/></svg></span> Search Engine Optimization
+        </button>
+        <button class="mob-svc-item" onclick="navigate('svc-smm');closeMob()">
+          <span class="mob-svc-item-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M6.915 4.03c-2.342 0-4.37 1.432-5.26 3.488C.72 9.68 1.09 12.03 2.6 13.79c1.67 1.94 4.08 2.88 6.44 2.88 2.37 0 4.79-.94 6.46-2.88 1.51-1.76 1.88-4.11.95-6.27-.89-2.06-2.92-3.49-5.26-3.49H6.915zm8.97 7.02c-.78 1.5-2.2 2.65-3.88 2.65-1.67 0-3.1-1.15-3.87-2.65-.5-1-.5-2.18 0-3.18.78-1.5 2.2-2.65 3.88-2.65 1.67 0 3.1 1.15 3.87 2.65.5 1 .5 2.18 0 3.18z"/></svg></span> Social Media Management
+        </button>
+        <button class="mob-svc-item" onclick="navigate('svc-perf');closeMob()">
+          <span class="mob-svc-item-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M3.9998 22.9291C1.7908 22.9291 0 21.1383 0 18.9293s1.7908-3.9998 3.9998-3.9998 3.9998 1.7908 3.9998 3.9998-1.7908 3.9998-3.9998 3.9998zm19.4643-6.0004L15.4632 3.072C14.3586 1.1587 11.9121.5028 9.9988 1.6074S7.4295 5.1585 8.5341 7.0718l8.0009 13.8567c1.1046 1.9133 3.5511 2.5679 5.4644 1.4646 1.9134-1.1046 2.568-3.5511 1.4647-5.4644zM7.5137 4.8438L1.5645 15.1484A4.5 4.5 0 0 1 4 14.4297c2.5597-.0075 4.6248 2.1585 4.4941 4.7148l3.2168-5.5723-3.6094-6.25c-.4499-.7793-.6322-1.6394-.5878-2.4784z"/></svg></span> Performance Marketing
+        </button>
+        <button class="mob-svc-item" onclick="navigate('svc-inf');closeMob()">
+          <span class="mob-svc-item-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg></span> Influencer Marketing
+        </button>
+        <button class="mob-svc-item" onclick="navigate('svc-ecom');closeMob()">
+          <span class="mob-svc-item-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M15.337 23.979l7.216-1.561s-2.604-17.613-2.625-17.73c-.018-.116-.114-.192-.211-.192s-1.929-.136-1.929-.136-1.275-1.274-1.439-1.411c-.045-.037-.075-.057-.121-.074l-.914 21.104h.023zM11.71 11.305s-.81-.424-1.774-.424c-1.447 0-1.504.906-1.504 1.141 0 1.232 3.24 1.715 3.24 4.629 0 2.295-1.44 3.76-3.406 3.76-2.354 0-3.54-1.465-3.54-1.465l.646-2.086s1.245 1.066 2.28 1.066c.675 0 .975-.545.975-.932 0-1.619-2.654-1.694-2.654-4.359-.034-2.237 1.571-4.416 4.827-4.416 1.257 0 1.875.361 1.875.361l-.945 2.715-.02.01zM11.17.83c.136 0 .271.038.405.135-.984.465-2.064 1.639-2.508 3.992-.656.213-1.293.405-1.889.578C7.697 3.75 8.951.84 11.17.84V.83zm1.235 2.949v.135c-.754.232-1.583.484-2.394.736.466-1.777 1.333-2.645 2.085-2.971.193.501.309 1.176.309 2.1zm.539-2.234c.694.074 1.141.867 1.429 1.755-.349.114-.735.231-1.158.366v-.252c0-.752-.096-1.371-.271-1.871v.002zm2.992 1.289c-.02 0-.06.021-.078.021s-.289.075-.714.21c-.423-1.233-1.176-2.37-2.508-2.37h-.115C12.135.209 11.669 0 11.265 0 8.159 0 6.675 3.877 6.21 5.846c-1.194.365-2.063.636-2.16.674-.675.213-.694.232-.772.87-.075.462-1.83 14.063-1.83 14.063L15.009 24l.927-21.166z"/></svg></span> E-Commerce Marketing
+        </button>
+        <button class="mob-svc-item" onclick="navigate('svc-content');closeMob()">
+          <span class="mob-svc-item-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></span> Content Production
+        </button>
+        <button class="mob-svc-item" onclick="navigate('svc-brand');closeMob()">
+          <span class="mob-svc-item-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M15.852 8.981h-4.588V0h4.588c2.476 0 4.49 2.014 4.49 4.49s-2.014 4.491-4.49 4.491zM12.735 7.51h3.117c1.665 0 3.019-1.355 3.019-3.019s-1.355-3.019-3.019-3.019h-3.117V7.51zm0 1.471H8.148c-2.476 0-4.49-2.014-4.49-4.49S5.672 0 8.148 0h4.588v8.981zm-4.587-7.51c-1.665 0-3.019 1.355-3.019 3.019s1.354 3.02 3.019 3.02h3.117V1.471H8.148zm4.587 15.019H8.148c-2.476 0-4.49-2.014-4.49-4.49s2.014-4.49 4.49-4.49h4.588v8.98zM8.148 8.981c-1.665 0-3.019 1.355-3.019 3.019s1.355 3.019 3.019 3.019h3.117V8.981H8.148zM8.172 24c-2.489 0-4.515-2.014-4.515-4.49s2.014-4.49 4.49-4.49h4.588v4.441c0 2.503-2.047 4.539-4.563 4.539zm-.024-7.51a3.023 3.023 0 0 0-3.019 3.019c0 1.665 1.365 3.019 3.044 3.019 1.705 0 3.093-1.376 3.093-3.068v-2.97H8.148zm7.704 0h-.098c-2.476 0-4.49-2.014-4.49-4.49s2.014-4.49 4.49-4.49h.098c2.476 0 4.49 2.014 4.49 4.49s-2.014 4.49-4.49 4.49zm-.097-7.509c-1.665 0-3.019 1.355-3.019 3.019s1.355 3.019 3.019 3.019h.098c1.665 0 3.019-1.355 3.019-3.019s-1.355-3.019-3.019-3.019h-.098z"/></svg></span> Branding &amp; Advertising Solutions
+        </button>
+        <button class="mob-svc-item" onclick="navigate('svc-ai');closeMob()">
+          <span class="mob-svc-item-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M11.04 19.32Q12 21.51 12 24q0-2.49.93-4.68.96-2.19 2.58-3.81t3.81-2.55Q21.51 12 24 12q-2.49 0-4.68-.93a12.3 12.3 0 0 1-3.81-2.58 12.3 12.3 0 0 1-2.58-3.81Q12 2.49 12 0q0 2.49-.96 4.68-.93 2.19-2.55 3.81a12.3 12.3 0 0 1-3.81 2.58Q2.49 12 0 12q2.49 0 4.68.96 2.19.93 3.81 2.55t2.55 3.81"/></svg></span> AI Doodling / Editing
+        </button>
+      </div>
+
+      <button class="mob-nav-link" onclick="navigate('studio');closeMob()" data-mob-page="studio">
+        Portfolio <span class="mob-nav-link-arrow"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span>
+      </button>
+      <button class="mob-nav-link" onclick="navigate('casestudies');closeMob()" data-mob-page="casestudies">
+        Case Studies <span class="mob-nav-link-arrow"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span>
+      </button>
+
+      <div class="mob-nav-divider"></div>
+      <div class="mob-nav-section-label">Explore</div>
+
+      <button class="mob-nav-link" onclick="navigate('journal');closeMob()" data-mob-page="journal">
+        Journal <span class="mob-nav-link-arrow"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span>
+      </button>
+      <button class="mob-nav-link" onclick="navigate('future');closeMob()" data-mob-page="future">
+        Future Vision <span class="mob-nav-link-arrow"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span>
+      </button>
+      <button class="mob-nav-link" onclick="navigate('faq');closeMob()" data-mob-page="faq">
+        FAQ <span class="mob-nav-link-arrow"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></span>
+      </button>
+
+      <!-- CTA -->
+      <div class="mob-nav-divider" style="margin-top:16px;"></div>
+      <button class="mob-nav-cta" onclick="navigate('contact');closeMob()">
+        Start Your Project →
+      </button>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="mob-nav-footer">
+      <div class="mob-nav-footer-copy">© 2026 <span>The Sonic Media</span></div>
+      <div class="mob-nav-socials">
+        <a href="https://wa.me/918733087249" class="mob-nav-social" target="_blank" title="WhatsApp"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg></a>
+        <a href="mailto:info@thesonicmedia.com" class="mob-nav-social" title="Email"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z"/></svg></a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE: HOME
+═══════════════════════════════════════════ -->
+
+<!-- ═══════ ALL PAGE SECTIONS ═══════ -->
+
+<!-- ═══════ PAGE CONTENT ═══════ -->
+<div id="page-studio" class="page active">
+  <div class="inner-hero">
+    <div class="section-tag">Our Work</div>
+    <h1 class="inner-hero-h">Our <span>Portfolio</span></h1>
+    <p class="inner-hero-p">Real brands. Real campaigns. Real results. Every project is a movement. Every number is a brand that changed.</p>
+    <div class="breadcrumb"><a href="#" onclick="navigate('home');return false;">Home</a><span class="bc-sep">→</span><span class="bc-cur">Portfolio</span></div>
+  </div>
+
+  <!-- RESULTS THAT SPEAK — PINNED HORIZONTAL TIMELINE -->
+  <section class="sonic-timeline-section" id="journey-timeline">
+    <div class="sonic-timeline-topbar">
+      <div class="fw-topbar-label">Featured Work · Results That Speak</div>
+      <div class="fw-topbar-count" id="portfolio-timeline-count">6 PROJECTS · 2023–2026</div>
+    </div>
+
+    <div class="sonic-timeline-sticky">
+      <div class="sonic-timeline-slider" id="sonic-timeline-slider">
+        
+        <!-- Left Showcase Lead Card -->
+        <div class="sonic-timeline-lead">
+          <div class="stl-img-wrap">
+            <img src="https://images.unsplash.com/photo-1558655146-d09347e92766?w=900&q=85" alt="The Sonic Media Work" draggable="false" />
+            <div class="stl-gradient"></div>
+            <div class="stl-badge-top">
+              <span class="stl-badge-dot"></span>
+              <span>PROVEN TRACK RECORD</span>
+            </div>
+            <div class="stl-info-bottom">
+              <div class="stl-logo-mark">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="#FF5C00"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              </div>
+              <div class="stl-caption-h">CRAFTED FOR SCALE</div>
+              <p class="stl-caption-p">Every milestone is an inflection point for brands that lead.</p>
+              <div class="stl-scroll-cue">
+                <span>Scroll to explore</span>
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Horizontal Timeline Track -->
+        <div class="sonic-timeline-track">
+          
+          <!-- Central Horizontal Line & Terminal Dots -->
+          <div class="sonic-timeline-center-line-wrap">
+            <div class="sonic-timeline-line-dot start"></div>
+            <div class="sonic-timeline-rail">
+              <div class="journey-line">
+                <div class="journey-line-glow-head"></div>
+              </div>
+            </div>
+            <div class="sonic-timeline-line-dot end"></div>
+          </div>
+
+          <!-- Top Row (Above Line) -->
+          <div class="sonic-timeline-row top">
+            <div class="sonic-timeline-row-heading">
+              <div class="fw-eyebrow" id="page-portfolio-eyebrow">Featured Work</div>
+              <h2 class="sonic-timeline-title" id="page-portfolio-title">Results<br>That <em>Speak</em></h2>
+            </div>
+            <div class="sonic-timeline-items-row top" id="portfolio-timeline-top">
+              <!-- Dynamically populated from PAGE_DATA.portfolio.works (odd items: 01, 03, 05) -->
+            </div>
+          </div>
+
+          <!-- Bottom Row (Below Line) -->
+          <div class="sonic-timeline-row bottom">
+            <div class="sonic-timeline-row-heading bottom">
+              <div class="sonic-timeline-period">2023 — 2026</div>
+              <p class="sonic-timeline-tagline" id="page-portfolio-tagline">Real brands. Real campaigns. Real measurable results.</p>
+            </div>
+            <div class="sonic-timeline-items-row bottom" id="portfolio-timeline-bottom">
+              <!-- Dynamically populated from PAGE_DATA.portfolio.works (even items: 02, 04, 06) -->
+            </div>
+          </div>
+
+        </div><!-- /sonic-timeline-track -->
+
+        <!-- Right End Showcase Card (CTA) -->
+        <div class="sonic-timeline-end-card">
+          <div class="st-end-inner">
+            <div class="st-end-tag">Ready For Next?</div>
+            <h3 class="st-end-title">YOUR BRAND<br><span>COULD BE NEXT</span></h3>
+            <p class="st-end-p">Let’s engineer your brand’s next high-growth campaign with strategy, creative direction, and performance execution.</p>
+            <a href="#" onclick="navigate('contact');return false;" class="btn-p">Start Your Project →</a>
+          </div>
+        </div>
+
+      </div><!-- /sonic-timeline-slider -->
+    </div><!-- /sonic-timeline-sticky -->
+  </section>
+  <section class="cta" style="padding:100px 60px;">
+    <div class="cta-bg-glow"></div>
+    <div class="cta-inner">
+      <div class="cta-tag">Want Results Like These?</div>
+      <h2 class="cta-h" style="font-size:clamp(48px,6vw,90px);">Talk To Our <span>Team</span></h2>
+      <p class="cta-p">Let’s build your brand into the next success story with strategy, creativity, and performance-driven execution.</p>
+      <div class="cta-btns">
+        <a href="#" onclick="navigate('contact');return false;" class="btn-p">Start Your Project →</a>
+      </div>
+    </div>
+  </section>
+  <div class="page-footer-slot"></div>
+</div><!-- /page-studio -->
+
+<!-- ═══════ SHARED FLOATERS (email + whatsapp) ═══════ -->
+<!-- Email Floater -->
+<a href="mailto:info@thesonicmedia.com" class="email-float" title="Email Us">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="#fff" style="display:block;"><path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z"/></svg>
+</a>
+
+<!-- WhatsApp -->
+<a href="https://wa.me/918733087249" class="wa-float" target="_blank" title="Chat on WhatsApp">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="30" height="30" fill="#fff" style="display:block;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+</a>
+
+<!-- ═══════ FUTURE VISION DETAIL MODAL ═══════ -->
+<!-- ═══════ FUTURE VISION DETAIL MODAL ═══════ -->
+<div id="fv-modal-overlay" onclick="if(event.target===this)closeFvDetail()">
+  <div id="fv-modal">
+    <button id="fv-modal-close" onclick="closeFvDetail()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+    <img id="fv-modal-img" src="" alt="" />
+    <div id="fv-modal-body">
+      <div id="fv-modal-tag"></div>
+      <h2 id="fv-modal-title"></h2>
+      <div id="fv-modal-subtitle"></div>
+      <p id="fv-modal-text"></p>
+      <div id="fv-modal-bullets"></div>
+      <a href="#" id="fv-modal-cta" onclick="closeFvDetail();navigate('contact');return false;"
+        style="display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:50px;background:var(--orange);color:#fff;font-family:var(--font-heading);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;box-shadow:0 0 28px rgba(255,92,0,0.4);transition:all .3s;"
+        onmouseover="this.style.boxShadow='0 0 40px rgba(255,92,0,0.65)';this.style.transform='translateY(-2px)'"
+        onmouseout="this.style.boxShadow='0 0 28px rgba(255,92,0,0.4)';this.style.transform=''">
+        Get In Touch →
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+/* Tell app.js which page to activate on load */
+(function() {
+  window.__INITIAL_PAGE__ = 'portfolio';
+})();
+</script>
+<script src="assets/js/app.js"></script>
+
+<!-- ═══════ SHARED FOOTER TEMPLATE ═══════ -->
+<template id="shared-footer-tpl">
+<footer>
+  <div class="footer-card">
+
+    <div class="footer-top">
+      <div class="footer-nav">
+        <a href="#" onclick="navigate('about');return false;" aria-label="About page"><span class="txt-default">ABOUT</span><span class="txt-hover">ABOUT</span></a>
+        <a href="#" onclick="navigate('services');return false;" aria-label="All services page"><span class="txt-default">SERVICES</span><span class="txt-hover">SERVICES</span></a>
+        <a href="#" onclick="navigate('contact');return false;" aria-label="Contact page"><span class="txt-default">CONTACT</span><span class="txt-hover">CONTACT</span></a>
+      </div>
+      <div class="social-icons">
+        <!-- Instagram -->
+        <a class="social-icon" href="https://www.instagram.com/thesonicmedia/" target="_blank" rel="noopener noreferrer" aria-label="Follow us on Instagram">
+          <span class="ico-default"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></span>
+          <span class="ico-hover"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></span>
+        </a>
+        <!-- Facebook -->
+        <a class="social-icon" href="https://www.facebook.com/people/The-Sonic-Media/61588527764890/?mibextid=wwXIfr&rdid=IFEcTVxzaiIAchzT&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1B78d65Kuv%2F%3Fmibextid%3DwwXIfr" target="_blank" rel="noopener noreferrer" aria-label="Follow us on Facebook">
+          <span class="ico-default"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></span>
+          <span class="ico-hover"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></span>
+        </a>
+        <!-- LinkedIn -->
+        <a class="social-icon" href="https://www.linkedin.com/company/the-sonic-media/?lipi=urn%3Ali%3Apage%3Amessaging_thread%3Bee6641e9-a42c-4ad9-8915-b2a24a0163d4" target="_blank" rel="noopener noreferrer" aria-label="Follow us on LinkedIn">
+          <span class="ico-default"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></span>
+          <span class="ico-hover"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></span>
+        </a>
+        <!-- X / Twitter -->
+        <a class="social-icon" href="https://x.com/thesonicmedia?s=21" target="_blank" rel="noopener noreferrer" aria-label="Follow us on X (Twitter)">
+          <span class="ico-default"><svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></span>
+          <span class="ico-hover"><svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></span>
+        </a>
+      </div>
+    </div>
+
+    <div class="footer-bottom-row">
+      <div class="enquiry-form">
+        <input type="text" id="footer-enquiry-input" placeholder="ENTER YOUR MOBILE NUMBER OR MAIL ID" autocomplete="off">
+        <button class="enquiry-btn" id="footer-enquiry-btn" onclick="tsmFooterEnquiry(event)" aria-label="Submit enquiry">Enquiry</button>
+      </div>
+      <div class="legal-links">
+        <span class="legal-title">Legal Links</span>
+        <a href="#" onclick="openLegalPage('privacy');return false;"><span class="txt-default">Privacy Policy</span><span class="txt-hover">Privacy Policy</span></a>
+        <a href="#" onclick="openLegalPage('terms');return false;"><span class="txt-default">Terms of Service</span><span class="txt-hover">Terms of Service</span></a>
+        <a href="#" onclick="openLegalPage('cookie');return false;"><span class="txt-default">Cookie Policy</span><span class="txt-hover">Cookie Policy</span></a>
+      </div>
+    </div>
+
+    <div class="brand-name-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9743 968" width="100%" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="wg" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+            <stop offset="0"    stop-color="#3a3a3a"/>
+            <stop offset="0.20" stop-color="#666"/>
+            <stop offset="0.45" stop-color="#999"/>
+            <stop offset="0.65" stop-color="#bebebe"/>
+            <stop offset="0.82" stop-color="#dedede"/>
+            <stop offset="1.0"  stop-color="#ffffff"/>
+          </linearGradient>
+          <mask id="tm">
+            <rect width="9743" height="968" fill="black"/>
+            <path fill="white" transform="translate(0,968) scale(1,-1)" d="M445 0V517H650V700H4V517H209V0Z"/>
+            <path fill="white" transform="translate(654,968) scale(1,-1)" d="M511 452H293V700H57V0H293V258H511V0H747V700H511Z"/>
+            <path fill="white" transform="translate(1458,968) scale(1,-1)" d="M289 270H585V440H289V522H626V700H57V0H639V178H289Z"/>
+            <path fill="white" transform="translate(2431,968) scale(1,-1)" d="M318 -16C535 -16 644 92 644 220C644 478 257 408 257 492C257 516 279 536 348 536C409 536 474 519 543 484L614 655C541 696 444 716 350 716C133 716 24 610 24 480C24 219 411 290 411 202C411 178 387 164 320 164C243 164 155 189 89 228L13 56C83 13 201 -16 318 -16Z"/>
+            <path fill="white" transform="translate(3088,968) scale(1,-1)" d="M424 -16C652 -16 819 138 819 350C819 562 652 716 424 716C196 716 29 562 29 350C29 138 196 -16 424 -16ZM424 175C337 175 267 241 267 350C267 459 337 525 424 525C511 525 581 459 581 350C581 241 511 175 424 175Z"/>
+            <path fill="white" transform="translate(3936,968) scale(1,-1)" d="M517 382 251 700H57V0H287V318L553 0H747V700H517Z"/>
+            <path fill="white" transform="translate(4740,968) scale(1,-1)" d="M293 0V700H57V0Z"/>
+            <path fill="white" transform="translate(5090,968) scale(1,-1)" d="M419 -16C556 -16 664 34 733 124L584 257C543 205 494 175 431 175C333 175 267 243 267 350C267 457 333 525 431 525C494 525 543 495 584 443L733 576C664 666 556 716 419 716C194 716 29 565 29 350C29 135 194 -16 419 -16Z"/>
+            <path fill="white" transform="translate(6134,968) scale(1,-1)" d="M895 700H701L479 327L251 700H57V0H272V308L424 63H528L680 319L682 0H897Z"/>
+            <path fill="white" transform="translate(7088,968) scale(1,-1)" d="M289 270H585V440H289V522H626V700H57V0H639V178H289Z"/>
+            <path fill="white" transform="translate(7761,968) scale(1,-1)" d="M402 0C636 0 797 133 797 350C797 567 636 700 402 700H57V0ZM293 516H392C491 516 559 457 559 350C559 243 491 184 392 184H293Z"/>
+            <path fill="white" transform="translate(8587,968) scale(1,-1)" d="M293 0V700H57V0Z"/>
+            <path fill="white" transform="translate(8937,968) scale(1,-1)" d="M825 0 519 700H287L-19 0H221L268 122H534L581 0ZM401 468 469 292H333Z"/>
+          </mask>
+        </defs>
+        <rect width="9743" height="968" fill="url(#wg)" mask="url(#tm)"/>
+      </svg>
+    </div>
+
+  </div>
+</footer>
+</template>
+
+</body>
+</html>

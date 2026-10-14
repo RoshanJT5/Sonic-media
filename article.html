@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="pageTitle">Article — The Sonic Media Journal</title>
+  <meta name="description" id="pageDesc" content="In-depth insights, digital marketing strategies, and industry analysis from The Sonic Media.">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dq2nrpky0/image/upload/v1779787887/favicon_oalxfi.png">
+  <link rel="apple-touch-icon" href="https://res.cloudinary.com/dq2nrpky0/image/upload/v1779787887/favicon_oalxfi.png">
+
+  <!-- OpenGraph / Twitter -->
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="The Sonic Media">
+  <meta property="og:title" id="ogTitle" content="Article — The Sonic Media Journal">
+  <meta property="og:description" id="ogDesc" content="In-depth insights and digital marketing strategies from The Sonic Media.">
+  <meta property="og:image" id="ogImage" content="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&q=80">
+  <meta property="og:locale" content="en_IN">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@thesonicmedia">
+  <meta name="robots" content="index, follow">
+
+  <link rel="preconnect" href="https://plytoawhcvzdjtrgtnrn.supabase.co" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a" crossorigin="anonymous"></script>
+
+  <style>
+    :root {
+      --orange: #FF5C00;
+      --orange-dim: rgba(255,92,0,0.12);
+      --orange-glow: 0 0 40px rgba(255,92,0,0.45);
+      --black: #080808;
+      --white: #F5F0EB;
+    }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; cursor: none !important; }
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #080808;
+      color: #F5F0EB;
+      line-height: 1.8;
+      min-height: 100vh;
+      overflow-x: hidden;
+      cursor: none;
+    }
+    /* Touch / Mobile: restore default cursor */
+    @media (hover: none) and (pointer: coarse) {
+      *, *::before, *::after { cursor: auto !important; }
+      body { cursor: auto !important; }
+      #cursor, #cursor-follower, #cursor-trail, #mouse-glow { display: none !important; }
+    }
+    /* Custom Cursor */
+    #cursor {
+      position: fixed;
+      width: 12px; height: 12px;
+      background: #FF5C00;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999999;
+      transform: translate3d(-50%, -50%, 0);
+      transition: transform 0.08s, width 0.2s, height 0.2s, background 0.2s;
+      mix-blend-mode: normal;
+      will-change: transform;
+    }
+    #cursor-follower {
+      position: fixed;
+      width: 40px; height: 40px;
+      border: 1.5px solid rgba(255,92,0,0.6);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999998;
+      transform: translate3d(-50%, -50%, 0);
+      transition: all 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+      will-change: transform;
+    }
+    #cursor-trail { position: fixed; pointer-events: none; z-index: 9999997; top: 0; left: 0; width: 100%; height: 100%; }
+    body:hover #cursor { opacity: 1; }
+    .cursor-hover #cursor { width: 48px; height: 48px; background: transparent; border: 2px solid #FF5C00; mix-blend-mode: normal; }
+    .cursor-hover #cursor-follower { width: 10px; height: 10px; background: #FF5C00; border-color: transparent; }
+    #mouse-glow {
+      position: fixed;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(255,92,0,0.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      transform: translate3d(-50%, -50%, 0);
+      will-change: transform;
+    }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+
+    /* Top Nav */
+    .art-nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(8,8,8,.94);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      padding: 0 48px;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .art-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+      line-height: 1.2;
+    }
+    .art-brand .nav-brand {
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      line-height: 1.2;
+      color: #F5F0EB;
+    }
+    .art-nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .art-nav-btn {
+      padding: 9px 22px;
+      border-radius: 50px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.12);
+      color: rgba(245,240,235,.8);
+      font-family: 'Syne', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all .25s ease;
+      cursor: pointer;
+    }
+    .art-nav-btn:hover {
+      background: rgba(255,92,0,.15);
+      border-color: rgba(255,92,0,.4);
+      color: #FF5C00;
+      transform: translateY(-1px);
+    }
+
+    /* Article Hero */
+    .art-hero {
+      padding: 96px 48px 64px;
+      background: #0d0d0d;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .art-hero::before {
+      content: '';
+      position: absolute;
+      top: -100px;
+      right: -80px;
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, rgba(255,92,0,.08) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .art-hero-inner {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .art-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .28em;
+      text-transform: uppercase;
+      color: #FF5C00;
+      margin-bottom: 22px;
+      animation: fadeUp .6s .1s both;
+    }
+    .art-eyebrow::before {
+      content: '';
+      width: 24px;
+      height: 2px;
+      background: #FF5C00;
+      display: inline-block;
+    }
+    .art-h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(44px, 6.5vw, 92px);
+      line-height: .96;
+      letter-spacing: .02em;
+      margin-bottom: 22px;
+      color: #F5F0EB;
+      animation: fadeUp .7s .2s both;
+    }
+    .art-h1 em {
+      color: #FF5C00;
+      font-style: normal;
+    }
+    .art-subtitle {
+      font-size: 19px;
+      line-height: 1.7;
+      color: rgba(245,240,235,.65);
+      font-weight: 300;
+      margin-bottom: 28px;
+      animation: fadeUp .7s .3s both;
+    }
+    .art-meta-bar {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      font-family: 'Syne', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      color: rgba(245,240,235,.45);
+      text-transform: uppercase;
+      flex-wrap: wrap;
+      animation: fadeUp .7s .4s both;
+    }
+    .art-meta-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .art-meta-item strong {
+      color: #FF5C00;
+    }
+
+    /* Main Article Container */
+    .art-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 64px 48px 100px;
+    }
+
+    /* Featured Media Box */
+    .art-featured-media {
+      margin-bottom: 48px;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.08);
+      background: #141414;
+      aspect-ratio: 16/9;
+      position: relative;
+    }
+    .art-featured-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .art-media-caption {
+      margin-top: 12px;
+      font-family: 'Syne', sans-serif;
+      font-size: 12px;
+      color: rgba(245,240,235,.4);
+      letter-spacing: .06em;
+      padding-left: 4px;
+    }
+
+    /* Article Content Prose */
+    .art-prose {
+      font-size: 17.5px;
+      line-height: 1.9;
+      color: rgba(245,240,235,.75);
+      font-weight: 300;
+      padding: 48px;
+      border-radius: 20px;
+      background: rgba(255,255,255,.025);
+      border: 1px solid rgba(255,255,255,.07);
+    }
+    .art-prose::first-letter {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 78px;
+      line-height: .8;
+      float: left;
+      margin-right: 14px;
+      margin-top: 6px;
+      color: #FF5C00;
+    }
+    .art-prose p {
+      margin-bottom: 24px;
+    }
+    .art-prose p:last-child {
+      margin-bottom: 0;
+    }
+    .art-prose h2, .art-prose h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: #F5F0EB;
+      margin: 40px 0 16px;
+      letter-spacing: .01em;
+    }
+    .art-prose h2::before {
+      content: '■ ';
+      color: #FF5C00;
+      font-size: 14px;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    .art-prose ul, .art-prose ol {
+      margin: 20px 0 28px 24px;
+    }
+    .art-prose li {
+      margin-bottom: 10px;
+    }
+    .art-prose strong {
+      color: #F5F0EB;
+      font-weight: 600;
+    }
+    .art-prose blockquote {
+      margin: 32px 0;
+      padding: 24px 32px;
+      border-left: 3px solid #FF5C00;
+      background: rgba(255,92,0,.05);
+      border-radius: 0 12px 12px 0;
+      font-style: italic;
+      color: rgba(245,240,235,.85);
+    }
+
+    /* Social Share Bar */
+    .art-share-bar {
+      margin-top: 48px;
+      padding: 24px 32px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.025);
+      border: 1px solid rgba(255,255,255,.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .art-share-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: rgba(245,240,235,.5);
+    }
+    .art-share-links {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .art-share-btn {
+      padding: 8px 18px;
+      border-radius: 50px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.12);
+      color: rgba(245,240,235,.75);
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all .2s;
+    }
+    .art-share-btn:hover {
+      background: rgba(255,92,0,.15);
+      border-color: rgba(255,92,0,.4);
+      color: #FF5C00;
+    }
+
+    /* Article CTA */
+    .art-cta-card {
+      margin-top: 64px;
+      padding: 48px 44px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, rgba(255,92,0,.1) 0%, rgba(255,92,0,.02) 100%);
+      border: 1px solid rgba(255,92,0,.25);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .art-cta-card::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 500px;
+      height: 250px;
+      background: radial-gradient(circle, rgba(255,92,0,.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .art-cta-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(32px, 4.5vw, 54px);
+      line-height: 1;
+      margin-bottom: 14px;
+      color: #F5F0EB;
+    }
+    .art-cta-title span {
+      color: #FF5C00;
+    }
+    .art-cta-p {
+      font-size: 15.5px;
+      color: rgba(245,240,235,.6);
+      font-weight: 300;
+      max-width: 520px;
+      margin: 0 auto 30px;
+      line-height: 1.8;
+    }
+
+    /* Footer */
+    .art-footer {
+      border-top: 1px solid rgba(255,255,255,.06);
+      padding: 32px 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+    .art-footer-copy {
+      font-size: 13.5px;
+      color: rgba(245,240,235,.4);
+    }
+    .art-footer-copy em {
+      color: #FF5C00;
+      font-style: normal;
+    }
+    .art-back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Syne', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: #FF5C00;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: gap .2s;
+    }
+    .art-back-link:hover {
+      gap: 14px;
+    }
+
+    @media (max-width: 768px) {
+      .art-hero { padding: 64px 20px 48px; }
+      .art-container { padding: 40px 20px 80px; }
+      .art-prose { padding: 28px 20px; font-size: 16px; }
+      .art-nav, .art-footer { padding-left: 20px; padding-right: 20px; }
+      .art-cta-card { padding: 36px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Custom Cursor & Mouse Glow -->
+  <div id="cursor"></div>
+  <div id="cursor-follower"></div>
+  <canvas id="cursor-trail"></canvas>
+  <div id="mouse-glow"></div>
+
+  <!-- TOP NAV -->
+  <nav class="art-nav">
+    <a href="/" class="art-brand" title="The Sonic Media — Home">
+      <img src="https://res.cloudinary.com/dq2nrpky0/image/upload/v1779787887/favicon_oalxfi.png"
+        alt="The Sonic Media Logo" style="width:36px;height:36px;object-fit:contain;flex-shrink:0;" />
+      <div class="nav-brand">
+        THE SONIC MEDIA
+      </div>
+    </a>
+    <div class="art-nav-actions">
+      <a href="/journal" class="art-nav-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        All Articles
+      </a>
+      <a href="/contact" class="btn-p" style="padding:9px 22px;font-size:12px;">Start Project →</a>
+    </div>
+  </nav>
+
+  <!-- ARTICLE HERO -->
+  <div class="art-hero">
+    <div class="art-hero-inner">
+      <div class="art-eyebrow" id="articleCategory">JOURNAL • DIGITAL MARKETING</div>
+      <h1 class="art-h1" id="articleTitle">Loading Article...</h1>
+      <p class="art-subtitle" id="articleSubtitle"></p>
+      <div class="art-meta-bar" id="articleMetaBar">
+        <span class="art-meta-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF5C00" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span id="articleReadTime">5 min read</span>
+        </span>
+        <span class="art-meta-item">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF5C00" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span id="articleDate">May 2026</span>
+        </span>
+        <span class="art-meta-item">
+          By <strong>The Sonic Media</strong>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARTICLE BODY -->
+  <article class="art-container">
+
+    <!-- Featured Image -->
+    <div class="art-featured-media" id="artMediaWrap">
+      <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&q=80" alt="Article Cover" class="art-featured-img" id="articleCoverImg" loading="lazy">
+    </div>
+    <div class="art-media-caption" id="articleCaption"></div>
+
+    <!-- Prose Content -->
+    <div class="art-prose" id="articleProse">
+      <p>Loading full article content...</p>
+    </div>
+
+    <!-- Share Bar -->
+    <div class="art-share-bar">
+      <div class="art-share-label">Share This Article</div>
+      <div class="art-share-links">
+        <a href="#" id="shareWhatsApp" target="_blank" class="art-share-btn">WhatsApp</a>
+        <a href="#" id="shareLinkedIn" target="_blank" class="art-share-btn">LinkedIn</a>
+        <a href="#" id="shareTwitter" target="_blank" class="art-share-btn">X / Twitter</a>
+        <button type="button" class="art-share-btn" onclick="navigator.clipboard.writeText(window.location.href); this.textContent='✓ Copied!'; setTimeout(()=>this.textContent='Copy Link', 2000);">Copy Link</button>
+      </div>
+    </div>
+
+    <!-- Bottom CTA Card -->
+    <div class="art-cta-card">
+      <h3 class="art-cta-title">Ready To Scale Your Brand With <span>The Sonic Media?</span></h3>
+      <p class="art-cta-p">We help ambitious founders and marketing leaders dominate search, social media, and digital channels with data-backed execution.</p>
+      <a href="/contact" class="btn-p" style="padding:15px 36px;font-size:13px;box-shadow:0 0 28px rgba(255,92,0,.4);">
+        Book a Free Strategy Consultation →
+      </a>
+    </div>
+
+  </article>
+
+  <!-- FOOTER -->
+  <footer class="art-footer">
+    <div class="art-footer-copy">© 2026 <em>The Sonic Media</em>. All rights reserved.</div>
+    <a href="/journal" class="art-back-link">← Back to Journal</a>
+  </footer>
+
+  <!-- DATA & SUPABASE HYDRATION -->
+  <script src="assets/js/supabase-rest.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    function getArticleId() {
+      const urlParams = new URLSearchParams(window.location.search);
+      let id = urlParams.get('id') || urlParams.get('article') || urlParams.get('slug');
+      if (!id) {
+        const parts = window.location.pathname.split('/').filter(Boolean);
+        if (parts.length > 1 && (parts[0] === 'article' || parts[0] === 'journal')) {
+          id = parts[1];
+        }
+      }
+      if (!id) {
+        try {
+          id = sessionStorage.getItem('current_article_id') || localStorage.getItem('current_article_id');
+        } catch (_) {}
+      }
+      return id || 'blog-google-ai-seo';
+    }
+
+    const currentArticleId = getArticleId();
+
+    function renderArticle(data) {
+      if (!data) return;
+
+      const title = data.title || 'Untitled Article';
+      const cat = data.cat || data.category || 'Journal';
+      const subtitle = data.subtitle || data.excerpt || '';
+      const date = data.date || 'May 2026';
+      const readTime = data.read_time || data.readTime || '5 min read';
+      const img = data.thumb_url || data.img || (data.images && data.images[0]?.url) || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&q=80';
+      const caption = data.imgCap || (data.images && data.images[0]?.caption) || subtitle || title;
+      const rawBody = data.body || (data.content ? (data.content.includes('<p>') ? data.content : `<p>${data.content.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>')}</p>`) : `<p>${subtitle}</p>`);
+      const bodyHtml = typeof sbSanitize === 'function' ? sbSanitize(rawBody) : (typeof DOMPurify !== 'undefined' ? DOMPurify.sanitize(rawBody) : rawBody);
+
+      // Page Title & Meta
+      document.title = `${title} — The Sonic Media Journal`;
+      const descEl = document.getElementById('pageDesc');
+      if (descEl) descEl.content = subtitle || title;
+      const ogTitle = document.getElementById('ogTitle');
+      if (ogTitle) ogTitle.content = title;
+      const ogDesc = document.getElementById('ogDesc');
+      if (ogDesc) ogDesc.content = subtitle || title;
+      const ogImage = document.getElementById('ogImage');
+      if (ogImage) ogImage.content = img;
+
+      // Hero Elements
+      const catEl = document.getElementById('articleCategory');
+      if (catEl) {
+        catEl.textContent = `Journal • ${cat}`;
+        catEl.setAttribute('data-cms-editable', 'true');
+        catEl.setAttribute('data-cms-type', 'journal-item');
+        catEl.setAttribute('data-cms-id', currentArticleId);
+        catEl.setAttribute('data-cms-label', '✏️ Edit Article Category');
+      }
+
+      const titleEl = document.getElementById('articleTitle');
+      if (titleEl) {
+        titleEl.textContent = title;
+        titleEl.setAttribute('data-cms-editable', 'true');
+        titleEl.setAttribute('data-cms-type', 'journal-item');
+        titleEl.setAttribute('data-cms-id', currentArticleId);
+        titleEl.setAttribute('data-cms-label', '✏️ Edit Article Title');
+      }
+
+      const subEl = document.getElementById('articleSubtitle');
+      if (subEl) {
+        subEl.textContent = subtitle;
+        subEl.setAttribute('data-cms-editable', 'true');
+        subEl.setAttribute('data-cms-type', 'journal-item');
+        subEl.setAttribute('data-cms-id', currentArticleId);
+        subEl.setAttribute('data-cms-label', '✏️ Edit Article Subtitle');
+      }
+
+      const readTimeEl = document.getElementById('articleReadTime');
+      if (readTimeEl) readTimeEl.textContent = readTime;
+
+      const dateEl = document.getElementById('articleDate');
+      if (dateEl) dateEl.textContent = date;
+
+      // Cover Image
+      const imgEl = document.getElementById('articleCoverImg');
+      if (imgEl) {
+        imgEl.src = img;
+        imgEl.alt = title;
+        imgEl.setAttribute('data-cms-editable', 'true');
+        imgEl.setAttribute('data-cms-type', 'journal-item');
+        imgEl.setAttribute('data-cms-id', currentArticleId);
+        imgEl.setAttribute('data-cms-label', '🖼️ Change Article Cover');
+      }
+
+      const capEl = document.getElementById('articleCaption');
+      if (capEl) capEl.textContent = caption;
+
+      // Prose Body
+      const proseEl = document.getElementById('articleProse');
+      if (proseEl) {
+        proseEl.innerHTML = bodyHtml;
+        proseEl.setAttribute('data-cms-editable', 'true');
+        proseEl.setAttribute('data-cms-type', 'journal-item');
+        proseEl.setAttribute('data-cms-id', currentArticleId);
+        proseEl.setAttribute('data-cms-label', '✏️ Edit Article Body');
+      }
+
+      // Share URLs
+      const currentUrl = encodeURIComponent(window.location.href);
+      const encodedTitle = encodeURIComponent(title);
+      const waBtn = document.getElementById('shareWhatsApp');
+      if (waBtn) waBtn.href = `https://api.whatsapp.com/send?text=${encodedTitle}%20${currentUrl}`;
+      const liBtn = document.getElementById('shareLinkedIn');
+      if (liBtn) liBtn.href = `https://www.linkedin.com/sharing/share-offsite/?url=${currentUrl}`;
+      const twBtn = document.getElementById('shareTwitter');
+      if (twBtn) twBtn.href = `https://twitter.com/intent/tweet?text=${encodedTitle}&url=${currentUrl}`;
+    }
+
+    function renderArticleError(isNotFound) {
+      const titleEl = document.getElementById('articleTitle');
+      const subEl = document.getElementById('articleSubtitle');
+      const proseEl = document.getElementById('articleProse');
+      if (titleEl) {
+        titleEl.textContent = isNotFound ? 'Article Not Found' : 'Unable to Load Article';
+      }
+      if (subEl) {
+        subEl.textContent = isNotFound ? "The requested article could not be located in our publication index." : "A network timeout occurred while fetching the article.";
+      }
+      if (proseEl) {
+        proseEl.innerHTML = isNotFound
+          ? '<p>Please check the link or browse our latest published insights.</p><div style="margin-top:24px;"><a href="/journal" class="btn-p" style="padding:10px 24px;font-size:12px;display:inline-block;">← All Journal Articles</a></div>'
+          : '<p>We couldn\'t load this article right now. Please check your connection.</p><div style="margin-top:24px;display:flex;gap:12px;align-items:center;"><button onclick="initArticle()" class="btn-p" style="padding:10px 24px;font-size:12px;cursor:pointer;">Retry Loading ↻</button><a href="/journal" class="art-back-link">Browse Journal</a></div>';
+      }
+    }
+
+    async function initArticle() {
+      let hasRendered = false;
+
+      // Step A: Local cache & instant fallback
+      try {
+        const cachedRaw = localStorage.getItem('tsm_supabase_cache');
+        if (cachedRaw) {
+          const cached = JSON.parse(cachedRaw);
+          if (cached.journal && Array.isArray(cached.journal)) {
+            const row = cached.journal.find(p => (p.id || '').toLowerCase() === currentArticleId.toLowerCase());
+            if (row) {
+              hasRendered = true;
+              renderArticle(Object.assign({}, row, row.details || {}));
+            }
+          }
+        }
+      } catch (_) {}
+
+      if (!hasRendered) {
+        if (typeof blogArticles !== 'undefined' && blogArticles[currentArticleId]) {
+          hasRendered = true;
+          renderArticle(blogArticles[currentArticleId]);
+        } else if (typeof caseStudies !== 'undefined' && caseStudies[currentArticleId]) {
+          hasRendered = true;
+          renderArticle(caseStudies[currentArticleId]);
+        } else if (typeof PAGE_DATA !== 'undefined' && PAGE_DATA.journal?.posts) {
+          const found = PAGE_DATA.journal.posts.find(p => (p.id || '').toLowerCase() === currentArticleId.toLowerCase());
+          if (found) {
+            hasRendered = true;
+            renderArticle(found);
+          }
+        }
+      }
+
+      // Step B: Live fetch from Supabase journal_posts
+      try {
+        const cleanId = encodeURIComponent(currentArticleId.toLowerCase());
+        const rows = typeof sbGet === 'function'
+          ? await sbGet(`journal_posts?id=eq.${cleanId}&select=*&limit=1`, { timeout: 8000, retries: 1 })
+          : await (async () => {
+              const h = { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON };
+              const r = await fetch(`${SUPABASE_URL}/rest/v1/journal_posts?id=eq.${cleanId}&select=*&limit=1`, { headers: h });
+              return r.ok ? await r.json() : null;
+            })();
+
+        if (rows && rows.length > 0) {
+          hasRendered = true;
+          const row = rows[0];
+          const merged = Object.assign({}, row, row.details || {});
+          renderArticle(merged);
+          return;
+        }
+
+        // If not in journal_posts, check case_studies table as friendly fallback
+        const cRows = typeof sbGet === 'function'
+          ? await sbGet(`case_studies?id=eq.${cleanId}&select=*&limit=1`, { timeout: 8000, retries: 1 })
+          : null;
+        if (cRows && cRows.length > 0) {
+          hasRendered = true;
+          const cRow = cRows[0];
+          const cMerged = Object.assign({}, cRow, cRow.details || {});
+          renderArticle(cMerged);
+          return;
+        }
+
+        if (!hasRendered) {
+          renderArticleError(true);
+        }
+      } catch (err) {
+        console.debug('Article Supabase fetch error, using local data:', err);
+        if (!hasRendered) {
+          renderArticleError(false);
+        }
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initArticle);
+    } else {
+      initArticle();
+    }
+  </script>
+</body>
+</html>

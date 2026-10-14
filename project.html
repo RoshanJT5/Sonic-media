@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="pageTitle">Project Details — The Sonic Media</title>
+  <meta name="description" id="pageDesc" content="Portfolio project by The Sonic Media, a premium digital marketing agency in India.">
+  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dq2nrpky0/image/upload/v1779787887/favicon_oalxfi.png">
+  <link rel="apple-touch-icon" href="https://res.cloudinary.com/dq2nrpky0/image/upload/v1779787887/favicon_oalxfi.png">
+
+  <!-- OpenGraph / Twitter -->
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="The Sonic Media">
+  <meta property="og:title" id="ogTitle" content="Project Details — The Sonic Media">
+  <meta property="og:description" id="ogDesc" content="A portfolio project crafted by The Sonic Media.">
+  <meta property="og:image" id="ogImage" content="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1200&q=80">
+  <meta property="og:locale" content="en_IN">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@thesonicmedia">
+  <meta name="robots" content="index, follow">
+
+  <link rel="preconnect" href="https://plytoawhcvzdjtrgtnrn.supabase.co" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a" crossorigin="anonymous"></script>
+
+  <style>
+    :root {
+      --orange: #FF5C00;
+      --orange-dim: rgba(255,92,0,0.12);
+      --orange-glow: 0 0 40px rgba(255,92,0,0.45);
+      --black: #080808;
+      --white: #F5F0EB;
+    }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; cursor: none !important; }
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #080808;
+      color: #F5F0EB;
+      line-height: 1.75;
+      min-height: 100vh;
+      overflow-x: hidden;
+      cursor: none;
+    }
+    /* Touch / Mobile: restore default cursor */
+    @media (hover: none) and (pointer: coarse) {
+      *, *::before, *::after { cursor: auto !important; }
+      body { cursor: auto !important; }
+      #cursor, #cursor-follower, #cursor-trail, #mouse-glow { display: none !important; }
+    }
+    /* Custom Cursor */
+    #cursor {
+      position: fixed;
+      width: 12px; height: 12px;
+      background: #FF5C00;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999999;
+      transform: translate3d(-50%, -50%, 0);
+      transition: transform 0.08s, width 0.2s, height 0.2s, background 0.2s;
+      mix-blend-mode: normal;
+      will-change: transform;
+    }
+    #cursor-follower {
+      position: fixed;
+      width: 40px; height: 40px;
+      border: 1.5px solid rgba(255,92,0,0.6);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999998;
+      transform: translate3d(-50%, -50%, 0);
+      transition: all 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+      will-change: transform;
+    }
+    #cursor-trail { position: fixed; pointer-events: none; z-index: 9999997; top: 0; left: 0; width: 100%; height: 100%; }
+    body:hover #cursor { opacity: 1; }
+    .cursor-hover #cursor { width: 48px; height: 48px; background: transparent; border: 2px solid #FF5C00; mix-blend-mode: normal; }
+    .cursor-hover #cursor-follower { width: 10px; height: 10px; background: #FF5C00; border-color: transparent; }
+    #mouse-glow {
+      position: fixed;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(255,92,0,0.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+      transform: translate3d(-50%, -50%, 0);
+      will-change: transform;
+    }
+    @keyframes blink { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(255,255,255,.4)} 50%{opacity:.6;box-shadow:0 0 0 6px rgba(255,255,255,0)} }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:translateY(0)} }
+
+    /* Top Sticky Bar */
+    .wd-nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(8,8,8,.94);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      padding: 0 48px;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .wd-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+      line-height: 1.2;
+    }
+    .wd-brand .nav-brand {
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      line-height: 1.2;
+      color: #F5F0EB;
+    }
+    .wd-nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .wd-nav-btn {
+      padding: 9px 24px;
+      border-radius: 50px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.12);
+      color: rgba(245,240,235,.8);
+      font-family: 'Syne', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all .25s ease;
+      cursor: pointer;
+    }
+    .wd-nav-btn:hover {
+      background: rgba(255,92,0,.15);
+      border-color: rgba(255,92,0,.4);
+      color: #FF5C00;
+      transform: translateY(-1px);
+    }
+
+    /* Hero Section */
+    .wd-hero {
+      padding: 100px 56px 80px;
+      background: #0d0d0d;
+      position: relative;
+      overflow: hidden;
+      border-bottom: 1px solid rgba(255,92,0,.15);
+    }
+    .wd-hero::before {
+      content: '';
+      position: absolute;
+      top: -120px;
+      right: -100px;
+      width: 750px;
+      height: 750px;
+      background: radial-gradient(circle, rgba(255,92,0,.1) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .wd-hero::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,92,0,.28), transparent);
+    }
+    .wd-hero-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .wd-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .28em;
+      text-transform: uppercase;
+      color: #FF5C00;
+      margin-bottom: 24px;
+      animation: fadeUp .6s .1s both;
+    }
+    .wd-eyebrow::before {
+      content: '';
+      width: 26px;
+      height: 2px;
+      background: #FF5C00;
+      display: inline-block;
+    }
+    .wd-h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(52px, 8vw, 110px);
+      line-height: .92;
+      letter-spacing: .02em;
+      margin-bottom: 22px;
+      animation: fadeUp .7s .2s both;
+      color: #F5F0EB;
+    }
+    .wd-h1 em {
+      color: #FF5C00;
+      font-style: normal;
+      display: block;
+    }
+    .wd-sub {
+      font-size: 18px;
+      color: rgba(245,240,235,.6);
+      font-weight: 300;
+      max-width: 620px;
+      margin-bottom: 36px;
+      line-height: 1.8;
+      animation: fadeUp .7s .3s both;
+    }
+    .wd-tags-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 48px;
+      animation: fadeUp .7s .4s both;
+    }
+    .wd-tag-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 18px;
+      border: 1px solid rgba(255,92,0,.35);
+      border-radius: 50px;
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #FF5C00;
+      background: rgba(255,92,0,.06);
+    }
+
+    /* Meta Strip */
+    .wd-meta-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      padding-top: 36px;
+      border-top: 1px solid rgba(255,255,255,.07);
+      animation: fadeUp .7s .5s both;
+    }
+    .wd-meta-card {
+      padding: 22px 24px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.025);
+      border: 1px solid rgba(255,255,255,.08);
+      transition: border-color .3s, transform .3s;
+    }
+    .wd-meta-card:hover {
+      border-color: rgba(255,92,0,.35);
+      transform: translateY(-2px);
+    }
+    .wd-meta-icon {
+      font-size: 20px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      color: #FF5C00;
+    }
+    .wd-meta-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: rgba(245,240,235,.4);
+      margin-bottom: 6px;
+    }
+    .wd-meta-val {
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: #F5F0EB;
+    }
+
+    /* Main Body */
+    .wd-body {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 88px 56px 120px;
+    }
+    .wd-two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      margin-bottom: 28px;
+    }
+    .wd-card {
+      padding: 40px 42px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.025);
+      border: 1px solid rgba(255,255,255,.08);
+      position: relative;
+      overflow: hidden;
+      transition: border-color .3s;
+    }
+    .wd-card:hover {
+      border-color: rgba(255,92,0,.3);
+    }
+    .wd-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #FF5C00, transparent);
+    }
+    .wd-card-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      background: rgba(255,92,0,.12);
+      border: 1px solid rgba(255,92,0,.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 22px;
+      color: #FF5C00;
+    }
+    .wd-card-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .25em;
+      text-transform: uppercase;
+      color: #FF5C00;
+      margin-bottom: 16px;
+    }
+    .wd-card-body {
+      font-size: 15.5px;
+      color: rgba(245,240,235,.75);
+      font-weight: 300;
+      line-height: 1.88;
+    }
+
+    .wd-full-card {
+      margin-bottom: 28px;
+      padding: 40px 42px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.025);
+      border: 1px solid rgba(255,255,255,.08);
+      position: relative;
+      overflow: hidden;
+      transition: border-color .3s;
+    }
+    .wd-full-card:hover {
+      border-color: rgba(255,92,0,.3);
+    }
+    .wd-full-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #FF5C00, transparent);
+    }
+
+    .wd-deliverables-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .wd-deliverable-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 16px 22px;
+      border-radius: 12px;
+      background: rgba(255,92,0,.04);
+      border: 1px solid rgba(255,92,0,.12);
+      transition: transform .2s, border-color .2s;
+    }
+    .wd-deliverable-item:hover {
+      transform: translateX(4px);
+      border-color: rgba(255,92,0,.3);
+    }
+    .wd-deliverable-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #FF5C00;
+      flex-shrink: 0;
+      margin-top: 8px;
+      box-shadow: 0 0 10px rgba(255,92,0,.6);
+    }
+    .wd-deliverable-text {
+      font-family: 'Syne', sans-serif;
+      font-size: 14.5px;
+      font-weight: 600;
+      color: #F5F0EB;
+      line-height: 1.6;
+    }
+
+    /* Tech pills */
+    .wd-tech-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .wd-tech-pill {
+      padding: 10px 22px;
+      border-radius: 8px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.1);
+      font-family: 'Syne', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(245,240,235,.75);
+      letter-spacing: .06em;
+      transition: all .2s;
+    }
+    .wd-tech-pill:hover {
+      border-color: rgba(255,92,0,.4);
+      color: #FF5C00;
+      background: rgba(255,92,0,.08);
+    }
+
+    /* Section Label */
+    .wd-section-heading {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .3em;
+      text-transform: uppercase;
+      color: #FF5C00;
+      margin: 48px 0 28px;
+    }
+    .wd-section-heading::before {
+      content: '';
+      width: 30px;
+      height: 2px;
+      background: #FF5C00;
+      display: inline-block;
+    }
+
+    /* Gallery Grid */
+    .wd-gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 32px;
+      margin-top: 10px;
+    }
+    .wd-gallery-card {
+      border-radius: 18px;
+      overflow: hidden;
+      background: rgba(255,255,255,.025);
+      border: 1px solid rgba(255,255,255,.08);
+      transition: transform .35s ease, border-color .35s ease;
+      display: flex;
+      flex-direction: column;
+    }
+    .wd-gallery-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255,92,0,.4);
+    }
+    .wd-gallery-img-box {
+      aspect-ratio: 16/10;
+      background: #141414;
+      position: relative;
+      overflow: hidden;
+    }
+    .wd-gallery-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform .6s cubic-bezier(.25,1,.5,1);
+    }
+    .wd-gallery-card:hover .wd-gallery-img {
+      transform: scale(1.05);
+    }
+    .wd-gallery-num {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      background: rgba(8,8,8,.75);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 6px;
+      padding: 5px 12px;
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      color: #FF5C00;
+    }
+    .wd-gallery-info {
+      padding: 24px 26px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .wd-gallery-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 17px;
+      font-weight: 800;
+      color: #F5F0EB;
+      margin-bottom: 8px;
+    }
+    .wd-gallery-desc {
+      font-size: 14px;
+      color: rgba(245,240,235,.55);
+      font-weight: 300;
+      line-height: 1.75;
+    }
+
+    /* Long-form Case Study / Blog Article Styling */
+    .wd-article-body {
+      color: rgba(245,240,235,.82);
+      font-size: 16px;
+      line-height: 1.85;
+      font-weight: 300;
+    }
+    .wd-article-body h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(22px, 3vw, 28px);
+      font-weight: 700;
+      color: #F5F0EB;
+      margin: 32px 0 16px;
+      letter-spacing: -0.01em;
+    }
+    .wd-article-body h2:first-child {
+      margin-top: 0;
+    }
+    .wd-article-body h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(18px, 2.4vw, 22px);
+      font-weight: 600;
+      color: #FF5C00;
+      margin: 24px 0 12px;
+    }
+    .wd-article-body p {
+      margin-bottom: 20px;
+    }
+    .wd-article-body strong {
+      color: #F5F0EB;
+      font-weight: 600;
+    }
+    .wd-article-body blockquote {
+      border-left: 3px solid #FF5C00;
+      padding: 16px 24px;
+      margin: 28px 0;
+      background: rgba(255,92,0,.04);
+      border-radius: 0 12px 12px 0;
+      font-style: italic;
+      color: #F5F0EB;
+      font-size: 16.5px;
+    }
+    .wd-article-body ul, .wd-article-body ol {
+      padding-left: 28px;
+      margin: 18px 0 24px;
+    }
+    .wd-article-body li {
+      margin-bottom: 10px;
+      line-height: 1.7;
+    }
+
+    /* CTA Band */
+    .wd-cta-band {
+      background: #0d0d0d;
+      border-top: 1px solid rgba(255,92,0,.15);
+      border-bottom: 1px solid rgba(255,92,0,.15);
+      padding: 84px 32px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .wd-cta-band::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 800px;
+      height: 350px;
+      background: radial-gradient(ellipse, rgba(255,92,0,.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .wd-cta-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .3em;
+      text-transform: uppercase;
+      color: #FF5C00;
+      margin-bottom: 18px;
+    }
+    .wd-cta-eyebrow::before {
+      content: '';
+      width: 22px;
+      height: 1.5px;
+      background: #FF5C00;
+      display: inline-block;
+    }
+    .wd-cta-h {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(42px, 6vw, 84px);
+      line-height: .95;
+      color: #F5F0EB;
+      margin-bottom: 18px;
+    }
+    .wd-cta-h em {
+      color: #FF5C00;
+      font-style: normal;
+    }
+    .wd-cta-p {
+      font-size: 16px;
+      color: rgba(245,240,235,.55);
+      font-weight: 300;
+      max-width: 500px;
+      margin: 0 auto 38px;
+      line-height: 1.8;
+    }
+    .wd-cta-btns {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* Footer */
+    .wd-footer {
+      border-top: 1px solid rgba(255,255,255,.06);
+      padding: 32px 56px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+    .wd-footer-copy {
+      font-size: 13.5px;
+      color: rgba(245,240,235,.4);
+    }
+    .wd-footer-copy em {
+      color: #FF5C00;
+      font-style: normal;
+    }
+    .wd-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Syne', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: #FF5C00;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: gap .2s;
+    }
+    .wd-back:hover {
+      gap: 14px;
+    }
+
+    @media (max-width: 900px) {
+      .wd-two-col { grid-template-columns: 1fr; }
+      .wd-gallery-grid { grid-template-columns: 1fr; }
+      .wd-hero { padding: 72px 24px 60px; }
+      .wd-body { padding: 56px 24px 80px; }
+      .wd-nav, .wd-footer { padding-left: 20px; padding-right: 20px; }
+      .wd-card, .wd-full-card { padding: 28px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Custom Cursor & Mouse Glow -->
+  <div id="cursor"></div>
+  <div id="cursor-follower"></div>
+  <canvas id="cursor-trail"></canvas>
+  <div id="mouse-glow"></div>
+
+  <!-- NAVIGATION -->
+  <nav class="wd-nav">
+    <a href="/" class="wd-brand" title="The Sonic Media — Home">
+      <img src="https://res.cloudinary.com/dq2nrpky0/image/upload/v1779787887/favicon_oalxfi.png"
+        alt="The Sonic Media Logo" style="width:36px;height:36px;object-fit:contain;flex-shrink:0;" />
+      <div class="nav-brand">
+        THE SONIC MEDIA
+      </div>
+    </a>
+    <div class="wd-nav-actions">
+      <a href="/portfolio" class="wd-nav-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        All Projects
+      </a>
+      <a href="/contact" class="btn-p" style="padding:9px 22px;font-size:12px;">Start Project →</a>
+    </div>
+  </nav>
+
+  <!-- HERO SECTION -->
+  <div class="wd-hero">
+    <div class="wd-hero-inner">
+      <div class="wd-eyebrow" id="projectCategory">PORTFOLIO · CLIENT SHOWCASE</div>
+      <h1 class="wd-h1" id="projectTitle">THE SONIC<br><em>MEDIA</em></h1>
+      <p class="wd-sub" id="projectSubtitle">Strategy · Creative Direction · Digital Execution</p>
+      
+      <div class="wd-tags-row" id="projectTagsRow">
+        <!-- Tags populated dynamically -->
+      </div>
+
+      <div class="wd-meta-strip" id="projectMetaStrip">
+        <!-- 5 Meta Cards populated dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN PROJECT BODY -->
+  <div class="wd-body">
+
+    <!-- About + Challenge -->
+    <div class="wd-two-col">
+      <div class="wd-card" id="cardAboutClient">
+        <div class="wd-card-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><line x1="9" y1="22" x2="9" y2="22.01"/><line x1="15" y1="22" x2="15" y2="22.01"/><line x1="9" y1="6" x2="9" y2="6.01"/><line x1="15" y1="6" x2="15" y2="6.01"/><line x1="9" y1="10" x2="9" y2="10.01"/><line x1="15" y1="10" x2="15" y2="10.01"/><line x1="9" y1="14" x2="9" y2="14.01"/><line x1="15" y1="14" x2="15" y2="14.01"/><line x1="9" y1="18" x2="9" y2="18.01"/><line x1="15" y1="18" x2="15" y2="18.01"/></svg>
+        </div>
+        <div class="wd-card-title">About The Client</div>
+        <div class="wd-card-body" id="projectAbout">
+          Loading client background...
+        </div>
+      </div>
+
+      <div class="wd-card" id="cardChallenge">
+        <div class="wd-card-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <div class="wd-card-title">The Challenge</div>
+        <div class="wd-card-body" id="projectChallenge">
+          Loading project challenge...
+        </div>
+      </div>
+    </div>
+
+    <!-- My Solution -->
+    <div class="wd-full-card" id="cardSolution">
+      <div style="display:flex;align-items:flex-start;gap:24px;">
+        <div class="wd-card-icon" style="flex-shrink:0;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-7 7c0 2.5 1.5 4.5 3 6h8c1.5-1.5 3-3.5 3-6a7 7 0 0 0-7-7z"/></svg>
+        </div>
+        <div style="flex:1;">
+          <div class="wd-card-title">The Solution</div>
+          <div class="wd-card-body" id="projectSolution">
+            Loading tailored solution and strategic execution...
+          </div>
+          <div id="projectLiveLinkWrap" style="margin-top:24px;display:none;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key Deliverables -->
+    <div class="wd-full-card" id="cardDeliverables">
+      <div class="wd-card-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+      </div>
+      <div class="wd-card-title">Key Deliverables</div>
+      <ul class="wd-deliverables-list" id="projectDeliverablesList">
+        <!-- Rendered dynamically -->
+      </ul>
+    </div>
+
+    <!-- Tech & Skills -->
+    <div class="wd-full-card" id="cardTechSkills">
+      <div class="wd-card-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      </div>
+      <div class="wd-card-title">Tech &amp; Skills</div>
+      <div class="wd-tech-row" id="projectTechSkills">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Project Gallery Section -->
+    <div class="wd-section-heading">Project Showcase &amp; Visual Deliverables</div>
+    <div class="wd-gallery-grid" id="projectGalleryGrid">
+      <!-- Gallery cards rendered dynamically -->
+    </div>
+
+    <!-- In-Depth Case Study / Blog Article Section -->
+    <div id="projectArticleWrap" style="display:none;margin-top:48px;">
+      <div class="wd-section-heading">In-Depth Case Study &amp; Story</div>
+      <div class="wd-full-card" style="padding:48px 40px;">
+        <div id="projectArticleContent" class="wd-article-body" data-cms-editable="true" data-cms-type="portfolio-item" data-cms-label="📝 Edit In-Depth Case Study Article">
+          <!-- Populated dynamically from details.articleBody -->
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CTA BAND -->
+  <div class="wd-cta-band">
+    <div class="wd-cta-eyebrow">Ready to Build Something Great?</div>
+    <div class="wd-cta-h">Work With <em>The Sonic Media</em></div>
+    <p class="wd-cta-p">Let's craft your brand's next digital chapter — strategy, design, development, and growth under one roof.</p>
+    <div class="wd-cta-btns">
+      <a href="/contact" class="btn-p" style="padding:15px 36px;font-size:13px;box-shadow:0 0 28px rgba(255,92,0,.4);">
+        Start a Project →
+      </a>
+      <span id="ctaLiveSiteSlot"></span>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="wd-footer">
+    <div class="wd-footer-copy">© 2026 <em>The Sonic Media</em>. All rights reserved.</div>
+    <a href="/portfolio" class="wd-back">← Back to Portfolio</a>
+  </div>
+
+  <!-- SUPABASE & DATA LOADER SCRIPT -->
+  <script src="assets/js/supabase-rest.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    // 0. Standalone 6-Project Offline Fallback Matrix (0ms instant render guarantee)
+    const PROJECTS_FALLBACK = {
+      luxefashion: {
+        id: 'luxefashion',
+        title: 'LedgerLink Consultation Pvt Ltd',
+        subtitle: 'Tax & Financial Advisory Website',
+        category: 'Web Design & Development',
+        type: 'Client Project',
+        status: 'Live',
+        location: 'Ahmedabad, Gujarat',
+        industry: 'Tax & Financial Advisory',
+        year: '2026',
+        liveUrl: 'https://lcpladvisory.com',
+        liveDomain: 'lcpladvisory.com',
+        metric: 'Live lcpladvisory.com',
+        about: 'LedgerLink Consultation Pvt Ltd is a premium tax and financial advisory firm offering expert GST, Income Tax, Accounting, and Compliance solutions to businesses and individuals.',
+        challenge: 'The client needed a professional, trust-building online presence to attract businesses and individuals seeking reliable tax and compliance advisory services in Ahmedabad.',
+        solution: 'Designed and developed a clean, conversion-focused website highlighting their services, expertise, and credibility — structured to generate leads and build client confidence.',
+        tags: ['Web Design', 'HTML / CSS', 'Responsive Layout', 'SEO', 'UI/UX', 'Tax Industry'],
+        deliverables: [
+          'Responsive website design (mobile & desktop)',
+          'Service pages for GST, Income Tax, Accounting & Compliance',
+          'SEO-optimised content structure',
+          'Lead generation with contact & inquiry sections',
+          'Brand-consistent UI with professional, trustworthy feel'
+        ],
+        images: [
+          { url: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=900&q=80', title: 'Professional Web Presence', desc: 'Clean, trust-building website designed to attract businesses and individuals seeking reliable tax and compliance advisory services in Ahmedabad.' },
+          { url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=900&q=80', title: 'Service Pages', desc: 'Dedicated pages for GST, Income Tax, Accounting & Compliance — each structured to clearly communicate expertise and drive enquiries.' },
+          { url: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=900&q=80', title: 'Responsive Design', desc: 'Fully responsive layout optimised for mobile and desktop — ensuring a seamless experience across all devices for potential clients.' },
+          { url: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=900&q=80', title: 'Lead Generation', desc: 'Strategic contact and inquiry sections designed to convert visitors into consultation requests and qualified leads.' },
+          { url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=900&q=80', title: 'SEO-Optimised Structure', desc: 'Content architecture built for search — keyword-rich headings, meta structure, and semantic HTML to improve local discovery in Ahmedabad.' },
+          { url: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=900&q=80', title: 'Brand-Consistent UI', desc: 'Professional, trustworthy visual identity that reflects the firm\'s credibility and positions LedgerLink as a premium advisory partner.' }
+        ]
+      },
+      techvault: {
+        id: 'techvault',
+        title: 'Titan Fitness Club',
+        subtitle: 'Gym Launch Campaign Creatives',
+        category: 'Creative Design',
+        type: 'Marketing Project',
+        status: 'Completed',
+        location: 'Vadodara, Gujarat',
+        industry: 'Fitness & Wellness',
+        year: '2026',
+        metric: 'Completed',
+        about: 'Titan Fitness Club is a local fitness studio focused on strength training and transformation programs.',
+        challenge: 'The gym required bold and energetic promotional designs for its launch campaign to attract local memberships and increase visibility.',
+        solution: 'Created a complete set of high-impact launch creatives including posters, banners, gym offer visuals, and branded marketing assets.',
+        tags: ['Creative Design', 'Poster Design', 'Typography', 'Branding', 'Fitness Industry'],
+        deliverables: [
+          'Gym posters & banners',
+          'Membership offer creatives',
+          'Outdoor flex design',
+          'Social media launch visuals',
+          'Brand-focused typography system'
+        ],
+        images: [
+          { url: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=900&q=80', title: 'Gym Posters & Banners', desc: 'Bold, energetic posters and banners designed to capture attention and communicate the power of Titan Fitness Club\'s brand.' },
+          { url: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=900&q=80', title: 'Membership Offer Creatives', desc: 'High-impact promotional visuals for membership packages — designed to drive sign-ups and communicate value instantly.' },
+          { url: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=900&q=80', title: 'Outdoor Flex Design', desc: 'Large-format outdoor flex creatives built to command visibility at street level and attract footfall to the studio.' },
+          { url: 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=900&q=80', title: 'Social Media Launch Visuals', desc: 'Eye-catching social media creatives built for the launch week campaign — consistent with the brand identity.' },
+          { url: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=900&q=80', title: 'Brand Typography System', desc: 'A brand-focused typography system developed for Titan Fitness Club — bold, impactful, and consistent across every touchpoint.' },
+          { url: 'https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=900&q=80', title: 'Launch Campaign Overview', desc: 'Complete launch campaign package — all assets aligned to one visual language that builds brand recognition from day one.' }
+        ]
+      },
+      retailmax: {
+        id: 'retailmax',
+        title: 'Nexora Infrastructure',
+        subtitle: 'Corporate Company Profile Design',
+        category: 'Presentation Design',
+        type: 'Corporate Design Project',
+        status: 'Completed',
+        location: 'Mumbai, Maharashtra',
+        industry: 'Construction & Infrastructure',
+        year: '2026',
+        metric: 'Completed',
+        about: 'Nexora Infrastructure is a construction and project management company handling residential and commercial developments.',
+        challenge: 'The company needed a professional company profile and presentation materials for investor meetings and client pitches.',
+        solution: 'Designed a modern corporate profile with clean layouts, structured service sections, and visually professional branding assets.',
+        tags: ['Presentation Design', 'Corporate Branding', 'Brochure Design', 'Layout Design', 'Print Media'],
+        deliverables: [
+          'Company profile booklet',
+          'Corporate brochure design',
+          'Presentation deck visuals',
+          'Business proposal layouts',
+          'Print-ready branding assets'
+        ],
+        images: [
+          { url: 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=900&q=80', title: 'Company Profile Booklet', desc: 'A professionally designed company profile booklet — structured to communicate Nexora\'s scale, services, and credibility at investor meetings.' },
+          { url: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=900&q=80', title: 'Corporate Brochure Design', desc: 'Clean, high-impact brochure layouts presenting Nexora\'s construction and development projects with visual clarity.' },
+          { url: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=900&q=80', title: 'Presentation Deck Visuals', desc: 'Polished presentation slides designed for client pitches and investor meetings — modern, data-friendly, and on-brand.' },
+          { url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=900&q=80', title: 'Business Proposal Layouts', desc: 'Structured proposal templates that make Nexora\'s service offerings and project capabilities easy to read and compelling to act on.' },
+          { url: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=900&q=80', title: 'Print-Ready Branding Assets', desc: 'All materials prepared as print-ready production files — exact colours, bleeds, and resolutions for professional printing.' }
+        ]
+      },
+      nexahealth: {
+        id: 'nexahealth',
+        title: 'Spice Theory Kitchen',
+        subtitle: 'Restaurant Menu & Packaging Design',
+        category: 'Branding & Advertising Solutions',
+        type: 'Branding Project',
+        status: 'Completed',
+        location: 'Ahmedabad, Gujarat',
+        industry: 'Food & Beverage',
+        year: '2026',
+        metric: 'Completed',
+        about: 'Spice Theory Kitchen is a modern food brand focused on premium Indian fusion meals and takeaway services.',
+        challenge: 'The brand needed visually appealing menus and packaging that felt premium while maintaining readability and strong brand consistency.',
+        solution: 'Designed a complete branding system including menu layouts, takeaway packaging, and promotional print materials aligned with the restaurant\'s modern identity.',
+        tags: ['Branding & Advertising Solutions', 'Packaging Design', 'Print Design', 'Typography', 'Food Industry'],
+        deliverables: [
+          'Menu card design',
+          'Food packaging design',
+          'Flyers & table-top creatives',
+          'Brand typography & color styling',
+          'Print-ready production files'
+        ],
+        images: [
+          { url: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=900&q=80', title: 'Menu Card Design', desc: 'Visually rich menu layouts designed to elevate the dining experience — premium feel with clear readability across all sections.' },
+          { url: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=900&q=80', title: 'Food Packaging Design', desc: 'Takeaway packaging crafted to be as impressive as the food inside — brand-consistent design that travels well and makes an impression.' },
+          { url: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=900&q=80', title: 'Flyers & Table-Top Creatives', desc: 'Promotional print materials and table-top creatives that bring the brand to life in-venue and attract new customers.' },
+          { url: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=900&q=80', title: 'Brand Typography & Color Styling', desc: 'A cohesive typographic and colour system developed for Spice Theory Kitchen — modern, warm, and distinctly premium.' },
+          { url: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=900&q=80', title: 'Print-Ready Production Files', desc: 'All creative assets delivered as fully print-ready files — exact specifications met for professional production and reproduction.' }
+        ]
+      },
+      houseelira: {
+        id: 'houseelira',
+        title: 'House of Elira',
+        subtitle: 'Fashion Brand Photoshoot Direction',
+        category: 'Content Production & Creative Direction',
+        type: 'Creative Production Project',
+        status: 'Completed',
+        location: 'Surat, Gujarat',
+        industry: 'Fashion & Apparel',
+        year: '2026',
+        metric: 'Completed',
+        about: 'House of Elira is a boutique fashion label focused on ethnic and Indo-western collections for women.',
+        challenge: 'The brand required premium visual content for catalogs, social media campaigns, and promotional marketing materials.',
+        solution: 'Directed the visual style of the shoot, edited campaign assets, and developed a cohesive aesthetic aligned with the brand\'s target audience.',
+        tags: ['Content Production', 'Creative Direction', 'Photo Editing', 'Campaign Styling', 'Fashion Branding'],
+        deliverables: [
+          'Campaign moodboards',
+          'Photoshoot creative direction',
+          'Edited promotional visuals',
+          'Social media campaign assets',
+          'Fashion catalog creatives'
+        ],
+        images: [
+          { url: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=900&q=80', title: 'Campaign Moodboards', desc: 'Curated moodboards that defined the visual direction of the shoot — mood, palette, styling, and composition references aligned with House of Elira\'s brand identity.' },
+          { url: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=900&q=80', title: 'Photoshoot Creative Direction', desc: 'On-set creative direction ensuring every frame, angle, and styling choice reflected the premium ethnic and Indo-western aesthetic of the brand.' },
+          { url: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=900&q=80', title: 'Edited Promotional Visuals', desc: 'Post-production editing delivering polished, campaign-ready visuals — colour graded and retouched to a premium standard for catalog and marketing use.' },
+          { url: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=900&q=80', title: 'Social Media Campaign Assets', desc: 'Platform-optimised creatives designed for Instagram, Facebook, and digital campaigns — each tailored to drive engagement and communicate the brand\'s premium positioning.' },
+          { url: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=900&q=80', title: 'Fashion Catalog Creatives', desc: 'Catalog layouts built to showcase the collection with elegance — structured for both print and digital distribution to buyers and end customers.' }
+        ]
+      },
+      ahmdstartup: {
+        id: 'ahmdstartup',
+        title: 'Ahmedabad Startup Connect',
+        subtitle: 'Event Branding & Promotional Design',
+        category: 'Event Branding & Advertising Solutions',
+        type: 'Event Branding Project',
+        status: 'Completed',
+        location: 'Ahmedabad, Gujarat',
+        industry: 'Business & Networking',
+        year: '2026',
+        metric: 'Completed',
+        about: 'Ahmedabad Startup Connect is a local networking event bringing together founders, marketers, creators, and entrepreneurs.',
+        challenge: 'The event required a consistent visual identity across both offline and online promotional materials.',
+        solution: 'Created a unified branding system including event posters, stage visuals, social media assets, and attendee creatives for a professional event experience.',
+        tags: ['Event Branding', 'Creative Design', 'Stage Visuals', 'Print Media', 'Social Campaign Assets'],
+        deliverables: [
+          'Event poster design',
+          'Stage & backdrop visuals',
+          'Social media promotional assets',
+          'Pass & badge designs',
+          'Print-ready marketing creatives'
+        ],
+        images: [
+          { url: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=900&q=80', title: 'Event Poster Design', desc: 'High-impact event posters designed to generate buzz, communicate the event\'s value proposition, and drive registrations across both print and digital channels.' },
+          { url: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=900&q=80', title: 'Stage & Backdrop Visuals', desc: 'Large-format stage backdrops and environment visuals that created a professional, branded atmosphere for the event venue from every angle.' },
+          { url: 'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=900&q=80', title: 'Social Media Promotional Assets', desc: 'A cohesive set of social creatives for pre-event, during-event, and post-event coverage — designed to build anticipation and amplify reach across platforms.' },
+          { url: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=900&q=80', title: 'Pass & Badge Designs', desc: 'Professionally designed attendee passes and badges that reinforced the event\'s visual identity and gave participants a premium, memorable keepsake.' },
+          { url: 'https://images.unsplash.com/photo-1499914485622-a88fac536970?w=900&q=80', title: 'Print-Ready Marketing Creatives', desc: 'All promotional materials delivered as print-ready production files — ensuring accurate colour reproduction and professional output for every touchpoint.' }
+        ]
+      }
+    };
+
+    // 1. Determine active project ID from query (?id=luxefashion), path (/project/luxefashion), or storage
+    function getActiveProjectId() {
+      const urlParams = new URLSearchParams(window.location.search);
+      let id = urlParams.get('id') || urlParams.get('project');
+      if (!id) {
+        const parts = window.location.pathname.split('/').filter(Boolean);
+        if (parts.length > 1 && (parts[0] === 'project' || parts[0] === 'project.html')) {
+          id = parts[1];
+        }
+      }
+      if (!id) {
+        try {
+          id = sessionStorage.getItem('current_project_id') || localStorage.getItem('current_project_id');
+        } catch (_) {}
+      }
+      id = (id || 'luxefashion').toLowerCase();
+      const ALIASES = {
+        'luxefashion': 'luxefashion',
+        'ledgerlink': 'luxefashion',
+        'ledgerlink-consultation': 'luxefashion',
+        'techvault': 'techvault',
+        'titan-fitness': 'techvault',
+        'titanfitness': 'techvault',
+        'retailmax': 'retailmax',
+        'nexora': 'retailmax',
+        'nexora-infrastructure': 'retailmax',
+        'spicetheorykitchen': 'nexahealth',
+        'spice-theory-kitchen': 'nexahealth',
+        'spice-theory': 'nexahealth',
+        'nexahealth': 'nexahealth',
+        'houseelira': 'houseelira',
+        'house-of-elira': 'houseelira',
+        'ahmdstartup': 'ahmdstartup',
+        'startup-connect': 'ahmdstartup',
+        'ahmedabad-startup-connect': 'ahmdstartup'
+      };
+      return ALIASES[id] || id;
+    }
+
+    const currentProjectId = getActiveProjectId();
+
+    // 2. Hydrate Project Page from data
+    function renderProjectDetail(data) {
+      if (!data) return;
+
+      const title = data.title || data.name || 'Project';
+      const subtitle = data.subtitle || data.cat || '';
+      const category = data.category || data.cat || 'Client Project';
+
+      // Update Title & Meta
+      document.title = `${title} — Portfolio — The Sonic Media`;
+      const descEl = document.getElementById('pageDesc');
+      if (descEl) descEl.content = data.about || subtitle;
+      const ogTitle = document.getElementById('ogTitle');
+      if (ogTitle) ogTitle.content = `${title} — The Sonic Media Portfolio`;
+      const ogDesc = document.getElementById('ogDesc');
+      if (ogDesc) ogDesc.content = data.about || subtitle;
+
+      // Hero Elements
+      const catEl = document.getElementById('projectCategory');
+      if (catEl) {
+        catEl.textContent = category;
+        catEl.setAttribute('data-cms-editable', 'true');
+        catEl.setAttribute('data-cms-type', 'portfolio-item');
+        catEl.setAttribute('data-cms-id', currentProjectId);
+        catEl.setAttribute('data-cms-label', '✏️ Edit Project Schema');
+      }
+
+      const titleEl = document.getElementById('projectTitle');
+      if (titleEl) {
+        const words = title.split(' ');
+        if (words.length > 2) {
+          titleEl.innerHTML = `${words.slice(0, 2).join(' ')}<br><em>${words.slice(2).join(' ')}</em>`;
+        } else {
+          titleEl.innerHTML = `<em>${title}</em>`;
+        }
+        titleEl.setAttribute('data-cms-editable', 'true');
+        titleEl.setAttribute('data-cms-type', 'portfolio-item');
+        titleEl.setAttribute('data-cms-id', currentProjectId);
+        titleEl.setAttribute('data-cms-label', '✏️ Edit Project Title');
+      }
+
+      const subEl = document.getElementById('projectSubtitle');
+      if (subEl) {
+        subEl.textContent = subtitle;
+        subEl.setAttribute('data-cms-editable', 'true');
+        subEl.setAttribute('data-cms-type', 'portfolio-item');
+        subEl.setAttribute('data-cms-id', currentProjectId);
+        subEl.setAttribute('data-cms-label', '✏️ Edit Project Subtitle');
+      }
+
+      // Tags Row
+      const tagsRow = document.getElementById('projectTagsRow');
+      const tags = Array.isArray(data.tags) && data.tags.length > 0 ? data.tags : [category];
+      if (tagsRow) {
+        tagsRow.innerHTML = tags.map(t => `<span class="wd-tag-pill">${escapeHtml(t)}</span>`).join('');
+      }
+
+      // Meta Strip (5 Cards: Project Type, Status, Location, Industry, Year)
+      const metaStrip = document.getElementById('projectMetaStrip');
+      if (metaStrip) {
+        const metaItems = [
+          {
+            icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF5C00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`,
+            label: 'Project Type',
+            val: data.type || category
+          },
+          {
+            icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00E599" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>`,
+            label: 'Status',
+            val: data.status || 'Completed'
+          },
+          {
+            icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF5C00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`,
+            label: 'Location',
+            val: data.location || 'Ahmedabad, Gujarat'
+          },
+          {
+            icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF5C00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>`,
+            label: 'Industry',
+            val: data.industry || category
+          },
+          {
+            icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF5C00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
+            label: 'Year',
+            val: data.year || '2026'
+          }
+        ];
+
+        metaStrip.innerHTML = metaItems.map(m => `
+          <div class="wd-meta-card">
+            <div class="wd-meta-icon">${m.icon}</div>
+            <div class="wd-meta-label">${escapeHtml(m.label)}</div>
+            <div class="wd-meta-val">${escapeHtml(m.val)}</div>
+          </div>
+        `).join('');
+      }
+
+      // Narrative Cards
+      const aboutEl = document.getElementById('projectAbout');
+      if (aboutEl) {
+        aboutEl.textContent = data.about || subtitle;
+        aboutEl.setAttribute('data-cms-editable', 'true');
+        aboutEl.setAttribute('data-cms-type', 'portfolio-item');
+        aboutEl.setAttribute('data-cms-id', currentProjectId);
+        aboutEl.setAttribute('data-cms-label', '✏️ Edit About The Client');
+      }
+
+      const chalEl = document.getElementById('projectChallenge');
+      if (chalEl) {
+        chalEl.textContent = data.challenge || 'Custom brand challenge and strategic positioning goals.';
+        chalEl.setAttribute('data-cms-editable', 'true');
+        chalEl.setAttribute('data-cms-type', 'portfolio-item');
+        chalEl.setAttribute('data-cms-id', currentProjectId);
+        chalEl.setAttribute('data-cms-label', '✏️ Edit The Challenge');
+      }
+
+      const solEl = document.getElementById('projectSolution');
+      if (solEl) {
+        solEl.textContent = data.solution || 'Tailored design and strategic execution delivered by The Sonic Media.';
+        solEl.setAttribute('data-cms-editable', 'true');
+        solEl.setAttribute('data-cms-type', 'portfolio-item');
+        solEl.setAttribute('data-cms-id', currentProjectId);
+        solEl.setAttribute('data-cms-label', '✏️ Edit The Solution');
+      }
+
+      // Live Project Link
+      const liveWrap = document.getElementById('projectLiveLinkWrap');
+      const ctaLiveSlot = document.getElementById('ctaLiveSiteSlot');
+      if (data.liveUrl) {
+        const liveBtn = `
+          <a href="${data.liveUrl}" target="_blank" rel="noopener"
+            style="display:inline-flex;align-items:center;gap:10px;padding:12px 28px;border-radius:50px;background:#FF5C00;color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;box-shadow:0 0 24px rgba(255,92,0,.35);transition:all .3s;">
+            <span style="width:8px;height:8px;border-radius:50%;background:#fff;display:inline-block;animation:blink 2s infinite;"></span>
+            View Live Site — ${data.liveDomain || 'lcpladvisory.com'} ↗
+          </a>`;
+        if (liveWrap) {
+          liveWrap.innerHTML = liveBtn;
+          liveWrap.style.display = 'block';
+        }
+        if (ctaLiveSlot) {
+          ctaLiveSlot.innerHTML = `
+            <a href="${data.liveUrl}" target="_blank" rel="noopener"
+              style="display:inline-flex;align-items:center;gap:10px;padding:15px 36px;border-radius:50px;background:transparent;color:#FF5C00;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;letter-spacing:.05em;text-transform:uppercase;text-decoration:none;border:1px solid rgba(255,92,0,.4);transition:all .3s;">
+              View Live Site ↗
+            </a>`;
+        }
+      } else {
+        if (liveWrap) liveWrap.style.display = 'none';
+        if (ctaLiveSlot) ctaLiveSlot.innerHTML = '';
+      }
+
+      // Key Deliverables
+      const delivList = document.getElementById('projectDeliverablesList');
+      const deliverables = Array.isArray(data.deliverables) && data.deliverables.length > 0
+        ? data.deliverables
+        : (Array.isArray(data.images) ? data.images.map(i => i.title) : ['Complete Brand Execution', 'Creative Production']);
+      if (delivList) {
+        delivList.innerHTML = deliverables.map(d => `
+          <li class="wd-deliverable-item">
+            <span class="wd-deliverable-dot"></span>
+            <span class="wd-deliverable-text">${escapeHtml(d)}</span>
+          </li>
+        `).join('');
+      }
+
+      // Tech & Skills
+      const techWrap = document.getElementById('projectTechSkills');
+      if (techWrap) {
+        techWrap.innerHTML = tags.map(t => `<span class="wd-tech-pill">${escapeHtml(t)}</span>`).join('');
+      }
+
+      // Gallery Images & Visual Deliverables
+      const galleryGrid = document.getElementById('projectGalleryGrid');
+      const galleryImages = Array.isArray(data.images) && data.images.length > 0
+        ? data.images
+        : [{ url: data.img || 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=900&q=80', title: title, desc: subtitle }];
+      
+      if (galleryGrid) {
+        galleryGrid.innerHTML = galleryImages.map((img, idx) => `
+          <div class="wd-gallery-card" data-cms-editable="true" data-cms-type="portfolio-item" data-cms-id="${currentProjectId}" data-cms-label="🖼️ Edit Deliverable #${idx+1}">
+            <div class="wd-gallery-img-box">
+              <img src="${img.url}" alt="${escapeHtml(img.title || title)}" class="wd-gallery-img" loading="lazy">
+              <div class="wd-gallery-num">${String(idx + 1).padStart(2, '0')}</div>
+            </div>
+            <div class="wd-gallery-info">
+              <div class="wd-gallery-title">${escapeHtml(img.title || 'Deliverable Asset')}</div>
+              <div class="wd-gallery-desc">${escapeHtml(img.desc || subtitle)}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Set OpenGraph image to first image
+      const ogImg = document.getElementById('ogImage');
+      if (ogImg && galleryImages[0]?.url) {
+        ogImg.content = galleryImages[0].url;
+      }
+
+      // In-depth Case Study Article Body (Full Narrative Blog inside project)
+      const articleWrap = document.getElementById('projectArticleWrap');
+      const articleContent = document.getElementById('projectArticleContent');
+      if (articleWrap && articleContent) {
+        const bodyContent = (data.articleBody || data.body || '').trim();
+        if (bodyContent) {
+          const sanitized = typeof sbSanitize === 'function' ? sbSanitize(bodyContent) : (typeof DOMPurify !== 'undefined' ? DOMPurify.sanitize(bodyContent) : bodyContent);
+          if (/<[a-z][\s\S]*>/i.test(bodyContent)) {
+            articleContent.innerHTML = sanitized;
+          } else {
+            const formatted = bodyContent
+              .split('\n\n')
+              .map(p => p.trim())
+              .filter(Boolean)
+              .map(p => `<p>${escapeHtml(p).replace(/\n/g, '<br>')}</p>`)
+              .join('');
+            articleContent.innerHTML = typeof sbSanitize === 'function' ? sbSanitize(formatted) : (typeof DOMPurify !== 'undefined' ? DOMPurify.sanitize(formatted) : formatted);
+          }
+          articleWrap.style.display = 'block';
+          articleContent.setAttribute('data-cms-id', currentProjectId);
+        } else {
+          articleWrap.style.display = 'none';
+        }
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/[&<>"']/g, s => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[s]));
+    }
+
+    function renderProjectError(isNotFound) {
+      const titleEl = document.getElementById('projectTitle');
+      const subEl = document.getElementById('projectSubtitle');
+      const aboutEl = document.getElementById('projectAbout');
+      const chalEl = document.getElementById('projectChallenge');
+      const solEl = document.getElementById('projectSolution');
+      if (titleEl) {
+        titleEl.innerHTML = isNotFound ? 'PROJECT<br><em>NOT FOUND</em>' : 'UNABLE TO<br><em>LOAD PROJECT</em>';
+      }
+      if (subEl) {
+        subEl.textContent = isNotFound ? "The requested portfolio project could not be found." : "A network timeout occurred while fetching project data.";
+      }
+      if (aboutEl) {
+        aboutEl.innerHTML = isNotFound
+          ? '<p>Please check the URL or select an active project from our portfolio showcase.</p><div style="margin-top:16px;"><a href="/portfolio" class="btn-p" style="padding:10px 22px;font-size:12px;display:inline-block;">← All Projects</a></div>'
+          : '<p>We couldn\'t load this content right now. Please check your connection.</p><div style="margin-top:16px;display:flex;gap:12px;align-items:center;"><button onclick="initProject()" class="btn-p" style="padding:10px 22px;font-size:12px;cursor:pointer;">Retry Loading ↻</button><a href="/portfolio" class="wd-nav-btn" style="padding:10px 20px;">Browse Portfolio</a></div>';
+      }
+      if (chalEl) chalEl.textContent = '—';
+      if (solEl) solEl.textContent = '—';
+    }
+
+    // 3. Load Project: Instant 0ms Local Render + Background Supabase Stream
+    async function initProject() {
+      let initialData = null;
+      let hasRendered = false;
+
+      // Tier 1: Check localStorage tsm_supabase_cache
+      try {
+        const cachedRaw = localStorage.getItem('tsm_supabase_cache');
+        if (cachedRaw) {
+          const cached = JSON.parse(cachedRaw);
+          if (cached.portfolio && Array.isArray(cached.portfolio)) {
+            const row = cached.portfolio.find(p => (p.id || '').toLowerCase() === currentProjectId.toLowerCase());
+            if (row) {
+              let d = row.details;
+              if (typeof d === 'string') { try { d = JSON.parse(d); } catch(_) { d = {}; } }
+              initialData = Object.assign({}, row, d || {});
+            }
+          }
+        }
+      } catch (_) {}
+
+      // Tier 2: Check workDetails from assets/js/app.js
+      if (!initialData && typeof workDetails !== 'undefined' && workDetails[currentProjectId]) {
+        initialData = workDetails[currentProjectId];
+      }
+
+      // Tier 3: Check embedded PROJECTS_FALLBACK
+      if (!initialData && PROJECTS_FALLBACK[currentProjectId]) {
+        initialData = PROJECTS_FALLBACK[currentProjectId];
+      }
+
+      // Render 0ms immediately
+      if (initialData) {
+        hasRendered = true;
+        renderProjectDetail(initialData);
+      }
+
+      // Tier 4: Fetch live from Supabase portfolio_items table using exact slug eq. and timeout
+      try {
+        const cleanId = encodeURIComponent(currentProjectId.toLowerCase());
+        const rows = typeof sbGet === 'function'
+          ? await sbGet(`portfolio_items?id=eq.${cleanId}&select=*&limit=1`, { timeout: 8000, retries: 1 })
+          : await (async () => {
+              const h = { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON };
+              const r = await fetch(`${SUPABASE_URL}/rest/v1/portfolio_items?id=eq.${cleanId}&select=*&limit=1`, { headers: h });
+              return r.ok ? await r.json() : null;
+            })();
+
+        if (rows && rows.length > 0) {
+          hasRendered = true;
+          const row = rows[0];
+          let d = row.details;
+          if (typeof d === 'string') { try { d = JSON.parse(d); } catch(_) { d = {}; } }
+          const merged = Object.assign({}, row, d || {});
+          renderProjectDetail(merged);
+
+          // Update local cache
+          try {
+            const cur = JSON.parse(localStorage.getItem('tsm_supabase_cache') || '{}');
+            if (cur.portfolio && Array.isArray(cur.portfolio)) {
+              const idx = cur.portfolio.findIndex(p => (p.id || '').toLowerCase() === (row.id || '').toLowerCase());
+              if (idx >= 0) cur.portfolio[idx] = row;
+              else cur.portfolio.push(row);
+              localStorage.setItem('tsm_supabase_cache', JSON.stringify(cur));
+            }
+          } catch (_) {}
+        } else if (!hasRendered) {
+          renderProjectError(true);
+        }
+      } catch (err) {
+        console.debug('Project Supabase fetch error, using local data:', err);
+        if (!hasRendered) {
+          renderProjectError(false);
+        }
+      }
+    }
+
+    // Immediate and DOM ready execution
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initProject);
+    } else {
+      initProject();
+    }
+  </script>
+</body>
+</html>

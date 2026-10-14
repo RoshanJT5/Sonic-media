@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nivara Finance | Loans Made Simple</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  /* ============ TOKENS ============ */
+  :root{
+    --navy-deep:#0A1F3D;
+    --navy-mid:#123159;
+    --navy-light:#1E4272;
+    --cream:#F6F0E2;
+    --cream-soft:#FBF7EE;
+    --gold:#C6A15B;
+    --gold-bright:#E7CE96;
+    --ink:#1C2431;
+    --white:#FFFFFF;
+    --font-display:'Fraunces', serif;
+    --font-body:'Inter', sans-serif;
+    --font-mono:'IBM Plex Mono', monospace;
+    --ease:cubic-bezier(.22,.9,.32,1);
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:var(--font-body);
+    background:var(--cream);
+    color:var(--ink);
+    overflow-x:hidden;
+    line-height:1.5;
+  }
+  img{max-width:100%;display:block;}
+  a{color:inherit;text-decoration:none;}
+  ul{list-style:none;}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;}
+  section{position:relative;}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 32px;}
+  ::selection{background:var(--gold);color:var(--navy-deep);}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.01ms !important;animation-iteration-count:1 !important;transition-duration:0.01ms !important;}
+  }
+
+  /* focus visibility */
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{
+    outline:2px solid var(--gold);outline-offset:3px;
+  }
+
+  .eyebrow{
+    font-family:var(--font-mono);
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    font-size:.72rem;
+    font-weight:600;
+  }
+
+  h1,h2,h3{font-family:var(--font-display);font-weight:600;letter-spacing:-.01em;}
+
+  .btn{
+    display:inline-flex;align-items:center;gap:10px;
+    padding:15px 30px;
+    border-radius:3px;
+    font-weight:600;
+    font-size:.92rem;
+    letter-spacing:.02em;
+    transition:transform .35s var(--ease), box-shadow .35s var(--ease);
+    position:relative;
+  }
+  .btn-gold{
+    background:linear-gradient(135deg,var(--gold-bright),var(--gold));
+    color:var(--navy-deep);
+    overflow:hidden;
+  }
+  .btn-gold::before{
+    content:"";
+    position:absolute;inset:0;
+    background:linear-gradient(120deg,transparent 20%, rgba(255,255,255,.55) 50%, transparent 80%);
+    transform:translateX(-120%);
+    transition:transform .7s var(--ease);
+  }
+  .btn-gold:hover::before{transform:translateX(120%);}
+  .btn-gold:hover{transform:translateY(-3px);box-shadow:0 14px 30px -10px rgba(198,161,91,.55);}
+  .btn-ghost{
+    color:var(--cream);
+    border:1px solid rgba(246,240,226,.4);
+  }
+  .btn-ghost:hover{border-color:var(--gold-bright);color:var(--gold-bright);transform:translateY(-3px);}
+
+  /* ============ REVEAL ============ */
+  .reveal{opacity:0;transform:translateY(28px);transition:opacity .8s var(--ease), transform .8s var(--ease);}
+  .reveal.in-view{opacity:1;transform:translateY(0);}
+  .reveal-delay-1.in-view{transition-delay:.1s;}
+  .reveal-delay-2.in-view{transition-delay:.2s;}
+  .reveal-delay-3.in-view{transition-delay:.3s;}
+  .reveal-delay-4.in-view{transition-delay:.4s;}
+
+  /* ============ HEADER ============ */
+  header{
+    position:fixed;top:0;left:0;right:0;z-index:200;
+    padding:22px 0;
+    transition:background .4s var(--ease), padding .4s var(--ease), box-shadow .4s var(--ease);
+  }
+  header.solid{
+    background:rgba(10,31,61,.92);
+    backdrop-filter:blur(10px);
+    padding:14px 0;
+    box-shadow:0 10px 30px -12px rgba(0,0,0,.4);
+  }
+  header .wrap{display:flex;align-items:center;justify-content:space-between;}
+  .logo{
+    font-family:var(--font-display);
+    font-size:1.4rem;
+    font-weight:700;
+    color:var(--cream);
+    display:flex;align-items:center;gap:10px;
+  }
+  .logo span{color:var(--gold-bright);}
+  .logo-img{height:42px;width:auto;display:block;transition:height .4s var(--ease);}
+  header.solid .logo-img{height:34px;}
+  .logo-mark{
+    width:34px;height:34px;border-radius:50%;
+    border:1.5px solid var(--gold-bright);
+    display:flex;align-items:center;justify-content:center;
+    position:relative;
+  }
+  .logo-mark::after{
+    content:"";width:9px;height:9px;background:var(--gold-bright);
+    border-radius:50%;
+    animation:pulse-dot 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse-dot{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.5);opacity:.5;}}
+
+  nav ul{display:flex;gap:34px;align-items:center;}
+  nav a{
+    color:var(--cream);
+    font-size:.9rem;
+    font-weight:500;
+    position:relative;
+    padding-bottom:4px;
+  }
+  nav a:not(.btn)::after{
+    content:"";position:absolute;left:0;bottom:0;width:0;height:1.5px;
+    background:var(--gold-bright);transition:width .35s var(--ease);
+  }
+  nav a:not(.btn):hover::after{width:100%;}
+  .nav-toggle{display:none;flex-direction:column;gap:5px;}
+  .nav-toggle span{width:26px;height:2px;background:var(--cream);border-radius:2px;transition:.3s;}
+
+  /* ============ HERO ============ */
+  .hero{
+    min-height:100vh;
+    display:flex;align-items:center;
+    background:var(--navy-deep);
+    position:relative;
+    overflow:hidden;
+    padding-top:110px;
+  }
+  .hero-bg{
+    position:absolute;inset:0;
+    background-image:linear-gradient(110deg, rgba(10,20,40,.72) 8%, rgba(10,31,61,.4) 42%, rgba(10,31,61,.12) 75%), url('https://res.cloudinary.com/vwdrbdrg/image/upload/v1784927431/Hero_Image_ux1r0y.jpg');
+    background-size:cover;background-position:center;
+    transform:scale(1.08);
+    animation:hero-zoom 18s ease-in-out infinite alternate;
+  }
+  @keyframes hero-zoom{from{transform:scale(1.08);}to{transform:scale(1.0);}}
+
+  .hero-blob{
+    position:absolute;
+    width:480px;height:480px;
+    border-radius:50%;
+    border:1px solid rgba(231,206,150,.14);
+    top:-140px;right:-140px;
+    animation:blob-spin 50s linear infinite;
+  }
+  @keyframes blob-spin{to{transform:rotate(360deg);}}
+
+  .hero-content{position:relative;z-index:2;max-width:640px;}
+  .hero-content .eyebrow{color:var(--gold-bright);margin-bottom:20px;display:inline-block;}
+  .hero-content h1{
+    color:var(--cream);
+    font-size:clamp(2.5rem,5vw,4rem);
+    line-height:1.06;
+    margin-bottom:22px;
+  }
+  .hero-content h1 .word{display:inline-block;opacity:0;transform:translateY(30px);animation:word-in .8s var(--ease) forwards;}
+  @keyframes word-in{to{opacity:1;transform:translateY(0);}}
+  .hero-content p{
+    color:rgba(246,240,226,.75);
+    font-size:1.05rem;
+    max-width:480px;
+    margin-bottom:34px;
+    opacity:0;
+    animation:fade-up .8s var(--ease) forwards;
+    animation-delay:.75s;
+  }
+  @keyframes fade-up{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+  .hero-ctas{display:flex;gap:16px;flex-wrap:wrap;opacity:0;animation:fade-up .8s var(--ease) forwards;animation-delay:.9s;}
+
+  .trust-strip{
+    display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+    margin-top:46px;
+    opacity:0;animation:fade-up .8s var(--ease) forwards;animation-delay:1.05s;
+  }
+  .trust-chip{display:flex;align-items:center;gap:8px;color:rgba(246,240,226,.7);font-size:.78rem;font-family:var(--font-mono);letter-spacing:.02em;white-space:nowrap;}
+  .trust-chip svg{color:var(--gold-bright);flex-shrink:0;}
+  .trust-divider{width:1px;height:13px;background:rgba(246,240,226,.22);}
+
+  .scroll-cue{
+    position:absolute;bottom:34px;left:50%;transform:translateX(-50%);
+    display:flex;flex-direction:column;align-items:center;gap:8px;
+    color:rgba(246,240,226,.55);font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;
+    z-index:2;
+  }
+  .scroll-cue .line{width:1px;height:34px;background:linear-gradient(var(--gold-bright),transparent);animation:cue-drop 1.8s ease-in-out infinite;}
+  @keyframes cue-drop{0%{opacity:0;transform:scaleY(0);transform-origin:top;}40%{opacity:1;transform:scaleY(1);transform-origin:top;}60%{opacity:1;transform:scaleY(1);transform-origin:bottom;}100%{opacity:0;transform:scaleY(0);transform-origin:bottom;}}
+
+  /* ============ SECTION HEADS ============ */
+  .section-head{max-width:620px;margin-bottom:56px;}
+  .section-head .eyebrow{color:var(--gold);margin-bottom:14px;display:block;}
+  .section-head h2{font-size:clamp(1.9rem,3.4vw,2.7rem);color:var(--navy-deep);margin-bottom:14px;}
+  .section-head p{color:#4B5567;font-size:1.02rem;}
+  .on-navy .section-head h2{color:var(--cream);}
+  .on-navy .section-head p{color:rgba(246,240,226,.7);}
+  .on-navy .section-head .eyebrow{color:var(--gold-bright);}
+
+  /* ============ LOAN CATEGORIES ============ */
+  .loans{padding:120px 0;background:var(--cream);}
+  .loan-tabs{display:inline-flex;background:var(--white);border-radius:40px;padding:5px;margin-bottom:48px;box-shadow:0 8px 24px -14px rgba(10,31,61,.25);}
+  .loan-tab{
+    padding:11px 26px;border-radius:32px;font-weight:600;font-size:.88rem;color:var(--navy-mid);
+    transition:all .4s var(--ease);position:relative;
+  }
+  .loan-tab.active{background:var(--navy-deep);color:var(--cream);}
+  .loan-grid{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:26px;
+  }
+  .loan-panel{display:none;}
+  .loan-panel.active{display:grid;grid-template-columns:repeat(4,1fr);gap:26px;animation:panel-in .6s var(--ease);}
+  @keyframes panel-in{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+
+  .flip-card{
+    background:transparent;height:340px;perspective:1400px;
+  }
+  .flip-inner{
+    position:relative;width:100%;height:100%;
+    transition:transform .7s var(--ease);
+    transform-style:preserve-3d;
+  }
+  .flip-card:hover .flip-inner, .flip-card.flipped .flip-inner{transform:rotateY(180deg);}
+  .flip-front,.flip-back{
+    position:absolute;inset:0;
+    backface-visibility:hidden;
+    border-radius:14px;
+    padding:28px 22px;
+    display:flex;flex-direction:column;
+  }
+  .flip-front{
+    background:var(--white);
+    border:1px solid rgba(10,31,61,.06);
+    box-shadow:0 8px 20px -14px rgba(10,31,61,.25);
+    justify-content:flex-start;
+    gap:10px;
+  }
+  .flip-visual{
+    flex:1;display:flex;align-items:center;justify-content:center;
+    min-height:110px;border-radius:10px;overflow:hidden;
+  }
+  .flip-visual svg{width:100%;height:auto;max-height:92px;}
+  .flip-visual img{width:100%;height:100%;min-height:110px;object-fit:cover;display:block;transition:transform .5s var(--ease);}
+  .flip-card:hover .flip-visual img{transform:scale(1.06);}
+  .flip-front .icon{
+    width:52px;height:52px;border-radius:50%;
+    background:linear-gradient(135deg,var(--navy-mid),var(--navy-deep));
+    display:flex;align-items:center;justify-content:center;
+    color:var(--gold-bright);
+    transition:transform .5s var(--ease);
+  }
+  .flip-card:hover .flip-front .icon{transform:rotate(-8deg) scale(1.08);}
+  .flip-front h3{font-size:1.15rem;color:var(--navy-deep);margin-top:20px;}
+  .flip-front .hint{font-size:.78rem;color:#8A93A6;font-family:var(--font-mono);}
+  .flip-back{
+    background:linear-gradient(155deg,var(--navy-deep),var(--navy-mid));
+    color:var(--cream);
+    transform:rotateY(180deg);
+    justify-content:space-between;
+    border:1px solid rgba(231,206,150,.3);
+  }
+  .flip-back h4{font-family:var(--font-display);font-size:1.05rem;color:var(--gold-bright);margin-bottom:10px;}
+  .flip-back ul{font-size:.82rem;color:rgba(246,240,226,.82);display:flex;flex-direction:column;gap:5px;}
+  .flip-back ul li::before{content:"— ";color:var(--gold-bright);}
+  .learn-more{
+    align-self:flex-start;font-size:.78rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+    color:var(--gold-bright);border-bottom:1px solid var(--gold-bright);padding-bottom:2px;
+    cursor:pointer;transition:opacity .25s var(--ease);
+  }
+  .learn-more:hover{opacity:.75;}
+  .learn-more:focus-visible{outline:2px solid var(--gold);outline-offset:3px;}
+  .flip-front .learn-more{color:var(--navy-deep);border-color:var(--navy-deep);}
+
+  @media(max-width:980px){
+    .loan-grid,.loan-panel.active{grid-template-columns:repeat(2,1fr);}
+  }
+  @media(max-width:600px){
+    .loan-grid,.loan-panel.active{grid-template-columns:1fr;}
+  }
+
+  /* ============ EMI CALCULATOR (signature: passbook ledger) ============ */
+  .calc-section{
+    background:var(--navy-deep);
+    padding:120px 0;
+    position:relative;
+    overflow:hidden;
+  }
+  .calc-section::before{
+    content:"";position:absolute;inset:0;
+    background-image:repeating-linear-gradient(rgba(246,240,226,.04) 0 1px, transparent 1px 38px);
+    pointer-events:none;
+  }
+  .calc-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;position:relative;z-index:1;
+  }
+  .calc-controls .field{margin-bottom:34px;}
+  .calc-controls label{
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-size:.85rem;color:rgba(246,240,226,.75);margin-bottom:12px;
+    font-family:var(--font-mono);letter-spacing:.03em;
+  }
+  .calc-controls label b{color:var(--gold-bright);font-size:1.1rem;}
+  input[type=range]{
+    -webkit-appearance:none;width:100%;height:3px;border-radius:2px;
+    background:rgba(246,240,226,.22);outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+    background:var(--gold-bright);border:3px solid var(--navy-deep);
+    box-shadow:0 0 0 2px var(--gold-bright);
+    cursor:pointer;transition:transform .25s;
+  }
+  input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.25);}
+  input[type=range]::-moz-range-thumb{
+    width:18px;height:18px;border-radius:50%;background:var(--gold-bright);
+    border:3px solid var(--navy-deep);cursor:pointer;
+  }
+
+  .passbook{
+    background:var(--cream-soft);
+    border-radius:6px;
+    padding:44px 38px;
+    position:relative;
+    box-shadow:0 24px 50px -28px rgba(0,0,0,.4);
+  }
+  .passbook::before{
+    content:"";position:absolute;top:0;left:24px;right:24px;height:10px;
+    background:repeating-linear-gradient(90deg, var(--navy-deep) 0 10px, transparent 10px 20px);
+    opacity:.6;
+    border-radius:0 0 8px 8px;
+  }
+  .passbook-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;padding-bottom:18px;border-bottom:1px dashed #C9BFA6;}
+  .passbook-head .eyebrow{color:var(--navy-mid);}
+  .passbook-emi{margin-bottom:28px;}
+  .passbook-emi .lbl{font-family:var(--font-mono);font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;color:#7C7358;}
+  .passbook-emi .val{
+    font-family:var(--font-display);font-size:3rem;color:var(--navy-deep);font-weight:700;
+    display:flex;align-items:baseline;gap:6px;
+  }
+  .passbook-emi .val span{font-size:1.4rem;color:var(--gold);}
+  .passbook-rows{display:flex;flex-direction:column;gap:14px;margin-bottom:26px;}
+  .passbook-row{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:.92rem;color:var(--ink);}
+  .passbook-row .lbl{color:#6B6450;}
+  .donut-wrap{display:flex;align-items:center;gap:26px;margin-bottom:22px;}
+  .donut-svg{width:118px;height:118px;flex-shrink:0;}
+  .donut-svg circle{transition:stroke-dasharray .6s var(--ease), stroke-dashoffset .6s var(--ease);}
+  .donut-center-label{font-family:var(--font-mono);}
+  .donut-legend{display:flex;flex-direction:column;gap:12px;}
+  .donut-legend-item{display:flex;align-items:center;gap:9px;font-size:.85rem;color:var(--ink);}
+  .donut-legend-item .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+  .donut-legend-item .pct{font-family:var(--font-mono);font-weight:600;margin-left:auto;padding-left:14px;}
+
+  @media(max-width:900px){.calc-grid{grid-template-columns:1fr;}.passbook{transform:none;}}
+
+  /* ============ MARQUEE ============ */
+  .partners{padding:100px 0;background:var(--cream);overflow:hidden;}
+  .marquee-row{overflow:hidden;position:relative;padding:18px 0;}
+  .marquee-row::before,.marquee-row::after{
+    content:"";position:absolute;top:0;bottom:0;width:100px;z-index:2;
+  }
+  .marquee-row::before{left:0;background:linear-gradient(90deg,var(--cream),transparent);}
+  .marquee-row::after{right:0;background:linear-gradient(270deg,var(--cream),transparent);}
+  .marquee-track{display:flex;gap:70px;width:max-content;animation:scroll-left 32s linear infinite;}
+  .marquee-track.reverse{animation:scroll-right 32s linear infinite;}
+  .marquee-row:hover .marquee-track{animation-play-state:paused;}
+  @keyframes scroll-left{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+  @keyframes scroll-right{from{transform:translateX(-50%);}to{transform:translateX(0);}}
+  .marquee-track img{
+    height:42px;width:auto;filter:grayscale(1) opacity(.55);
+    transition:filter .4s var(--ease), transform .4s var(--ease);
+  }
+  .marquee-track img:hover{filter:grayscale(0) opacity(1);transform:scale(1.08);}
+
+  /* ============ ABOUT ============ */
+  .about{padding:120px 0;background:var(--navy-deep);}
+  .about-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:70px;align-items:center;}
+  .about-text p{color:rgba(246,240,226,.75);margin-bottom:30px;font-size:1.03rem;}
+  .stats{display:flex;gap:36px;flex-wrap:wrap;}
+  .stat b{
+    font-family:var(--font-display);font-size:2.4rem;color:var(--gold-bright);display:block;
+  }
+  .stat span{font-size:.78rem;color:rgba(246,240,226,.6);font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.06em;}
+
+  .about-photo{position:relative;display:flex;justify-content:center;}
+  .photo-ring{
+    position:absolute;width:336px;height:336px;border-radius:50%;
+    border:1px solid rgba(231,206,150,.3);
+  }
+  .photo-frame{
+    width:300px;height:300px;border-radius:50%;
+    overflow:hidden;position:relative;z-index:1;
+    box-shadow:0 24px 50px -22px rgba(0,0,0,.45);
+  }
+  .photo-frame img{width:100%;height:100%;object-fit:cover;}
+
+  @media(max-width:900px){.about-grid{grid-template-columns:1fr;}.about-photo{order:-1;margin-bottom:20px;}}
+
+  /* ============ PROCESS ============ */
+  .process{padding:120px 0;background:var(--cream);overflow:hidden;position:relative;}
+  .process-track{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:28px;padding-top:10px;}
+  .process-line{
+    position:absolute;top:64px;left:9%;right:9%;height:2px;background:#DFD4B4;z-index:0;
+  }
+  .process-line-fill{
+    position:absolute;top:0;left:0;height:100%;width:0%;
+    background:linear-gradient(90deg,var(--gold),var(--gold-bright));
+    transition:width 1.6s var(--ease);
+  }
+  .process-step{position:relative;z-index:1;text-align:center;}
+  .process-step:nth-child(2){margin-top:56px;}
+  .process-step:nth-child(4){margin-top:56px;}
+  .process-icon-wrap{position:relative;width:76px;height:76px;margin:0 auto 26px;}
+  .process-icon{
+    width:76px;height:76px;border-radius:50%;
+    background:linear-gradient(135deg,var(--navy-mid),var(--navy-deep));
+    display:flex;align-items:center;justify-content:center;color:var(--gold-bright);
+    box-shadow:0 16px 30px -16px rgba(10,31,61,.55);
+    transform:scale(.7);opacity:0;
+    transition:transform .6s var(--ease), opacity .6s var(--ease), box-shadow .4s var(--ease);
+  }
+  .process-step.in-view .process-icon{transform:scale(1);opacity:1;}
+  .process-step:hover .process-icon{transform:scale(1) translateY(-6px) rotate(-6deg);box-shadow:0 22px 36px -16px rgba(10,31,61,.6);}
+  .process-num{
+    position:absolute;top:-6px;right:-6px;
+    width:27px;height:27px;border-radius:50%;
+    background:var(--gold);color:var(--navy-deep);
+    font-family:var(--font-mono);font-size:.7rem;font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+    border:3px solid var(--cream);
+  }
+  .process-card{
+    background:var(--white);border:1px solid rgba(10,31,61,.06);border-radius:12px;
+    padding:22px 20px 24px;
+    box-shadow:0 10px 26px -20px rgba(10,31,61,.3);
+    transition:transform .4s var(--ease), box-shadow .4s var(--ease);
+  }
+  .process-step:hover .process-card{transform:translateY(-5px);box-shadow:0 22px 40px -20px rgba(10,31,61,.32);}
+  .process-step h3{font-size:1.05rem;color:var(--navy-deep);margin-bottom:8px;}
+  .process-step p{font-size:.86rem;color:#5C6579;line-height:1.55;}
+  @media(max-width:900px){
+    .process-track{grid-template-columns:1fr;gap:22px;}
+    .process-step:nth-child(2),.process-step:nth-child(4){margin-top:0;}
+    .process-line{display:none;}
+  }
+
+  /* ============ CONTACT ============ */
+  .contact{padding:120px 0;background:var(--navy-deep);}
+  .contact-grid{display:grid;grid-template-columns:.85fr 1.15fr;gap:60px;}
+  .contact-info-item{display:flex;gap:16px;margin-bottom:30px;}
+  .contact-info-item .ic{
+    width:44px;height:44px;border-radius:50%;flex-shrink:0;
+    background:rgba(231,206,150,.12);border:1px solid rgba(231,206,150,.3);
+    display:flex;align-items:center;justify-content:center;color:var(--gold-bright);
+  }
+  .contact-info-item h4{color:var(--cream);font-size:.98rem;margin-bottom:4px;}
+  .contact-info-item p{color:rgba(246,240,226,.65);font-size:.88rem;}
+  .map-frame{
+    margin-top:20px;border-radius:8px;overflow:hidden;filter:grayscale(.2);
+    border:1px solid rgba(231,206,150,.2);
+  }
+  .map-frame iframe{width:100%;height:220px;border:0;display:block;}
+
+  .contact-form{
+    background:var(--cream-soft);
+    border:1px solid rgba(10,31,61,.08);
+    border-radius:6px;
+    padding:44px;
+    box-shadow:0 30px 60px -30px rgba(0,0,0,.35);
+  }
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .form-group{position:relative;margin-bottom:28px;}
+  .form-group input,.form-group select,.form-group textarea{
+    width:100%;background:transparent;border:none;border-bottom:1px solid rgba(10,31,61,.18);
+    padding:10px 2px;color:var(--ink);font-size:.95rem;font-family:var(--font-body);
+  }
+  .form-group textarea{resize:vertical;min-height:70px;}
+  .form-group label{
+    position:absolute;left:2px;top:10px;color:rgba(28,36,49,.45);font-size:.95rem;
+    pointer-events:none;transition:.3s;
+  }
+  .form-group input:focus~label,.form-group input:valid~label,
+  .form-group .select-field~label,
+  .form-group textarea:focus~label,.form-group textarea:valid~label{
+    top:-14px;font-size:.72rem;color:var(--gold);
+  }
+  .form-group input:focus,.form-group textarea:focus{border-bottom-color:var(--gold);}
+  .form-group input:focus-visible,.form-group textarea:focus-visible,
+  .form-group .select-trigger:focus-visible{outline:none;}
+
+  /* Custom "Loan Interested In" dropdown (replaces native <select> so the
+     open options list never overlaps the floating label) */
+  .select-field{position:relative;}
+  .select-trigger{
+    width:100%;background:transparent;border:none;border-bottom:1px solid rgba(10,31,61,.18);
+    padding:10px 24px 10px 2px;color:var(--ink);font-size:.95rem;font-family:var(--font-body);
+    text-align:left;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  }
+  .select-trigger .select-value{color:inherit;min-height:1em;}
+  .select-trigger .chev{
+    width:8px;height:8px;flex-shrink:0;
+    border-right:1.5px solid rgba(28,36,49,.5);border-bottom:1.5px solid rgba(28,36,49,.5);
+    transform:rotate(45deg);transition:transform .3s var(--ease);
+  }
+  .select-field.open .select-trigger .chev{transform:rotate(-135deg);}
+  .select-options{
+    position:relative;left:0;right:0;
+    background:var(--white);border:1px solid rgba(10,31,61,.1);border-radius:8px;
+    box-shadow:0 16px 32px -18px rgba(10,31,61,.35);
+    max-height:0;overflow:hidden;padding:0 6px;margin:0;
+    opacity:0;
+    transition:max-height .32s var(--ease), opacity .25s var(--ease), margin-top .32s var(--ease);
+  }
+  .select-field.open .select-options{opacity:1;visibility:visible;max-height:280px;margin-top:8px;padding:6px;overflow-y:auto;}
+  .select-options li{list-style:none;padding:11px 14px;border-radius:5px;font-size:.9rem;color:var(--ink);cursor:pointer;transition:.2s;}
+  .select-options li:hover,.select-options li.active{background:var(--cream-soft);color:var(--navy-deep);}
+  .select-field.error .select-trigger{border-bottom-color:#B3453A;}
+  .select-field.highlight .select-trigger{border-bottom-color:var(--gold);}
+
+  .submit-btn{
+    position:relative;overflow:hidden;
+    padding:14px 36px;border-radius:3px;
+    background:transparent;border:1px solid var(--navy-deep);color:var(--navy-deep);
+    font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:.82rem;
+  }
+  .submit-btn span.beam{position:absolute;display:block;}
+  .submit-btn .b1{top:0;left:-100%;width:100%;height:2px;background:linear-gradient(90deg,transparent,var(--gold));animation:beam1 2s linear infinite;}
+  .submit-btn .b2{top:-100%;right:0;width:2px;height:100%;background:linear-gradient(180deg,transparent,var(--gold));animation:beam2 2s linear infinite;animation-delay:.5s;}
+  .submit-btn .b3{bottom:0;right:-100%;width:100%;height:2px;background:linear-gradient(270deg,transparent,var(--gold));animation:beam3 2s linear infinite;animation-delay:1s;}
+  .submit-btn .b4{bottom:-100%;left:0;width:2px;height:100%;background:linear-gradient(360deg,transparent,var(--gold));animation:beam4 2s linear infinite;animation-delay:1.5s;}
+  @keyframes beam1{0%{left:-100%;}50%,100%{left:100%;}}
+  @keyframes beam2{0%{top:-100%;}50%,100%{top:100%;}}
+  @keyframes beam3{0%{right:-100%;}50%,100%{right:100%;}}
+  @keyframes beam4{0%{bottom:-100%;}50%,100%{bottom:100%;}}
+  .submit-btn:hover{background:var(--navy-deep);color:var(--cream);}
+
+  .form-success{
+    margin-top:16px;color:#8A6C2E;font-size:.85rem;font-family:var(--font-mono);
+    opacity:0;max-height:0;overflow:hidden;transition:.4s var(--ease);
+  }
+  .form-success.show{opacity:1;max-height:60px;}
+
+  @media(max-width:900px){.contact-grid{grid-template-columns:1fr;}.form-row{grid-template-columns:1fr;}}
+
+  /* ============ FOOTER ============ */
+  footer{background:#071527;padding:80px 0 30px;position:relative;}
+  footer::before{
+    content:"";position:absolute;top:0;left:0;right:0;height:2px;
+    background:linear-gradient(90deg,transparent,var(--gold-bright),transparent);
+    background-size:200% 100%;
+    animation:shimmer 4s linear infinite;
+  }
+  @keyframes shimmer{to{background-position:-200% 0;}}
+  .footer-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr 1.1fr;gap:40px;margin-bottom:60px;}
+  .footer-grid h4{color:var(--gold-bright);font-family:var(--font-display);font-size:1rem;margin-bottom:20px;}
+  .footer-grid p{color:rgba(246,240,226,.55);font-size:.88rem;margin-bottom:20px;}
+  .footer-grid li{margin-bottom:12px;color:rgba(246,240,226,.6);font-size:.88rem;}
+  .footer-grid a{color:rgba(246,240,226,.6);font-size:.88rem;transition:.3s;}
+  .footer-grid a:hover{color:var(--gold-bright);padding-left:4px;}
+  .social-row{display:flex;gap:12px;}
+  .social-row a{
+    width:38px;height:38px;border-radius:50%;border:1px solid rgba(246,240,226,.25);
+    display:flex;align-items:center;justify-content:center;color:var(--cream);
+    transition:.35s;
+  }
+  .social-row a:hover{background:var(--gold-bright);border-color:var(--gold-bright);color:var(--navy-deep);transform:translateY(-4px);}
+  .footer-bottom{
+    border-top:1px solid rgba(246,240,226,.12);padding-top:26px;
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;
+    font-size:.8rem;color:rgba(246,240,226,.45);
+  }
+  .footer-bottom .links a{margin-left:22px;color:rgba(246,240,226,.55);}
+  .footer-bottom .links a:hover{color:var(--gold-bright);}
+  @media(max-width:900px){.footer-grid{grid-template-columns:1fr 1fr;}}
+  @media(max-width:560px){.footer-grid{grid-template-columns:1fr;}}
+
+  /* ============ FLOATING CONTACT BUTTONS ============ */
+  .floaters{
+    position:fixed;left:24px;bottom:28px;z-index:150;
+    display:flex;flex-direction:column;gap:14px;
+  }
+  .floater{
+    width:52px;height:52px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;color:#fff;
+    box-shadow:0 12px 26px -10px rgba(0,0,0,.45);
+    transition:transform .3s var(--ease), box-shadow .3s var(--ease);
+    opacity:0;transform:translateY(16px) scale(.9);
+    animation:floater-in .6s var(--ease) forwards;
+    position:relative;
+  }
+  .floater:nth-child(1){animation-delay:1.6s;}
+  .floater:nth-child(2){animation-delay:1.8s;}
+  @keyframes floater-in{to{opacity:1;transform:translateY(0) scale(1);}}
+  .floater:hover{transform:translateY(-4px) scale(1.06);box-shadow:0 16px 30px -10px rgba(0,0,0,.5);}
+  .floater.whatsapp{background:#25D366;}
+  .floater.whatsapp::before{
+    content:"";position:absolute;inset:0;border-radius:50%;
+    border:2px solid #25D366;
+    animation:ping-ring 2.6s ease-out infinite;
+  }
+  @keyframes ping-ring{0%{transform:scale(1);opacity:.7;}100%{transform:scale(1.6);opacity:0;}}
+  .floater.mail{background:var(--navy-deep);border:1.5px solid var(--gold-bright);}
+
+  .floater-label{
+    position:absolute;left:64px;top:50%;transform:translateY(-50%) translateX(-6px);
+    background:var(--navy-deep);color:var(--cream);
+    font-size:.75rem;font-weight:600;white-space:nowrap;
+    padding:7px 12px;border-radius:4px;
+    opacity:0;pointer-events:none;
+    transition:opacity .3s var(--ease), transform .3s var(--ease);
+  }
+  .floater:hover .floater-label{opacity:1;transform:translateY(-50%) translateX(0);}
+
+  @media(max-width:600px){
+    .floaters{left:16px;bottom:16px;gap:12px;}
+    .floater{width:46px;height:46px;}
+    .floater-label{display:none;}
+  }
+
+  /* ============ BACK TO TOP ============ */
+  .top-btn{
+    position:fixed;bottom:28px;right:28px;z-index:150;
+    width:48px;height:48px;border-radius:50%;
+    background:var(--gold-bright);color:var(--navy-deep);
+    display:flex;align-items:center;justify-content:center;
+    opacity:0;transform:translateY(20px);pointer-events:none;
+    transition:.4s var(--ease);
+    box-shadow:0 10px 24px -8px rgba(0,0,0,.4);
+  }
+  .top-btn.show{opacity:1;transform:translateY(0);pointer-events:auto;}
+
+  /* ============ MOBILE NAV ============ */
+  @media(max-width:900px){
+    nav{position:fixed;top:0;right:-100%;width:78%;max-width:320px;height:100vh;background:var(--navy-deep);
+      flex-direction:column;padding:100px 34px;transition:right .5s var(--ease);z-index:190;}
+    nav.open{right:0;}
+    nav ul{flex-direction:column;align-items:flex-start;gap:26px;}
+    .nav-toggle{display:flex;z-index:210;}
+    .hero-ctas{flex-direction:column;align-items:flex-start;}
+  }
+</style>
+</head>
+<body>
+
+<header id="siteHeader">
+  <div class="wrap">
+    <a href="#home" class="logo"><img src="https://res.cloudinary.com/vwdrbdrg/image/upload/v1784932656/Untitled-1-01_ppimew.png" alt="Logo" class="logo-img">Nivara <span>Finance</span></a>
+    <nav id="siteNav">
+      <ul>
+        <li><a href="#home">Home</a></li>
+        <li><a href="#loans">Loans</a></li>
+        <li><a href="#calculator">EMI Calculator</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#process">Process</a></li>
+        <li><a href="#contact">Contact</a></li>
+        <li><a href="#contact" class="btn btn-gold" style="padding:10px 22px;">Apply Now</a></li>
+      </ul>
+    </nav>
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-bg"></div>
+  <div class="hero-blob"></div>
+  <div class="wrap hero-content">
+    <span class="eyebrow">20+ Years of Trusted Lending</span>
+    <h1 id="heroHeadline"></h1>
+    <p>Fast approvals, transparent terms, and a network of trusted banks — all in one place.</p>
+    <div class="hero-ctas">
+      <a href="#calculator" class="btn btn-gold">Calculate Your EMI</a>
+      <a href="#contact" class="btn btn-ghost">Apply Now</a>
+    </div>
+    <div class="trust-strip">
+      <span class="trust-chip">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l8 4v6c0 5-3.4 8.7-8 10-4.6-1.3-8-5-8-10V6l8-4z"/></svg>
+        20+ Years Experience
+      </span>
+      <span class="trust-divider"></span>
+      <span class="trust-chip">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+        PAN India Presence
+      </span>
+      <span class="trust-divider"></span>
+      <span class="trust-chip">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg>
+        Trusted Banking Partners
+      </span>
+    </div>
+  </div>
+  <div class="scroll-cue"><span>Scroll</span><span class="line"></span></div>
+</section>
+
+<!-- LOAN CATEGORIES -->
+<section class="loans" id="loans">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Loan Categories</span>
+      <h2>Find the right loan for your goal</h2>
+      <p>Whether you need funds instantly or against an asset, explore loan types designed around real borrower situations.</p>
+    </div>
+
+    <div class="loan-tabs reveal">
+      <button class="loan-tab active" data-tab="unsecured">Unsecured Loans</button>
+      <button class="loan-tab" data-tab="secured">Secured Loans</button>
+    </div>
+
+    <div class="loan-panel active" id="unsecured">
+      <div class="flip-card">
+        <div class="flip-inner">
+          <div class="flip-front">
+            <div><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg></div>
+              <h3>Personal Loan</h3><span class="hint">No collateral needed</span></div>
+            <div class="flip-visual">
+              <img src="https://res.cloudinary.com/vwdrbdrg/image/upload/v1784931521/business-finance-employment-female-successful-entrepreneurs-concept-friendly-smiling-office-manager-greeting-new-coworker-businesswoman-welcome-clients-with-hand-wave-hold-laptop_nulnjp.jpg" alt="Personal Loan" loading="lazy">
+            </div>
+            <span class="learn-more apply-now" data-loan="Personal Loan" role="button" tabindex="0">Apply Now →</span>
+          </div>
+          <div class="flip-back">
+            <div><h4>Personal Loan</h4><p style="font-size:.85rem;color:rgba(246,240,226,.75);">Quick, unsecured funding for weddings, travel, medical needs, or anything life throws at you.</p></div>
+            <span class="learn-more apply-now" data-loan="Personal Loan" role="button" tabindex="0">Apply Now →</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flip-card">
+        <div class="flip-inner">
+          <div class="flip-front">
+            <div><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 21V9l9-6 9 6v12"/><path d="M9 21v-6h6v6"/></svg></div>
+              <h3>Business Loan</h3><span class="hint">Fuel for growth</span></div>
+            <div class="flip-visual">
+              <img src="https://res.cloudinary.com/vwdrbdrg/image/upload/v1784931521/staff-meeting-group-young-modern-people-smart-casual-wear-discussing-something-while-working-creative-office-business-time_q6mk5w.jpg" alt="Business Loan" loading="lazy">
+            </div>
+            <span class="learn-more apply-now" data-loan="Business Loan" role="button" tabindex="0">Apply Now →</span>
+          </div>
+          <div class="flip-back">
+            <div><h4>Business Loan</h4><ul>
+              <li>Business Term Loan</li><li>Business Overdraft Facility</li>
+              <li>MSME Business Loan</li><li>Micro Business Loan</li>
+            </ul></div>
+            <span class="learn-more apply-now" data-loan="Business Loan" role="button" tabindex="0">Apply Now →</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flip-card">
+        <div class="flip-inner">
+          <div class="flip-front">
+            <div><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 19V6a2 2 0 012-2h8l6 6v9a2 2 0 01-2 2H6a2 2 0 01-2-2z"/><path d="M14 4v6h6"/></svg></div>
+              <h3>Professional Loan</h3><span class="hint">Built for practices</span></div>
+            <div class="flip-visual">
+              <img src="https://res.cloudinary.com/vwdrbdrg/image/upload/v1784931520/team-doctors-standing-row_ikydck.jpg" alt="Professional Loan" loading="lazy">
+            </div>
+            <span class="learn-more apply-now" data-loan="Professional Loan" role="button" tabindex="0">Apply Now →</span>
+          </div>
+          <div class="flip-back">
+            <div><h4>Professional Loan</h4><ul><li>Doctors</li><li>Chartered Accountants (CA)</li></ul></div>
+            <span class="learn-more apply-now" data-loan="Professional Loan" role="button" tabindex="0">Apply Now →</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flip-card">
+        <div class="flip-inner">
+          <div class="flip-front">
+            <div><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></div>
+              <h3>Salaried Loan</h3><span class="hint">For steady incomes</span></div>
+            <div class="flip-visual">
+              <img src="https://res.cloudinary.com/vwdrbdrg/image/upload/v1784931520/male-female-business-people-working-tablet-office_nfronl.jpg" alt="Salaried Loan" loading="lazy">
+            </div>
+            <span class="learn-more apply-now" data-loan="Salaried Loan" role="button" tabindex="0">Apply Now →</span>
+          </div>
+          <div class="flip-back">
+            <div><h4>Salaried Loan</h4><ul><li>Doctors</li><li>Chartered Accountants (CA)</li></ul></div>
+            <span class="learn-more apply-now" data-loan="Salaried Loan" role="button" tabindex="0">Apply Now →</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="loan-panel" id="secured">
+      <div class="flip-card">
+        <div class="flip-inner">
+          <div class="flip-front">
+            <div><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg></div>
+              <h3>Home Loan</h3><span class="hint">Own your dream home</span></div>
+            <div class="flip-visual">
+              <img src="https://res.cloudinary.com/vwdrbdrg/image/upload/v1784931521/business-man-show-money-bank-note-make-financial-plan-invite-people-sell-buy-house-car-monetary-properties-loan-credit-insurance-concept_dflc7q.jpg" alt="Home Loan" loading="lazy">
+            </div>
+            <span class="learn-more apply-now" data-loan="Home Loan" role="button" tabindex="0">Apply Now →</span>
+          </div>
+          <div class="flip-back">
+            <div><h4>Home Loan</h4><p style="font-size:.85rem;color:rgba(246,240,226,.75);">Competitive rates and long tenures to help you buy, build, or renovate your home.</p></div>
+            <span class="learn-more apply-now" data-loan="Home Loan" role="button" tabindex="0">Apply Now →</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flip-card">
+        <div class="flip-inner">
+          <div class="flip-front">
+            <div><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16"/></svg></div>
+              <h3>Mortgage Loan</h3><span class="hint">Unlock property value</span></div>
+            <div class="flip-visual">
+              <img src="https://res.cloudinary.com/vwdrbdrg/image/upload/v1784931521/closeup-shot-person-thinking-buying-selling-house_htcume.jpg" alt="Mortgage Loan" loading="lazy">
+            </div>
+            <span class="learn-more apply-now" data-loan="Mortgage Loan" role="button" tabindex="0">Apply Now →</span>
+          </div>
+          <div class="flip-back">
+            <div><h4>Mortgage Loan</h4><p style="font-size:.85rem;color:rgba(246,240,226,.75);">Borrow against property you already own, at attractive loan-to-value ratios.</p></div>
+            <span class="learn-more apply-now" data-loan="Mortgage Loan" role="button" tabindex="0">Apply Now →</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flip-card">
+        <div class="flip-inner">
+          <div class="flip-front">
+            <div><div class="icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M5 17H3v-4l2-5h9l4 5h1v4h-2"/></svg></div>
+              <h3>Auto / Car Loan</h3><span class="hint">Drive away today</span></div>
+            <div class="flip-visual">
+              <img src="https://res.cloudinary.com/vwdrbdrg/image/upload/v1784931522/young-handsome-business-man-choosing-car-car-showroom_zl9j3n.jpg" alt="Auto / Car Loan" loading="lazy">
+            </div>
+            <span class="learn-more apply-now" data-loan="Auto / Car Loan" role="button" tabindex="0">Apply Now →</span>
+          </div>
+          <div class="flip-back">
+            <div><h4>Auto / Car Loan</h4><p style="font-size:.85rem;color:rgba(246,240,226,.75);">Fast approvals on new and used vehicles, with flexible down payment options.</p></div>
+            <span class="learn-more apply-now" data-loan="Auto / Car Loan" role="button" tabindex="0">Apply Now →</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EMI CALCULATOR -->
+<section class="calc-section on-navy" id="calculator">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">EMI Calculator</span>
+      <h2>See your monthly number, instantly</h2>
+      <p>Move the sliders — your EMI, total interest, and total payment update live in the ledger.</p>
+    </div>
+
+    <div class="calc-grid">
+      <div class="calc-controls reveal">
+        <div class="field">
+          <label>Loan Amount <b id="amountLabel">₹5,00,000</b></label>
+          <input type="range" id="amount" min="50000" max="5000000" step="10000" value="500000">
+        </div>
+        <div class="field">
+          <label>Interest Rate (p.a.) <b id="rateLabel">10.5%</b></label>
+          <input type="range" id="rate" min="5" max="24" step="0.1" value="10.5">
+        </div>
+        <div class="field">
+          <label>Loan Tenure <b id="tenureLabel">5 Years</b></label>
+          <input type="range" id="tenure" min="1" max="30" step="1" value="5">
+        </div>
+      </div>
+
+      <div class="passbook reveal reveal-delay-1">
+        <div class="passbook-head">
+          <span class="eyebrow">Nivara Passbook</span>
+          <span style="font-family:var(--font-mono);font-size:.75rem;color:#7C7358;">Est. Statement</span>
+        </div>
+        <div class="passbook-emi">
+          <div class="lbl">Monthly EMI</div>
+          <div class="val"><span>₹</span><span id="emiValue">0</span></div>
+        </div>
+        <div class="passbook-rows">
+          <div class="passbook-row"><span class="lbl">Total Interest</span><span id="interestValue">₹0</span></div>
+          <div class="passbook-row"><span class="lbl">Total Payment</span><span id="totalValue">₹0</span></div>
+        </div>
+        <div class="donut-wrap">
+          <svg class="donut-svg" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="50" fill="none" stroke="#E7DFC9" stroke-width="14"/>
+            <circle id="donutPrincipal" cx="60" cy="60" r="50" fill="none" stroke="var(--navy-deep)" stroke-width="14"
+              stroke-linecap="round" transform="rotate(-90 60 60)" stroke-dasharray="0 314.16"/>
+            <circle id="donutInterest" cx="60" cy="60" r="50" fill="none" stroke="var(--gold)" stroke-width="14"
+              stroke-linecap="round" transform="rotate(-90 60 60)" stroke-dasharray="0 314.16"/>
+            <text x="60" y="56" text-anchor="middle" class="donut-center-label" font-size="20" font-weight="600" fill="var(--navy-deep)" id="donutCenterPct">0%</text>
+            <text x="60" y="72" text-anchor="middle" class="donut-center-label" font-size="8" fill="#8A8365">PRINCIPAL</text>
+          </svg>
+          <div class="donut-legend">
+            <div class="donut-legend-item"><span class="dot" style="background:var(--navy-deep)"></span>Principal<span class="pct" id="donutPrincipalPct">0%</span></div>
+            <div class="donut-legend-item"><span class="dot" style="background:var(--gold)"></span>Interest<span class="pct" id="donutInterestPct">0%</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PARTNER BANKS -->
+<section class="partners" id="partners">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Our Network</span>
+      <h2>Partner Banks &amp; NBFCs</h2>
+      <p>We work with a wide network of trusted banks and NBFCs to get you the best possible rate.</p>
+    </div>
+  </div>
+  <div class="marquee-row">
+    <div class="marquee-track" id="track1"></div>
+  </div>
+  <div class="marquee-row">
+    <div class="marquee-track reverse" id="track2"></div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="about on-navy" id="about">
+  <div class="wrap about-grid">
+    <div class="about-text reveal">
+      <span class="eyebrow" style="color:var(--gold-bright);">About Us</span>
+      <h2 style="color:var(--cream);font-size:clamp(1.9rem,3.4vw,2.6rem);margin:14px 0 22px;">Two decades of helping India borrow smarter</h2>
+      <p>Nivara Finance was built on a simple idea: getting a loan shouldn't feel like a negotiation you're losing. We compare offers across our partner network, explain the fine print in plain language, and stay with you long after the funds land.</p>
+      <div class="stats">
+        <div class="stat"><b class="counter" data-target="20">0</b><span>+ Years Experience</span></div>
+        <div class="stat"><b class="counter" data-target="28">0</b><span>States Covered</span></div>
+        <div class="stat"><b class="counter" data-target="15">0</b><span>+ Banking Partners</span></div>
+      </div>
+    </div>
+    <div class="about-photo reveal reveal-delay-1">
+      <div class="photo-ring"></div>
+      <div class="photo-frame">
+        <img src="https://res.cloudinary.com/vwdrbdrg/image/upload/v1784810955/vertical-portrait-successful-goodlooking-young-professional-headhunter-female-entrepreneur-office-worker-beige-blazer-look-away-cross-hands-chest-confident-manage-own-business_uoxekv.jpg" alt="Founder of Nivara Finance">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section class="process" id="process">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">How It Works</span>
+      <h2>Our Process</h2>
+      <p>Four straightforward steps between you and your funds.</p>
+    </div>
+    <div class="process-track" id="processTrack">
+      <div class="process-line"><div class="process-line-fill" id="processFill"></div></div>
+      <div class="process-step">
+        <div class="process-icon-wrap">
+          <div class="process-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20h4l10.5-10.5a2.12 2.12 0 00-3-3L5 17v3z"/><path d="M13 6.5l4 4"/></svg>
+            <span class="process-num">01</span>
+          </div>
+        </div>
+        <div class="process-card">
+          <h3>Submit Your Application</h3>
+          <p>Fill a short online form with your basic details and loan requirement.</p>
+        </div>
+      </div>
+      <div class="process-step">
+        <div class="process-icon-wrap">
+          <div class="process-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l7 3.2v5.6c0 4.6-3 7.9-7 9.2-4-1.3-7-4.6-7-9.2V6.2L12 3z"/><path d="M8.7 12.3l2.2 2.2 4.2-4.4"/></svg>
+            <span class="process-num">02</span>
+          </div>
+        </div>
+        <div class="process-card">
+          <h3>Document Verification</h3>
+          <p>Upload documents digitally — our team verifies within hours, not weeks.</p>
+        </div>
+      </div>
+      <div class="process-step">
+        <div class="process-icon-wrap">
+          <div class="process-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M7.8 12.5l2.6 2.6 5.8-6"/></svg>
+            <span class="process-num">03</span>
+          </div>
+        </div>
+        <div class="process-card">
+          <h3>Loan Approval</h3>
+          <p>Get a clear decision with transparent terms and no hidden charges.</p>
+        </div>
+      </div>
+      <div class="process-step">
+        <div class="process-icon-wrap">
+          <div class="process-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2.5" y="6.5" width="19" height="11" rx="2.2"/><circle cx="12" cy="12" r="2.6"/><path d="M5.5 9v0M18.5 15v0"/></svg>
+            <span class="process-num">04</span>
+          </div>
+        </div>
+        <div class="process-card">
+          <h3>Fund Disbursement</h3>
+          <p>Funds are transferred directly to your account, often the same day.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact on-navy" id="contact">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Get In Touch</span>
+      <h2>Contact Us</h2>
+      <p>Have a question about a loan or your application? Reach out — we reply within one business day.</p>
+    </div>
+    <div class="contact-grid">
+      <div class="reveal">
+        <div class="contact-info-item">
+          <div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M22 16.9v3a2 2 0 01-2.2 2A19.8 19.8 0 013 5.2 2 2 0 015 3h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.7a2 2 0 01-.5 2.1L8.9 10.7a16 16 0 006.4 6.4l1.2-1.2a2 2 0 012.1-.5c.9.3 1.8.5 2.7.6a2 2 0 011.7 2z"/></svg></div>
+          <div><h4>Phone</h4><p>+91 74900 17249</p></div>
+        </div>
+        <div class="contact-info-item">
+          <div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h16v16H4z"/><path d="M4 6l8 7 8-7"/></svg></div>
+          <div><h4>Email</h4><p>info@thesonicmedia.com</p></div>
+        </div>
+        <div class="contact-info-item">
+          <div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 22s7-6.3 7-12a7 7 0 10-14 0c0 5.7 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg></div>
+          <div><h4>Office Address</h4><p>3rd Floor, Prosperity House, BKC, Mumbai, MH 400051</p></div>
+        </div>
+        <div class="contact-info-item">
+          <div class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+          <div><h4>Business Hours</h4><p>Mon – Sat, 9:30 AM – 6:30 PM</p></div>
+        </div>
+        <div class="map-frame">
+          <iframe src="https://maps.google.com/maps?q=Bandra%20Kurla%20Complex%2C%20Mumbai&t=&z=13&ie=UTF8&iwloc=&output=embed" loading="lazy" title="Office location map"></iframe>
+        </div>
+      </div>
+
+      <form class="contact-form reveal reveal-delay-1" id="contactForm" autocomplete="off">
+        <div class="form-row">
+          <div class="form-group">
+            <input type="text" required autocomplete="off" name="fullName">
+            <label>Full Name</label>
+          </div>
+          <div class="form-group">
+            <input type="tel" required autocomplete="off" name="phoneNumber">
+            <label>Phone Number</label>
+          </div>
+        </div>
+        <div class="form-group">
+          <input type="email" required autocomplete="off" name="emailAddress">
+          <label>Email Address</label>
+        </div>
+        <div class="form-group">
+          <div class="select-field" id="loanSelectField">
+            <button type="button" class="select-trigger" id="loanSelectTrigger" aria-haspopup="listbox" aria-expanded="false">
+              <span class="select-value" id="loanSelectValue">&nbsp;</span>
+              <span class="chev"></span>
+            </button>
+            <ul class="select-options" id="loanSelectOptions" role="listbox">
+              <li role="option" data-value="Personal Loan">Personal Loan</li>
+              <li role="option" data-value="Business Loan">Business Loan</li>
+              <li role="option" data-value="Professional Loan">Professional Loan</li>
+              <li role="option" data-value="Salaried Loan">Salaried Loan</li>
+              <li role="option" data-value="Home Loan">Home Loan</li>
+              <li role="option" data-value="Mortgage Loan">Mortgage Loan</li>
+              <li role="option" data-value="Auto / Car Loan">Auto / Car Loan</li>
+            </ul>
+          </div>
+          <input type="hidden" id="loanInterest" name="loanInterest">
+          <label for="loanSelectTrigger">Loan Interested In</label>
+        </div>
+        <div class="form-group">
+          <textarea rows="3" required autocomplete="off" name="message" spellcheck="false"></textarea>
+          <label>Message</label>
+        </div>
+        <button type="submit" class="submit-btn">
+          <span class="beam b1"></span><span class="beam b2"></span><span class="beam b3"></span><span class="beam b4"></span>
+          Submit Enquiry
+        </button>
+        <div class="form-success" id="formSuccess">Thanks — your enquiry has been received. Our team will call you shortly.</div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <a href="#home" class="logo" style="margin-bottom:16px;display:inline-flex;"><img src="https://res.cloudinary.com/vwdrbdrg/image/upload/v1784932656/Untitled-1-01_ppimew.png" alt="Logo" class="logo-img">Nivara <span>Finance</span></a>
+        <p>Trusted lending partner for individuals and businesses across India, backed by 20+ years of experience.</p>
+        <div class="social-row">
+          <a href="#" aria-label="Facebook"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M13 22v-9h3l1-4h-4V7c0-1 .3-1.8 1.8-1.8H17V1.2C16.6 1.2 15.4 1 14 1c-2.8 0-4.7 1.7-4.7 4.8V9H6v4h3.3v9H13z"/></svg></a>
+          <a href="#" aria-label="Instagram"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></a>
+          <a href="#" aria-label="LinkedIn"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5A2.5 2.5 0 100 3.5a2.5 2.5 0 004.98 0zM.5 8.5h4V23h-4zM8.5 8.5h3.8v2h.05c.53-1 1.83-2.05 3.77-2.05 4.03 0 4.78 2.65 4.78 6.1V23h-4v-6.9c0-1.65-.03-3.77-2.3-3.77-2.3 0-2.65 1.8-2.65 3.65V23h-4z"/></svg></a>
+        </div>
+      </div>
+      <div>
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="#home">Home</a></li>
+          <li><a href="#about">About Us</a></li>
+          <li><a href="#process">Our Process</a></li>
+          <li><a href="#contact">Contact Us</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Loan Categories</h4>
+        <ul>
+          <li><a href="#loans">Personal Loan</a></li>
+          <li><a href="#loans">Business Loan</a></li>
+          <li><a href="#loans">Home Loan</a></li>
+          <li><a href="#loans">Auto / Car Loan</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <ul>
+          <li>+91 74900 17249</li>
+          <li>info@thesonicmedia.com</li>
+          <li>Mumbai · Delhi · Bengaluru · Pune</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span id="year"></span> Nivara Finance. All rights reserved.</span>
+      <span class="links"><a href="#">Privacy Policy</a><a href="#">Terms &amp; Conditions</a></span>
+    </div>
+  </div>
+</footer>
+
+<div class="floaters">
+  <a class="floater whatsapp" href="https://wa.me/917490017249?text=Hi%2C%20I%27d%20like%20to%20know%20more%20about%20a%20loan" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.7-.9-2-1-.3-.1-.5-.1-.6.1-.2.3-.7 1-.9 1.2-.2.2-.3.2-.6.1-.3-.1-1.2-.5-2.3-1.5-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.1.2-.3.2-.4.1-.2 0-.3 0-.5s-.6-1.5-.8-2.1c-.2-.5-.4-.5-.6-.5h-.5c-.2 0-.5.1-.7.3-.3.3-1 1-1 2.4s1 2.8 1.2 3c.1.2 2 3 4.8 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.7-.7 2-1.4.2-.6.2-1.1.2-1.3-.1-.1-.3-.2-.6-.3z"/><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5.1-1.3A10 10 0 1012 2zm0 18.2c-1.6 0-3.1-.4-4.5-1.2l-.3-.2-3.1.8.8-3-.2-.3A8.2 8.2 0 1112 20.2z"/></svg>
+    <span class="floater-label">Chat on WhatsApp</span>
+  </a>
+  <a class="floater mail" href="mailto:info@thesonicmedia.com" aria-label="Email us">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h16v16H4z"/><path d="M4 6l8 7 8-7"/></svg>
+    <span class="floater-label">Email Us</span>
+  </a>
+</div>
+
+<button class="top-btn" id="topBtn" aria-label="Back to top">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>
+</button>
+
+<script>
+  // ---------- Header solid on scroll ----------
+  const header = document.getElementById('siteHeader');
+  const topBtn = document.getElementById('topBtn');
+  window.addEventListener('scroll', () => {
+    header.classList.toggle('solid', window.scrollY > 40);
+    topBtn.classList.toggle('show', window.scrollY > 600);
+  });
+  topBtn.addEventListener('click', () => window.scrollTo({top:0,behavior:'smooth'}));
+
+  // ---------- Mobile nav ----------
+  const navToggle = document.getElementById('navToggle');
+  const siteNav = document.getElementById('siteNav');
+  navToggle.addEventListener('click', () => siteNav.classList.toggle('open'));
+  siteNav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => siteNav.classList.remove('open')));
+
+  // ---------- Hero headline word reveal ----------
+  const headline = "Loans built around your life.";
+  const headlineEl = document.getElementById('heroHeadline');
+  headline.split(' ').forEach((w,i) => {
+    const span = document.createElement('span');
+    span.className = 'word';
+    span.style.animationDelay = (0.15*i)+'s';
+    span.textContent = w + '\u00A0';
+    headlineEl.appendChild(span);
+  });
+
+  // ---------- Scroll reveal ----------
+  const revealEls = document.querySelectorAll('.reveal, .process-step');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('in-view'); });
+  }, {threshold:0.2});
+  revealEls.forEach(el => io.observe(el));
+
+  // ---------- Counters ----------
+  const counters = document.querySelectorAll('.counter');
+  const counterIO = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){
+        const el = entry.target;
+        const target = +el.dataset.target;
+        let cur = 0;
+        const step = Math.max(1, target/40);
+        const t = setInterval(() => {
+          cur += step;
+          if(cur >= target){ cur = target; clearInterval(t); }
+          el.textContent = Math.floor(cur);
+        }, 30);
+        counterIO.unobserve(el);
+      }
+    });
+  }, {threshold:0.5});
+  counters.forEach(c => counterIO.observe(c));
+
+  // ---------- Process line fill ----------
+  const processTrack = document.getElementById('processTrack');
+  const processFill = document.getElementById('processFill');
+  new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting) processFill.style.width = '100%'; });
+  }, {threshold:0.4}).observe(processTrack);
+
+  // ---------- Loan tabs ----------
+  document.querySelectorAll('.loan-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.loan-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.loan-panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.tab).classList.add('active');
+    });
+  });
+
+  // ---------- Flip cards (tap to flip on touch devices) ----------
+  document.querySelectorAll('.flip-card').forEach(card => {
+    card.addEventListener('click', () => {
+      if(window.matchMedia('(hover: none)').matches) card.classList.toggle('flipped');
+    });
+  });
+
+  // ---------- Marquee logos ----------
+  const logos = [
+    'https://res.cloudinary.com/vwdrbdrg/image/upload/v1784927431/7_szxqt8.png',
+    'https://res.cloudinary.com/vwdrbdrg/image/upload/v1784927431/6_dgtf7b.png',
+    'https://res.cloudinary.com/vwdrbdrg/image/upload/v1784927431/5_pdnnkf.png',
+    'https://res.cloudinary.com/vwdrbdrg/image/upload/v1784927430/3_oku5l2.png',
+    'https://res.cloudinary.com/vwdrbdrg/image/upload/v1784927431/8_dbasty.png',
+    'https://res.cloudinary.com/vwdrbdrg/image/upload/v1784927431/4_ijhlb3.png',
+    'https://res.cloudinary.com/vwdrbdrg/image/upload/v1784927431/1_lz6ihu.png',
+    'https://res.cloudinary.com/vwdrbdrg/image/upload/v1784927431/2_ecsr4x.png'
+  ];
+  function fillTrack(id){
+    const track = document.getElementById(id);
+    const doubled = [...logos, ...logos];
+    doubled.forEach(src => {
+      const img = document.createElement('img');
+      img.src = src; img.alt = 'Partner bank logo'; img.loading='lazy';
+      track.appendChild(img);
+    });
+  }
+  fillTrack('track1');
+  fillTrack('track2');
+
+  // ---------- EMI Calculator ----------
+  const amount = document.getElementById('amount');
+  const rate = document.getElementById('rate');
+  const tenure = document.getElementById('tenure');
+  const amountLabel = document.getElementById('amountLabel');
+  const rateLabel = document.getElementById('rateLabel');
+  const tenureLabel = document.getElementById('tenureLabel');
+  const emiValue = document.getElementById('emiValue');
+  const interestValue = document.getElementById('interestValue');
+  const totalValue = document.getElementById('totalValue');
+  const donutPrincipal = document.getElementById('donutPrincipal');
+  const donutInterest = document.getElementById('donutInterest');
+  const donutCenterPct = document.getElementById('donutCenterPct');
+  const donutPrincipalPct = document.getElementById('donutPrincipalPct');
+  const donutInterestPct = document.getElementById('donutInterestPct');
+  const CIRC = 2 * Math.PI * 50;
+
+  function inr(n){ return '₹' + Math.round(n).toLocaleString('en-IN'); }
+
+  function animateNumber(el, to){
+    const from = parseInt(el.textContent.replace(/[^0-9]/g,'')) || 0;
+    const duration = 500; const start = performance.now();
+    function tick(now){
+      const p = Math.min(1, (now-start)/duration);
+      const eased = 1 - Math.pow(1-p, 3);
+      const val = Math.round(from + (to-from)*eased);
+      el.textContent = val.toLocaleString('en-IN');
+      if(p < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function calcEMI(){
+    const P = +amount.value;
+    const annualRate = +rate.value;
+    const years = +tenure.value;
+    const n = years*12;
+    const r = annualRate/12/100;
+    let emi;
+    if(r === 0){ emi = P/n; } else { emi = P*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1); }
+    const totalPayment = emi*n;
+    const totalInterest = totalPayment - P;
+
+    amountLabel.textContent = inr(P);
+    rateLabel.textContent = annualRate.toFixed(1)+'%';
+    tenureLabel.textContent = years + (years===1?' Year':' Years');
+
+    animateNumber(emiValue, Math.round(emi));
+    interestValue.textContent = inr(totalInterest);
+    totalValue.textContent = inr(totalPayment);
+
+    const pPct = Math.max(4, Math.min(96, (P/totalPayment)*100));
+    const iPct = 100 - pPct;
+    donutPrincipal.setAttribute('stroke-dasharray', `${(pPct/100)*CIRC} ${CIRC}`);
+    donutInterest.setAttribute('stroke-dasharray', `${(iPct/100)*CIRC} ${CIRC}`);
+    donutInterest.setAttribute('stroke-dashoffset', `${-(pPct/100)*CIRC}`);
+    donutCenterPct.textContent = Math.round(pPct)+'%';
+    donutPrincipalPct.textContent = Math.round(pPct)+'%';
+    donutInterestPct.textContent = Math.round(iPct)+'%';
+  }
+  [amount, rate, tenure].forEach(el => el.addEventListener('input', calcEMI));
+  calcEMI();
+
+  // ---------- Custom "Loan Interested In" dropdown ----------
+  const loanField = document.getElementById('loanSelectField');
+  const loanTrigger = document.getElementById('loanSelectTrigger');
+  const loanValueEl = document.getElementById('loanSelectValue');
+  const loanOptionsList = document.getElementById('loanSelectOptions');
+  const loanInput = document.getElementById('loanInterest');
+
+  function setLoanValue(val){
+    loanValueEl.textContent = val;
+    loanInput.value = val;
+    loanField.classList.remove('error');
+    loanOptionsList.querySelectorAll('li').forEach(li => li.classList.toggle('active', li.dataset.value === val));
+  }
+  function openLoanSelect(){ loanField.classList.add('open'); loanTrigger.setAttribute('aria-expanded','true'); }
+  function closeLoanSelect(){ loanField.classList.remove('open'); loanTrigger.setAttribute('aria-expanded','false'); }
+
+  loanTrigger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    loanField.classList.contains('open') ? closeLoanSelect() : openLoanSelect();
+  });
+  loanOptionsList.querySelectorAll('li').forEach(li => {
+    li.addEventListener('click', () => { setLoanValue(li.dataset.value); closeLoanSelect(); });
+  });
+  document.addEventListener('click', (e) => { if(!loanField.contains(e.target)) closeLoanSelect(); });
+  document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeLoanSelect(); });
+
+  // ---------- Apply Now buttons on loan cards ----------
+  document.querySelectorAll('.apply-now').forEach(btn => {
+    const go = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      setLoanValue(btn.dataset.loan);
+      document.getElementById('contact').scrollIntoView({behavior:'smooth'});
+      loanField.classList.add('highlight');
+      setTimeout(() => loanField.classList.remove('highlight'), 1400);
+    };
+    btn.addEventListener('click', go);
+    btn.addEventListener('keydown', (e) => { if(e.key === 'Enter' || e.key === ' '){ go(e); } });
+  });
+
+  // ---------- Contact form (no backend — demo success state) ----------
+  const contactForm = document.getElementById('contactForm');
+  const formSuccess = document.getElementById('formSuccess');
+  contactForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if(!loanInput.value){
+      loanField.classList.add('error');
+      loanTrigger.focus();
+      return;
+    }
+    formSuccess.classList.add('show');
+    contactForm.reset();
+    setLoanValue('');
+    loanValueEl.innerHTML = '&nbsp;';
+    setTimeout(() => formSuccess.classList.remove('show'), 6000);
+  });
+
+  // ---------- Footer year ----------
+  document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>

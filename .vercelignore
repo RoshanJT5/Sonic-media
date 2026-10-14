@@ -1,0 +1,17 @@
+# Internal documentation and audit plans
+docs/
+*.md
+
+# Local server runners
+server.py
+server.js
+
+# Alternative server configs
+.htaccess
+_redirects
+
+# Git and OS metadata
+.git/
+.gitignore
+.DS_Store
+Thumbs.db
