@@ -2,8 +2,9 @@
  * Shared Supabase REST Client with resilient timeout, retry, and DOMPurify sanitization helper.
  * The Sonic Media Production Client.
  */
-window.SUPABASE_URL = window.SUPABASE_URL || 'https://plytoawhcvzdjtrgtnrn.supabase.co';
-window.SUPABASE_ANON = window.SUPABASE_ANON || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBseXRvYXdoY3Z6ZGp0cmd0bnJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5NjkyNTYsImV4cCI6MjEwNzU0NTI1Nn0.AxpKzQf5LL-ePbmtsxELKQdip3bYp9hBp9xYugybelc';
+const cfg = window.SUPABASE_CONFIG || {};
+window.SUPABASE_URL = cfg.URL || window.SUPABASE_URL || '';
+window.SUPABASE_ANON = cfg.ANON_KEY || window.SUPABASE_ANON || '';
 window.REST_HEADERS = { 'apikey': window.SUPABASE_ANON, 'Authorization': 'Bearer ' + window.SUPABASE_ANON };
 
 async function sbGet(path, { timeout = 8000, retries = 1 } = {}) {

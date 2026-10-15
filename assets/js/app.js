@@ -318,9 +318,9 @@ function reinitHomeAnimations() {
 }
 
 /* ── RESULTS THAT SPEAK — PINNED HORIZONTAL TIMELINE GSAP ANIMATION ──
-   Replicates the Hyperiux Vault / 21st.dev Timeline using vanilla GSAP ScrollTrigger.
-   Pins the viewport and scrubs horizontal progress, central line width,
-   vertical stems, dots, and milestone card reveals.
+   Dynamic, unbounded timeline: supports ANY number of portfolio cards (6, 7, 10, 15+).
+   Pins the viewport and scrubs horizontal progress, central rail & traveling pulse head,
+   and staggered vertical stems, glowing dots, and milestone cards along a single unified master timeline.
 */
 function initTimelineAnimations() {
   if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
@@ -329,18 +329,53 @@ function initTimelineAnimations() {
   if (!sections.length) return;
 
   const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const isMobile = window.innerWidth < 768;
+  const winW = window.innerWidth;
+  const isMobile = winW < 768;
+  const isSmallPhone = winW <= 480;
+  const isTablet = winW >= 768 && winW <= 1024;
 
   sections.forEach(function(section) {
     const slider = section.querySelector('.sonic-timeline-slider');
     if (!slider) return;
 
-    // Kill any existing ScrollTrigger instances scoped to this section to avoid duplicate triggers
+    // 1. Kill any existing ScrollTrigger instances scoped to this section to avoid duplicate triggers
     ScrollTrigger.getAll().forEach(function(st) {
       if (st.trigger === section || (st.vars && st.vars.trigger === section)) {
         st.kill();
       }
     });
+
+    // 2. Discover all milestone items in alternating chronological order
+    const works = (typeof PAGE_DATA !== 'undefined' && PAGE_DATA.portfolio && PAGE_DATA.portfolio.works) 
+      ? PAGE_DATA.portfolio.works 
+      : [];
+    
+    let itemsToAnimate = [];
+    if (works && works.length > 0) {
+      works.forEach(function(w, idx) {
+        const el = section.querySelector('.sonic-milestone-item[data-id="' + w.id + '"]');
+        if (el) itemsToAnimate.push({ el: el, index: idx, id: w.id });
+      });
+    }
+    // Also include any milestone items in the DOM that might not be in works array
+    section.querySelectorAll('.sonic-milestone-item').forEach(function(el) {
+      if (!itemsToAnimate.some(it => it.el === el)) {
+        itemsToAnimate.push({ el: el, index: itemsToAnimate.length, id: el.getAttribute('data-id') || '' });
+      }
+    });
+
+    const numCards = itemsToAnimate.length;
+    const cols = Math.max(3, Math.ceil(numCards / 2));
+
+    // Dynamic section height: tuned for each device tier so pacing is relaxed and luxurious
+    const targetVh = isSmallPhone
+      ? Math.max(340, 170 + cols * 48)
+      : (isMobile 
+          ? Math.max(360, 185 + cols * 52) 
+          : (isTablet 
+              ? Math.max(300, 160 + cols * 44) 
+              : Math.max(280, 150 + cols * 42)));
+    section.style.height = targetVh + 'vh';
 
     // Ensure .sonic-timeline-rail and .journey-line-glow-head are present
     const lineWrap = section.querySelector('.sonic-timeline-center-line-wrap');
@@ -368,140 +403,146 @@ function initTimelineAnimations() {
       if (line) gsap.set(line, { width: '100%' });
       if (headDot) gsap.set(headDot, { opacity: 1 });
       if (endDot) endDot.classList.add('active');
-      const stems = section.querySelectorAll('.sonic-stem-line');
-      const dots = section.querySelectorAll('.sonic-stem-dot');
-      const cards = section.querySelectorAll('.sonic-milestone-card');
-      stems.forEach(function(s) { gsap.set(s, { scaleY: 1 }); });
-      dots.forEach(function(d) { gsap.set(d, { scale: 1 }); });
-      cards.forEach(function(c) { gsap.set(c, { opacity: 1, y: 0 }); });
+      itemsToAnimate.forEach(function(itemObj) {
+        const s = itemObj.el.querySelector('.sonic-stem-line');
+        const d = itemObj.el.querySelector('.sonic-stem-dot');
+        const c = itemObj.el.querySelector('.sonic-milestone-card');
+        if (s) gsap.set(s, { scaleY: 1 });
+        if (d) gsap.set(d, { scale: 1 });
+        if (c) gsap.set(c, { opacity: 1, y: 0 });
+      });
       return;
     }
 
-    // Dynamic horizontal scrub calculation
+    // Dynamic horizontal scrub calculation tailored per device
     const getSlideDistance = function() {
-      const extra = isMobile ? 30 : 60;
+      const extra = isSmallPhone ? 15 : (isMobile ? 25 : (isTablet ? 40 : 60));
       return -(slider.scrollWidth - window.innerWidth + extra);
     };
 
-    // 1. Horizontal slider scrub
-    gsap.fromTo(slider,
-      { x: 0 },
-      {
-        x: getSlideDistance,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: section,
-          start: 'top top',
-          end: 'bottom bottom',
-          scrub: 1.2,
-          invalidateOnRefresh: true,
-        }
-      }
-    );
+    // Responsive scrub stiffness: snappy on touch devices, buttery on desktop
+    const scrubVal = isMobile ? 0.75 : (isTablet ? 0.95 : 1.2);
 
-    // 2. Central timeline line expansion (horizontal drawing animation with traveling pulse head)
-    if (line) {
-      gsap.fromTo(line,
-        { width: '0%' },
-        {
-          width: '100%',
-          ease: 'none',
-          scrollTrigger: {
-            trigger: section,
-            start: 'top top',
-            end: isMobile ? 'bottom 85%' : 'bottom 90%',
-            scrub: 1.2,
-            invalidateOnRefresh: true,
-            onUpdate: function(self) {
-              if (headDot) {
-                headDot.style.opacity = self.progress > 0.005 ? '1' : '0';
-              }
-              if (endDot) {
-                if (self.progress >= 0.88) {
-                  endDot.classList.add('active');
-                } else {
-                  endDot.classList.remove('active');
-                }
-              }
+    // 3. Unified Master Timeline scrubbed across the pinned section
+    const masterTl = gsap.timeline({
+      scrollTrigger: {
+        trigger: section,
+        start: 'top top',
+        end: 'bottom bottom',
+        scrub: scrubVal,
+        invalidateOnRefresh: true,
+        onUpdate: function(self) {
+          if (headDot) {
+            headDot.style.opacity = self.progress > 0.005 ? '1' : '0';
+          }
+          if (endDot) {
+            if (self.progress >= 0.88) {
+              endDot.classList.add('active');
+            } else {
+              endDot.classList.remove('active');
             }
           }
         }
+      }
+    });
+
+    // 3a. Horizontal slider scrub across the entire 0 -> 1 timeline progress
+    masterTl.fromTo(slider,
+      { x: 0 },
+      { x: getSlideDistance, ease: 'none', duration: 1 },
+      0
+    );
+
+    // 3b. Central timeline line expansion (horizontal drawing animation with traveling pulse head)
+    if (line) {
+      masterTl.fromTo(line,
+        { width: '0%' },
+        { width: '100%', ease: 'none', duration: 0.88 },
+        0
       );
     }
 
-    // 3. Staggered stem, dot & card reveals along the scroll scrub in alternating sequence: Top (01) -> Bottom (02) -> Top (03) -> Bottom (04)...
-    const works = (typeof PAGE_DATA !== 'undefined' && PAGE_DATA.portfolio && PAGE_DATA.portfolio.works) 
-      ? PAGE_DATA.portfolio.works 
-      : [];
+    // 3c. Staggered stem, dot & card reveals along the scrub
+    // Supports ANY number of cards: dynamically slots every card between startRange and endRange
+    const startRange = isSmallPhone ? 0.025 : (isMobile ? 0.03 : 0.03);
+    const endRange = isMobile ? 0.85 : 0.82;
+    const step = numCards > 1 ? ((endRange - startRange) / (numCards - 0.5)) : 0.4;
+    const cardDuration = Math.min(0.20, Math.max(0.08, step * 1.3));
 
-    const positions = isMobile
-      ? [
-          [10, 24],
-          [22, 36],
-          [34, 48],
-          [46, 60],
-          [58, 72],
-          [70, 84],
-        ]
-      : [
-          [6, 20],
-          [18, 32],
-          [30, 44],
-          [42, 56],
-          [54, 68],
-          [66, 80],
-        ];
+    itemsToAnimate.forEach(function(itemObj) {
+      const el = itemObj.el;
+      const index = itemObj.index;
+      const isTop = el.classList.contains('top') || (index % 2 === 0);
+      const stem = el.querySelector('.sonic-stem-line');
+      const dot = el.querySelector('.sonic-stem-dot');
+      const card = el.querySelector('.sonic-milestone-card');
 
-    works.forEach(function(w, index) {
-      const item = section.querySelector('.sonic-milestone-item[data-id="' + w.id + '"]');
-      if (!item) return;
-
-      const isTop = index % 2 === 0;
-      const stem = item.querySelector('.sonic-stem-line');
-      const dot = item.querySelector('.sonic-stem-dot');
-      const card = item.querySelector('.sonic-milestone-card');
+      const cardStart = startRange + (index * step);
 
       if (stem) {
-        gsap.set(stem, {
-          scaleY: 0,
-          transformOrigin: isTop ? 'bottom bottom' : 'top top'
-        });
-      }
-      if (dot) gsap.set(dot, { scale: 0 });
-      if (card) gsap.set(card, { opacity: 0.15, y: isTop ? 32 : -32 });
-
-      const pos = positions[index] || [6 + index * 12, 20 + index * 12];
-
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: section,
-          start: pos[0] + '% top',
-          end: pos[1] + '% top',
-          scrub: 1.2,
-        }
-      });
-
-      if (stem) {
-        tl.to(stem, { scaleY: 1, duration: 0.45, ease: 'power2.out' }, 0);
+        masterTl.fromTo(stem,
+          { scaleY: 0, transformOrigin: isTop ? 'bottom bottom' : 'top top' },
+          { scaleY: 1, duration: cardDuration * 0.65, ease: 'power2.out' },
+          cardStart
+        );
       }
       if (dot) {
-        tl.to(dot, { scale: 1, duration: 0.4, ease: 'back.out(2)' }, 0);
+        masterTl.fromTo(dot,
+          { scale: 0 },
+          { scale: 1, duration: cardDuration * 0.55, ease: 'back.out(2)' },
+          cardStart
+        );
       }
       if (card) {
-        tl.to(card, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, 0.08);
+        const yOffset = isSmallPhone ? (isTop ? 20 : -20) : (isMobile ? (isTop ? 26 : -26) : (isTop ? 32 : -32));
+        masterTl.fromTo(card,
+          { opacity: 0.15, y: yOffset },
+          { opacity: 1, y: 0, duration: cardDuration, ease: 'power2.out' },
+          cardStart + cardDuration * 0.12
+        );
       }
     });
+
+    // 4. Touch swipe helper for mobile: horizontal finger swipe smoothly scrolls the timeline
+    if (isMobile && !slider.__hasTouchListener) {
+      slider.__hasTouchListener = true;
+      let touchStartX = 0;
+      let touchStartY = 0;
+
+      slider.addEventListener('touchstart', function(e) {
+        if (e.touches && e.touches.length === 1) {
+          touchStartX = e.touches[0].clientX;
+          touchStartY = e.touches[0].clientY;
+        }
+      }, { passive: true });
+
+      slider.addEventListener('touchmove', function(e) {
+        if (e.touches && e.touches.length === 1) {
+          const dx = e.touches[0].clientX - touchStartX;
+          const dy = e.touches[0].clientY - touchStartY;
+          if (Math.abs(dx) > Math.abs(dy) * 1.15 && Math.abs(dx) > 10) {
+            window.scrollBy({ top: -dx * 0.85, behavior: 'auto' });
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+          }
+        }
+      }, { passive: true });
+    }
   });
 
   ScrollTrigger.refresh();
 }
 window.initTimelineAnimations = initTimelineAnimations;
 
-// Hook timeline into resize
+// Hook timeline into resize and orientation change
 let _timelineResizeTimer = null;
 window.addEventListener('resize', function() {
   clearTimeout(_timelineResizeTimer);
-  _timelineResizeTimer = setTimeout(initTimelineAnimations, 250);
+  _timelineResizeTimer = setTimeout(initTimelineAnimations, 200);
+}, { passive: true });
+
+window.addEventListener('orientationchange', function() {
+  setTimeout(initTimelineAnimations, 300);
 }, { passive: true });
 
 
@@ -526,80 +567,117 @@ window.navigate = function(page) {
 
 /* ─ Cursor ─ */
 const cursor = document.getElementById('cursor');
+const isTouchDevice = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
 const cursorFollower = document.getElementById('cursor-follower');
 const mouseGlow = document.getElementById('mouse-glow');
 let mx = 0, my = 0, fx = 0, fy = 0;
 let cursorRAF = null;
+let animCursorRunning = false;
 
-// Throttle mousemove for better performance
-let lastUpdate = 0;
-document.addEventListener('mousemove', e => {
-  const now = performance.now();
-  if (now - lastUpdate < 10) return; // Max 100fps
-  lastUpdate = now;
-  
-  mx = e.clientX; my = e.clientY;
-  if (cursor) { cursor.style.left = mx + 'px'; cursor.style.top = my + 'px'; }
-  if (mouseGlow) { mouseGlow.style.left = mx + 'px'; mouseGlow.style.top = my + 'px'; }
-}, { passive: true });
-
-(function animCursor() {
-  if (cursorFollower) {
-    fx += (mx - fx) * 0.15; fy += (my - fy) * 0.15;
-    cursorFollower.style.left = fx + 'px'; cursorFollower.style.top = fy + 'px';
-  }
-  cursorRAF = requestAnimationFrame(animCursor);
-})();
-
-document.addEventListener('mouseover', e => {
-  if (e.target.closest('a,button,.svc-card,.cs-item,.tcard,.jcard,.fv-card,.studio-card,.team-card,.val-card,.equip-card,.price-card,.wd-card,.wd-full-card,.wd-gallery-card,.wd-meta-card,.wd-nav-btn'))
-    document.body.classList.add('cursor-hover');
-  else document.body.classList.remove('cursor-hover');
-}, { passive: true });
-
-/* ─ Cursor Trail ─ */
-(function() {
-  const canvas = document.getElementById('cursor-trail');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d', { alpha: true });
-  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-  
-  let resizeTimeout;
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(() => {
-      canvas.width = window.innerWidth; 
-      canvas.height = window.innerHeight;
-    }, 200);
-  }, { passive: true });
-  
-  const trail = [];
-  const maxTrailLength = 15; // Limit trail points
-  
-  let lastTrailUpdate = 0;
+if (!isTouchDevice) {
+  // Throttle mousemove for better performance
+  let lastUpdate = 0;
   document.addEventListener('mousemove', e => {
     const now = performance.now();
-    if (now - lastTrailUpdate < 40) return; // Throttle trail updates
-    lastTrailUpdate = now;
+    if (now - lastUpdate < 10) return; // Max 100fps
+    lastUpdate = now;
     
-    trail.push({ x: e.clientX, y: e.clientY, alpha: 1 });
-    if (trail.length > maxTrailLength) trail.shift();
-  }, { passive: true });
-  
-  (function drawTrail() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (let i = trail.length - 1; i >= 0; i--) {
-      const p = trail[i];
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255,92,0,${p.alpha * 0.2})`;
-      ctx.fill();
-      p.alpha -= 0.06;
-      if (p.alpha <= 0) trail.splice(i, 1);
+    mx = e.clientX; my = e.clientY;
+    if (cursor) { cursor.style.left = mx + 'px'; cursor.style.top = my + 'px'; }
+    if (mouseGlow) { mouseGlow.style.left = mx + 'px'; mouseGlow.style.top = my + 'px'; }
+
+    // Start cursor animation loop only when mouse moves
+    if (!animCursorRunning && cursorFollower) {
+      animCursorRunning = true;
+      cursorRAF = requestAnimationFrame(animCursor);
     }
-    requestAnimationFrame(drawTrail);
+  }, { passive: true });
+
+  function animCursor() {
+    if (cursorFollower) {
+      const dx = mx - fx;
+      const dy = my - fy;
+      fx += dx * 0.15; 
+      fy += dy * 0.15;
+      cursorFollower.style.left = fx + 'px'; 
+      cursorFollower.style.top = fy + 'px';
+
+      // Sleep loop if close enough to mouse position
+      if (Math.abs(dx) < 0.1 && Math.abs(dy) < 0.1) {
+        animCursorRunning = false;
+        return;
+      }
+    }
+    cursorRAF = requestAnimationFrame(animCursor);
+  }
+
+  document.addEventListener('mouseover', e => {
+    if (e.target.closest('a,button,.svc-card,.cs-item,.tcard,.jcard,.fv-card,.studio-card,.team-card,.val-card,.equip-card,.price-card,.wd-card,.wd-full-card,.wd-gallery-card,.wd-meta-card,.wd-nav-btn'))
+      document.body.classList.add('cursor-hover');
+    else document.body.classList.remove('cursor-hover');
+  }, { passive: true });
+
+  /* ─ Cursor Trail (Event-Driven & Sleeping Loop) ─ */
+  (function() {
+    const canvas = document.getElementById('cursor-trail');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d', { alpha: true });
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+    
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        canvas.width = window.innerWidth; 
+        canvas.height = window.innerHeight;
+      }, 200);
+    }, { passive: true });
+    
+    const trail = [];
+    const maxTrailLength = 15;
+    let trailRunning = false;
+    let lastTrailUpdate = 0;
+
+    document.addEventListener('mousemove', e => {
+      const now = performance.now();
+      if (now - lastTrailUpdate < 40) return;
+      lastTrailUpdate = now;
+      
+      trail.push({ x: e.clientX, y: e.clientY, alpha: 1 });
+      if (trail.length > maxTrailLength) trail.shift();
+
+      if (!trailRunning) {
+        trailRunning = true;
+        requestAnimationFrame(drawTrail);
+      }
+    }, { passive: true });
+    
+    function drawTrail() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = trail.length - 1; i >= 0; i--) {
+        const p = trail[i];
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,92,0,${p.alpha * 0.2})`;
+        ctx.fill();
+        p.alpha -= 0.06;
+        if (p.alpha <= 0) trail.splice(i, 1);
+      }
+
+      if (trail.length > 0) {
+        requestAnimationFrame(drawTrail);
+      } else {
+        trailRunning = false; // Sleep until next mouse move!
+      }
+    }
   })();
-})();
+} else {
+  // Mobile / Touch devices: hide unused desktop cursor elements
+  if (cursor) cursor.style.display = 'none';
+  if (cursorFollower) cursorFollower.style.display = 'none';
+  const cTrail = document.getElementById('cursor-trail');
+  if (cTrail) cTrail.style.display = 'none';
+}
 
 /* ─ Scroll Progress ─ */
 const sp=document.getElementById('sp');
@@ -2580,35 +2658,26 @@ function setAttr(id, attr, val) {
    Fallback to instant embedded PAGE_DATA if offline.
 ═══════════════════════════════════════════════════ */
 async function syncSonicMediaSupabase() {
-  const SUPABASE_URL = 'https://plytoawhcvzdjtrgtnrn.supabase.co';
-  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBseXRvYXdoY3Z6ZGp0cmd0bnJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5NjkyNTYsImV4cCI6MjEwNzU0NTI1Nn0.AxpKzQf5LL-ePbmtsxELKQdip3bYp9hBp9xYugybelc';
+  const SUPABASE_URL = (window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.URL) || window.SUPABASE_URL || '';
+  const SUPABASE_ANON = (window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.ANON_KEY) || window.SUPABASE_ANON || '';
   const headers = { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON };
 
   const CACHE_VERSION = 'tsm_v2';
   const CACHE_KEY = 'tsm_supabase_cache';
 
-  // ── Step 1: Instant Stale-While-Revalidate Cache Hydration (0ms Load Time) ──
-  try {
-    const cachedRaw = localStorage.getItem(CACHE_KEY);
-    if (cachedRaw) {
-      const cached = JSON.parse(cachedRaw);
-      const isFresh = cached && cached.version === CACHE_VERSION && (Date.now() - (cached.ts || 0) < 24 * 60 * 60 * 1000);
-      if (isFresh) {
-        if (cached.portfolio && Array.isArray(cached.portfolio)) applyPortfolioData(cached.portfolio);
-        if (cached.cases && Array.isArray(cached.cases)) applyCaseData(cached.cases);
-        if (cached.journal && Array.isArray(cached.journal)) applyJournalData(cached.journal);
-        if (cached.content && Array.isArray(cached.content)) applyContentData(cached.content);
-        renderPageData();
-      }
-    }
-  } catch (e) {
-    console.debug('Cache hydration notice:', e);
+  // ── Helper Data Transformers ──
+  const hasAdminSession = !!(window.sessionStorage?.getItem('sonicmedia_admin_session') || window.localStorage?.getItem('sonicmedia_admin_session'));
+  const isPreviewMode = window.location.search.includes('preview=true');
+
+  function isVisibleItem(item) {
+    if (hasAdminSession || isPreviewMode) return true;
+    return !item.status || item.status === 'published';
   }
 
-  // ── Helper Data Transformers ──
   function applyPortfolioData(portfolioData) {
     if (!Array.isArray(portfolioData) || portfolioData.length === 0) return false;
-    PAGE_DATA.portfolio.works = portfolioData.map(item => {
+    const filtered = portfolioData.filter(isVisibleItem);
+    PAGE_DATA.portfolio.works = filtered.map(item => {
       if (item.details && typeof item.details === 'object' && Object.keys(item.details).length > 0) {
         workDetails[item.id] = Object.assign({}, workDetails[item.id] || {}, item.details);
       } else if (!workDetails[item.id]) {
@@ -2646,7 +2715,8 @@ async function syncSonicMediaSupabase() {
 
   function applyCaseData(caseData) {
     if (!Array.isArray(caseData) || caseData.length === 0) return false;
-    PAGE_DATA.casestudies.items = caseData.map(item => {
+    const filtered = caseData.filter(isVisibleItem);
+    PAGE_DATA.casestudies.items = filtered.map(item => {
       if (item.details && typeof item.details === 'object' && Object.keys(item.details).length > 0) {
         caseStudies[item.id] = Object.assign({}, caseStudies[item.id] || {}, item.details);
       } else {
@@ -2674,7 +2744,8 @@ async function syncSonicMediaSupabase() {
 
   function applyJournalData(journalData) {
     if (!Array.isArray(journalData) || journalData.length === 0) return false;
-    PAGE_DATA.journal.posts = journalData.map(item => {
+    const filtered = journalData.filter(isVisibleItem);
+    PAGE_DATA.journal.posts = filtered.map(item => {
       if (item.details && typeof item.details === 'object' && Object.keys(item.details).length > 0) {
         blogArticles[item.id] = Object.assign({}, blogArticles[item.id] || {}, item.details);
       } else {
@@ -2713,6 +2784,24 @@ async function syncSonicMediaSupabase() {
       }
     });
     return true;
+  }
+
+  // ── Step 1: Instant Stale-While-Revalidate Cache Hydration (0ms Load Time) ──
+  try {
+    const cachedRaw = localStorage.getItem(CACHE_KEY);
+    if (cachedRaw) {
+      const cached = JSON.parse(cachedRaw);
+      const isFresh = cached && cached.version === CACHE_VERSION && (Date.now() - (cached.ts || 0) < 24 * 60 * 60 * 1000);
+      if (isFresh) {
+        if (cached.portfolio && Array.isArray(cached.portfolio)) applyPortfolioData(cached.portfolio);
+        if (cached.cases && Array.isArray(cached.cases)) applyCaseData(cached.cases);
+        if (cached.journal && Array.isArray(cached.journal)) applyJournalData(cached.journal);
+        if (cached.content && Array.isArray(cached.content)) applyContentData(cached.content);
+        renderPageData();
+      }
+    }
+  } catch (e) {
+    console.debug('Cache hydration notice:', e);
   }
 
   // ── Step 2: Resilient Fail-Safe Live Fetch from Supabase (Per-Page & Targeted Columns) ──
@@ -2757,7 +2846,7 @@ async function syncSonicMediaSupabase() {
     // 1. Portfolio list: only request card columns (cuts payload by 90%)
     if (isHome || isPortfolio) {
       fetches.push(
-        fetchSafe(`${SUPABASE_URL}/rest/v1/portfolio_items?select=id,num,cat,name,tags,img,metric_val,metric_lbl,display_order&order=display_order.asc`).then(data => {
+        fetchSafe(`${SUPABASE_URL}/rest/v1/portfolio_items?select=id,num,cat,name,tags,img,metric_val,metric_lbl,display_order,status&order=display_order.asc`).then(data => {
           if (data && applyPortfolioData(data)) {
             updateCacheKey('portfolio', data);
             renderPageData();
@@ -2770,7 +2859,7 @@ async function syncSonicMediaSupabase() {
     // 2. Case studies list: only request card columns
     if (isHome || isCases) {
       fetches.push(
-        fetchSafe(`${SUPABASE_URL}/rest/v1/case_studies?select=id,img,cat,cat_label,date,title,excerpt,tags,display_order&order=display_order.asc`).then(data => {
+        fetchSafe(`${SUPABASE_URL}/rest/v1/case_studies?select=id,img,cat,cat_label,date,title,excerpt,tags,display_order,status&order=display_order.asc`).then(data => {
           if (data && applyCaseData(data)) {
             updateCacheKey('cases', data);
             renderPageData();
@@ -2782,7 +2871,7 @@ async function syncSonicMediaSupabase() {
     // 3. Journal list: only request card columns (cuts from ~69KB to ~2KB)
     if (isHome || isJournal) {
       fetches.push(
-        fetchSafe(`${SUPABASE_URL}/rest/v1/journal_posts?select=id,num,title,cat,read_time,date,thumb_url,tags,display_order&order=display_order.asc`).then(data => {
+        fetchSafe(`${SUPABASE_URL}/rest/v1/journal_posts?select=id,num,title,cat,read_time,date,thumb_url,tags,display_order,status&order=display_order.asc`).then(data => {
           if (data && applyJournalData(data)) {
             updateCacheKey('journal', data);
             renderPageData();
@@ -2807,24 +2896,79 @@ async function syncSonicMediaSupabase() {
   }
 }
 
-// Automatically load Sonic Live CMS engine ONLY for logged-in admins
+// Apply stored visual live customizations if present
+function applySonicLiveCustomEdits() {
+  try {
+    const raw = localStorage.getItem('tsm_live_custom_edits');
+    if (!raw) return;
+    const edits = JSON.parse(raw);
+    Object.keys(edits).forEach(key => {
+      const item = edits[key];
+      if (!item) return;
+      try {
+        const el = document.querySelector(key);
+        if (el) {
+          if (item.type === 'image' && item.val) {
+            el.src = item.val;
+          } else if (item.val) {
+            el.innerHTML = item.val;
+          }
+        }
+      } catch (_) {}
+    });
+  } catch (_) {}
+}
+
+// Automatically load Sonic Live CMS engine for admins or on edit request / Ctrl+Shift+E shortcut
 (function loadSonicLiveCms() {
-  if (document.getElementById('sonic-cms-script')) return;
+  function injectCmsScript(autoOpen = false) {
+    if (document.getElementById('sonic-cms-script')) {
+      if (autoOpen && window._sonicCmsToggleMode && !document.body.classList.contains('sonic-cms-active')) {
+        window._sonicCmsToggleMode();
+      }
+      return;
+    }
+    const script = document.createElement('script');
+    script.id = 'sonic-cms-script';
+    const isServices = window.location.pathname.includes('/services/');
+    script.src = (isServices ? '../' : '') + 'assets/js/sonic-live-cms.js';
+    script.defer = true;
+    if (autoOpen) {
+      script.onload = () => {
+        if (window._sonicCmsToggleMode && !document.body.classList.contains('sonic-cms-active')) {
+          window._sonicCmsToggleMode();
+        }
+      };
+    }
+    document.body.appendChild(script);
+  }
+
   const hasAdminSession = !!(window.sessionStorage?.getItem('sonicmedia_admin_session') || window.localStorage?.getItem('sonicmedia_admin_session'));
-  const wantsEdit = window.location.search.includes('live_edit') || window.location.search.includes('edit=');
-  if (!hasAdminSession && !wantsEdit) return; // Public visitors do not load CMS engine
-  const script = document.createElement('script');
-  script.id = 'sonic-cms-script';
-  const isServices = window.location.pathname.includes('/services/');
-  script.src = (isServices ? '../' : '') + 'assets/js/sonic-live-cms.js';
-  script.defer = true;
-  document.body.appendChild(script);
+  const wantsEdit = window.location.search.includes('live_edit') || window.location.search.includes('edit=') || window.location.search.includes('cms=');
+  const isCmsActive = window.sessionStorage?.getItem('sonic_cms_active') === 'true';
+
+  if (hasAdminSession || wantsEdit || isCmsActive) {
+    injectCmsScript();
+  }
+
+  // Global activation shortcut: Ctrl+Shift+E or Cmd+Shift+E
+  window.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'E' || e.key === 'e')) {
+      e.preventDefault();
+      try {
+        window.sessionStorage.setItem('sonic_cms_active', 'true');
+        window.sessionStorage.removeItem('sonic_cms_disabled');
+      } catch (_) {}
+      injectCmsScript(true);
+    }
+  });
 })();
 
 // ── Resilient Application Bootstrapper ──
 // Runs immediately if DOM is already ready, or listens for DOMContentLoaded
 function bootSonicApp() {
   renderPageData();
+  applySonicLiveCustomEdits();
   syncSonicMediaSupabase();
   if (typeof buildFutureVisionSplit === 'function' && document.getElementById('futureSplitSection')) {
     buildFutureVisionSplit({

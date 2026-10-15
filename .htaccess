@@ -22,8 +22,31 @@
   RewriteCond %{DOCUMENT_ROOT}/$1.html -f
   RewriteRule ^(.+?)/?$ $1.html [L]
 
-  # 5. Services subfolder rewrite
+  # 5. Services and Samples subfolder rewrite
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteCond %{DOCUMENT_ROOT}/services/$1.html -f
   RewriteRule ^services/(.+?)/?$ services/$1.html [L]
+
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{DOCUMENT_ROOT}/samples/$1.html -f
+  RewriteRule ^samples/(.+?)/?$ samples/$1.html [L]
+
+  # Legacy sample aliases
+  RewriteRule ^sample-(.+?)/?$ samples/sample-$1.html [L]
+  RewriteRule ^sweetbasket/?$ samples/sweetbasket.html [L]
 </IfModule>
+
+# Browser Caching for Instant Asset Loading
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/webp "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 year"
+  ExpiresByType image/x-icon "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
+  ExpiresByType font/woff "access plus 1 year"
+</IfModule>
+

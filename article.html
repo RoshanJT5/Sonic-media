@@ -1,41 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title id="pageTitle">Article — The Sonic Media Journal</title>
-  <meta name="description" id="pageDesc" content="In-depth insights, digital marketing strategies, and industry analysis from The Sonic Media.">
-  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dq2nrpky0/image/upload/v1779787887/favicon_oalxfi.png">
-  <link rel="apple-touch-icon" href="https://res.cloudinary.com/dq2nrpky0/image/upload/v1779787887/favicon_oalxfi.png">
+  <meta name="description" id="pageDesc"
+    content="In-depth insights, digital marketing strategies, and industry analysis from The Sonic Media.">
+  <link rel="icon" type="image/png"
+    href="https://res.cloudinary.com/dq2nrpky0/image/upload/f_auto,q_auto/v1779787887/favicon_oalxfi.png">
+  <link rel="apple-touch-icon" href="https://res.cloudinary.com/dq2nrpky0/image/upload/f_auto,q_auto/v1779787887/favicon_oalxfi.png">
 
   <!-- OpenGraph / Twitter -->
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="The Sonic Media">
   <meta property="og:title" id="ogTitle" content="Article — The Sonic Media Journal">
-  <meta property="og:description" id="ogDesc" content="In-depth insights and digital marketing strategies from The Sonic Media.">
-  <meta property="og:image" id="ogImage" content="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&q=80">
+  <meta property="og:description" id="ogDesc"
+    content="In-depth insights and digital marketing strategies from The Sonic Media.">
+  <meta property="og:image" id="ogImage"
+    content="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&q=80&auto=format">
   <meta property="og:locale" content="en_IN">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@thesonicmedia">
   <meta name="robots" content="index, follow">
 
   <link rel="preconnect" href="https://plytoawhcvzdjtrgtnrn.supabase.co" crossorigin>
+  <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+  <link rel="dns-prefetch" href="https://res.cloudinary.com">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="assets/css/styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" defer
+    integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a"
+    crossorigin="anonymous"></script>
 
   <style>
     :root {
       --orange: #FF5C00;
-      --orange-dim: rgba(255,92,0,0.12);
-      --orange-glow: 0 0 40px rgba(255,92,0,0.45);
+      --orange-dim: rgba(255, 92, 0, 0.12);
+      --orange-glow: 0 0 40px rgba(255, 92, 0, 0.45);
       --black: #080808;
       --white: #F5F0EB;
     }
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; cursor: none !important; }
-    html { font-size: 16px; scroll-behavior: smooth; }
+
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      cursor: none !important;
+    }
+
+    html {
+      font-size: 16px;
+      scroll-behavior: smooth;
+    }
+
     body {
       font-family: 'DM Sans', sans-serif;
       background: #080808;
@@ -45,16 +70,33 @@
       overflow-x: hidden;
       cursor: none;
     }
+
     /* Touch / Mobile: restore default cursor */
     @media (hover: none) and (pointer: coarse) {
-      *, *::before, *::after { cursor: auto !important; }
-      body { cursor: auto !important; }
-      #cursor, #cursor-follower, #cursor-trail, #mouse-glow { display: none !important; }
+
+      *,
+      *::before,
+      *::after {
+        cursor: auto !important;
+      }
+
+      body {
+        cursor: auto !important;
+      }
+
+      #cursor,
+      #cursor-follower,
+      #cursor-trail,
+      #mouse-glow {
+        display: none !important;
+      }
     }
+
     /* Custom Cursor */
     #cursor {
       position: fixed;
-      width: 12px; height: 12px;
+      width: 12px;
+      height: 12px;
       background: #FF5C00;
       border-radius: 50%;
       pointer-events: none;
@@ -64,10 +106,12 @@
       mix-blend-mode: normal;
       will-change: transform;
     }
+
     #cursor-follower {
       position: fixed;
-      width: 40px; height: 40px;
-      border: 1.5px solid rgba(255,92,0,0.6);
+      width: 40px;
+      height: 40px;
+      border: 1.5px solid rgba(255, 92, 0, 0.6);
       border-radius: 50%;
       pointer-events: none;
       z-index: 9999998;
@@ -75,36 +119,75 @@
       transition: all 0.18s cubic-bezier(0.22, 1, 0.36, 1);
       will-change: transform;
     }
-    #cursor-trail { position: fixed; pointer-events: none; z-index: 9999997; top: 0; left: 0; width: 100%; height: 100%; }
-    body:hover #cursor { opacity: 1; }
-    .cursor-hover #cursor { width: 48px; height: 48px; background: transparent; border: 2px solid #FF5C00; mix-blend-mode: normal; }
-    .cursor-hover #cursor-follower { width: 10px; height: 10px; background: #FF5C00; border-color: transparent; }
+
+    #cursor-trail {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999997;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    body:hover #cursor {
+      opacity: 1;
+    }
+
+    .cursor-hover #cursor {
+      width: 48px;
+      height: 48px;
+      background: transparent;
+      border: 2px solid #FF5C00;
+      mix-blend-mode: normal;
+    }
+
+    .cursor-hover #cursor-follower {
+      width: 10px;
+      height: 10px;
+      background: #FF5C00;
+      border-color: transparent;
+    }
+
     #mouse-glow {
       position: fixed;
-      width: 600px; height: 600px;
-      background: radial-gradient(circle, rgba(255,92,0,0.06) 0%, transparent 70%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(255, 92, 0, 0.06) 0%, transparent 70%);
       pointer-events: none;
       z-index: 0;
       transform: translate3d(-50%, -50%, 0);
       will-change: transform;
     }
-    @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(24px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
 
     /* Top Nav */
     .art-nav {
       position: sticky;
       top: 0;
       z-index: 100;
-      background: rgba(8,8,8,.94);
+      background: rgba(8, 8, 8, .94);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(255,255,255,.07);
+      border-bottom: 1px solid rgba(255, 255, 255, .07);
       padding: 0 48px;
       height: 72px;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
+
     .art-brand {
       display: flex;
       align-items: center;
@@ -112,6 +195,7 @@
       text-decoration: none;
       line-height: 1.2;
     }
+
     .art-brand .nav-brand {
       font-family: 'Syne', sans-serif;
       font-size: 15px;
@@ -120,17 +204,19 @@
       line-height: 1.2;
       color: #F5F0EB;
     }
+
     .art-nav-actions {
       display: flex;
       align-items: center;
       gap: 12px;
     }
+
     .art-nav-btn {
       padding: 9px 22px;
       border-radius: 50px;
-      background: rgba(255,255,255,.05);
-      border: 1px solid rgba(255,255,255,.12);
-      color: rgba(245,240,235,.8);
+      background: rgba(255, 255, 255, .05);
+      border: 1px solid rgba(255, 255, 255, .12);
+      color: rgba(245, 240, 235, .8);
       font-family: 'Syne', sans-serif;
       font-size: 12px;
       font-weight: 700;
@@ -143,9 +229,10 @@
       transition: all .25s ease;
       cursor: pointer;
     }
+
     .art-nav-btn:hover {
-      background: rgba(255,92,0,.15);
-      border-color: rgba(255,92,0,.4);
+      background: rgba(255, 92, 0, .15);
+      border-color: rgba(255, 92, 0, .4);
       color: #FF5C00;
       transform: translateY(-1px);
     }
@@ -156,8 +243,9 @@
       background: #0d0d0d;
       position: relative;
       overflow: hidden;
-      border-bottom: 1px solid rgba(255,255,255,.06);
+      border-bottom: 1px solid rgba(255, 255, 255, .06);
     }
+
     .art-hero::before {
       content: '';
       position: absolute;
@@ -165,13 +253,15 @@
       right: -80px;
       width: 700px;
       height: 700px;
-      background: radial-gradient(circle, rgba(255,92,0,.08) 0%, transparent 65%);
+      background: radial-gradient(circle, rgba(255, 92, 0, .08) 0%, transparent 65%);
       pointer-events: none;
     }
+
     .art-hero-inner {
       max-width: 900px;
       margin: 0 auto;
     }
+
     .art-eyebrow {
       display: inline-flex;
       align-items: center;
@@ -185,6 +275,7 @@
       margin-bottom: 22px;
       animation: fadeUp .6s .1s both;
     }
+
     .art-eyebrow::before {
       content: '';
       width: 24px;
@@ -192,6 +283,7 @@
       background: #FF5C00;
       display: inline-block;
     }
+
     .art-h1 {
       font-family: 'Bebas Neue', sans-serif;
       font-size: clamp(44px, 6.5vw, 92px);
@@ -201,18 +293,21 @@
       color: #F5F0EB;
       animation: fadeUp .7s .2s both;
     }
+
     .art-h1 em {
       color: #FF5C00;
       font-style: normal;
     }
+
     .art-subtitle {
       font-size: 19px;
       line-height: 1.7;
-      color: rgba(245,240,235,.65);
+      color: rgba(245, 240, 235, .65);
       font-weight: 300;
       margin-bottom: 28px;
       animation: fadeUp .7s .3s both;
     }
+
     .art-meta-bar {
       display: flex;
       align-items: center;
@@ -221,16 +316,18 @@
       font-size: 12px;
       font-weight: 600;
       letter-spacing: .08em;
-      color: rgba(245,240,235,.45);
+      color: rgba(245, 240, 235, .45);
       text-transform: uppercase;
       flex-wrap: wrap;
       animation: fadeUp .7s .4s both;
     }
+
     .art-meta-item {
       display: inline-flex;
       align-items: center;
       gap: 8px;
     }
+
     .art-meta-item strong {
       color: #FF5C00;
     }
@@ -247,22 +344,24 @@
       margin-bottom: 48px;
       border-radius: 18px;
       overflow: hidden;
-      border: 1px solid rgba(255,255,255,.08);
+      border: 1px solid rgba(255, 255, 255, .08);
       background: #141414;
       aspect-ratio: 16/9;
       position: relative;
     }
+
     .art-featured-img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
     }
+
     .art-media-caption {
       margin-top: 12px;
       font-family: 'Syne', sans-serif;
       font-size: 12px;
-      color: rgba(245,240,235,.4);
+      color: rgba(245, 240, 235, .4);
       letter-spacing: .06em;
       padding-left: 4px;
     }
@@ -271,13 +370,14 @@
     .art-prose {
       font-size: 17.5px;
       line-height: 1.9;
-      color: rgba(245,240,235,.75);
+      color: rgba(245, 240, 235, .75);
       font-weight: 300;
       padding: 48px;
       border-radius: 20px;
-      background: rgba(255,255,255,.025);
-      border: 1px solid rgba(255,255,255,.07);
+      background: rgba(255, 255, 255, .025);
+      border: 1px solid rgba(255, 255, 255, .07);
     }
+
     .art-prose::first-letter {
       font-family: 'Bebas Neue', sans-serif;
       font-size: 78px;
@@ -287,13 +387,17 @@
       margin-top: 6px;
       color: #FF5C00;
     }
+
     .art-prose p {
       margin-bottom: 24px;
     }
+
     .art-prose p:last-child {
       margin-bottom: 0;
     }
-    .art-prose h2, .art-prose h3 {
+
+    .art-prose h2,
+    .art-prose h3 {
       font-family: 'Syne', sans-serif;
       font-size: 22px;
       font-weight: 800;
@@ -301,6 +405,7 @@
       margin: 40px 0 16px;
       letter-spacing: .01em;
     }
+
     .art-prose h2::before {
       content: '■ ';
       color: #FF5C00;
@@ -308,24 +413,29 @@
       vertical-align: middle;
       margin-right: 8px;
     }
-    .art-prose ul, .art-prose ol {
+
+    .art-prose ul,
+    .art-prose ol {
       margin: 20px 0 28px 24px;
     }
+
     .art-prose li {
       margin-bottom: 10px;
     }
+
     .art-prose strong {
       color: #F5F0EB;
       font-weight: 600;
     }
+
     .art-prose blockquote {
       margin: 32px 0;
       padding: 24px 32px;
       border-left: 3px solid #FF5C00;
-      background: rgba(255,92,0,.05);
+      background: rgba(255, 92, 0, .05);
       border-radius: 0 12px 12px 0;
       font-style: italic;
-      color: rgba(245,240,235,.85);
+      color: rgba(245, 240, 235, .85);
     }
 
     /* Social Share Bar */
@@ -333,33 +443,36 @@
       margin-top: 48px;
       padding: 24px 32px;
       border-radius: 14px;
-      background: rgba(255,255,255,.025);
-      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255, 255, 255, .025);
+      border: 1px solid rgba(255, 255, 255, .08);
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 16px;
     }
+
     .art-share-label {
       font-family: 'Syne', sans-serif;
       font-size: 12px;
       font-weight: 700;
       letter-spacing: .12em;
       text-transform: uppercase;
-      color: rgba(245,240,235,.5);
+      color: rgba(245, 240, 235, .5);
     }
+
     .art-share-links {
       display: flex;
       align-items: center;
       gap: 10px;
     }
+
     .art-share-btn {
       padding: 8px 18px;
       border-radius: 50px;
-      background: rgba(255,255,255,.05);
-      border: 1px solid rgba(255,255,255,.12);
-      color: rgba(245,240,235,.75);
+      background: rgba(255, 255, 255, .05);
+      border: 1px solid rgba(255, 255, 255, .12);
+      color: rgba(245, 240, 235, .75);
       font-family: 'Syne', sans-serif;
       font-size: 11px;
       font-weight: 700;
@@ -370,9 +483,10 @@
       gap: 6px;
       transition: all .2s;
     }
+
     .art-share-btn:hover {
-      background: rgba(255,92,0,.15);
-      border-color: rgba(255,92,0,.4);
+      background: rgba(255, 92, 0, .15);
+      border-color: rgba(255, 92, 0, .4);
       color: #FF5C00;
     }
 
@@ -381,12 +495,13 @@
       margin-top: 64px;
       padding: 48px 44px;
       border-radius: 20px;
-      background: linear-gradient(135deg, rgba(255,92,0,.1) 0%, rgba(255,92,0,.02) 100%);
-      border: 1px solid rgba(255,92,0,.25);
+      background: linear-gradient(135deg, rgba(255, 92, 0, .1) 0%, rgba(255, 92, 0, .02) 100%);
+      border: 1px solid rgba(255, 92, 0, .25);
       text-align: center;
       position: relative;
       overflow: hidden;
     }
+
     .art-cta-card::before {
       content: '';
       position: absolute;
@@ -395,9 +510,10 @@
       transform: translate(-50%, -50%);
       width: 500px;
       height: 250px;
-      background: radial-gradient(circle, rgba(255,92,0,.15) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(255, 92, 0, .15) 0%, transparent 70%);
       pointer-events: none;
     }
+
     .art-cta-title {
       font-family: 'Bebas Neue', sans-serif;
       font-size: clamp(32px, 4.5vw, 54px);
@@ -405,12 +521,14 @@
       margin-bottom: 14px;
       color: #F5F0EB;
     }
+
     .art-cta-title span {
       color: #FF5C00;
     }
+
     .art-cta-p {
       font-size: 15.5px;
-      color: rgba(245,240,235,.6);
+      color: rgba(245, 240, 235, .6);
       font-weight: 300;
       max-width: 520px;
       margin: 0 auto 30px;
@@ -419,7 +537,7 @@
 
     /* Footer */
     .art-footer {
-      border-top: 1px solid rgba(255,255,255,.06);
+      border-top: 1px solid rgba(255, 255, 255, .06);
       padding: 32px 48px;
       display: flex;
       justify-content: space-between;
@@ -427,14 +545,17 @@
       flex-wrap: wrap;
       gap: 14px;
     }
+
     .art-footer-copy {
       font-size: 13.5px;
-      color: rgba(245,240,235,.4);
+      color: rgba(245, 240, 235, .4);
     }
+
     .art-footer-copy em {
       color: #FF5C00;
       font-style: normal;
     }
+
     .art-back-link {
       display: inline-flex;
       align-items: center;
@@ -448,19 +569,38 @@
       text-decoration: none;
       transition: gap .2s;
     }
+
     .art-back-link:hover {
       gap: 14px;
     }
 
     @media (max-width: 768px) {
-      .art-hero { padding: 64px 20px 48px; }
-      .art-container { padding: 40px 20px 80px; }
-      .art-prose { padding: 28px 20px; font-size: 16px; }
-      .art-nav, .art-footer { padding-left: 20px; padding-right: 20px; }
-      .art-cta-card { padding: 36px 20px; }
+      .art-hero {
+        padding: 64px 20px 48px;
+      }
+
+      .art-container {
+        padding: 40px 20px 80px;
+      }
+
+      .art-prose {
+        padding: 28px 20px;
+        font-size: 16px;
+      }
+
+      .art-nav,
+      .art-footer {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+
+      .art-cta-card {
+        padding: 36px 20px;
+      }
     }
   </style>
 </head>
+
 <body>
 
   <!-- Custom Cursor & Mouse Glow -->
@@ -472,15 +612,19 @@
   <!-- TOP NAV -->
   <nav class="art-nav">
     <a href="/" class="art-brand" title="The Sonic Media — Home">
-      <img src="https://res.cloudinary.com/dq2nrpky0/image/upload/v1779787887/favicon_oalxfi.png"
-        alt="The Sonic Media Logo" style="width:36px;height:36px;object-fit:contain;flex-shrink:0;" />
+      <img src="https://res.cloudinary.com/dq2nrpky0/image/upload/f_auto,q_auto/v1779787887/favicon_oalxfi.png"
+        alt="The Sonic Media Logo" style="width:36px;height:36px;object-fit:contain;flex-shrink:0;" decoding="async" loading="lazy">
       <div class="nav-brand">
         THE SONIC MEDIA
       </div>
     </a>
     <div class="art-nav-actions">
       <a href="/journal" class="art-nav-btn">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
         All Articles
       </a>
       <a href="/contact" class="btn-p" style="padding:9px 22px;font-size:12px;">Start Project →</a>
@@ -495,11 +639,19 @@
       <p class="art-subtitle" id="articleSubtitle"></p>
       <div class="art-meta-bar" id="articleMetaBar">
         <span class="art-meta-item">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF5C00" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF5C00" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
           <span id="articleReadTime">5 min read</span>
         </span>
         <span class="art-meta-item">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF5C00" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF5C00" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
           <span id="articleDate">May 2026</span>
         </span>
         <span class="art-meta-item">
@@ -514,7 +666,8 @@
 
     <!-- Featured Image -->
     <div class="art-featured-media" id="artMediaWrap">
-      <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&q=80" alt="Article Cover" class="art-featured-img" id="articleCoverImg" loading="lazy">
+      <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&q=80&auto=format" alt="Article Cover"
+        class="art-featured-img" id="articleCoverImg" loading="lazy" decoding="async">
     </div>
     <div class="art-media-caption" id="articleCaption"></div>
 
@@ -530,14 +683,17 @@
         <a href="#" id="shareWhatsApp" target="_blank" class="art-share-btn">WhatsApp</a>
         <a href="#" id="shareLinkedIn" target="_blank" class="art-share-btn">LinkedIn</a>
         <a href="#" id="shareTwitter" target="_blank" class="art-share-btn">X / Twitter</a>
-        <button type="button" class="art-share-btn" onclick="navigator.clipboard.writeText(window.location.href); this.textContent='✓ Copied!'; setTimeout(()=>this.textContent='Copy Link', 2000);">Copy Link</button>
+        <button type="button" class="art-share-btn"
+          onclick="navigator.clipboard.writeText(window.location.href); this.textContent='✓ Copied!'; setTimeout(()=>this.textContent='Copy Link', 2000);">Copy
+          Link</button>
       </div>
     </div>
 
     <!-- Bottom CTA Card -->
     <div class="art-cta-card">
       <h3 class="art-cta-title">Ready To Scale Your Brand With <span>The Sonic Media?</span></h3>
-      <p class="art-cta-p">We help ambitious founders and marketing leaders dominate search, social media, and digital channels with data-backed execution.</p>
+      <p class="art-cta-p">We help ambitious founders and marketing leaders dominate search, social media, and digital
+        channels with data-backed execution.</p>
       <a href="/contact" class="btn-p" style="padding:15px 36px;font-size:13px;box-shadow:0 0 28px rgba(255,92,0,.4);">
         Book a Free Strategy Consultation →
       </a>
@@ -552,6 +708,7 @@
   </footer>
 
   <!-- DATA & SUPABASE HYDRATION -->
+  <script src="assets/js/supabase-config.js"></script>
   <script src="assets/js/supabase-rest.js"></script>
   <script src="assets/js/app.js"></script>
   <script>
@@ -567,7 +724,7 @@
       if (!id) {
         try {
           id = sessionStorage.getItem('current_article_id') || localStorage.getItem('current_article_id');
-        } catch (_) {}
+        } catch (_) { }
       }
       return id || 'blog-google-ai-seo';
     }
@@ -577,12 +734,37 @@
     function renderArticle(data) {
       if (!data) return;
 
+      const hasAdmin = !!(window.sessionStorage?.getItem('sonicmedia_admin_session') || window.localStorage?.getItem('sonicmedia_admin_session'));
+      const isPreview = window.location.search.includes('preview=true');
+
+      if (data.status === 'draft' && !hasAdmin && !isPreview) {
+        document.title = `Article Draft — The Sonic Media`;
+        const titleEl = document.getElementById('articleTitle');
+        if (titleEl) titleEl.textContent = 'Article Draft';
+        const subEl = document.getElementById('articleSubtitle');
+        if (subEl) subEl.textContent = 'This article is currently saved as a draft and has not yet been published live.';
+        const bodyBox = document.getElementById('articleContent');
+        if (bodyBox) bodyBox.innerHTML = '<p style="color:#888;text-align:center;padding:40px 0;">This journal post is currently being written and will be published soon.</p>';
+        return;
+      }
+
+      if (data.status === 'draft' && (hasAdmin || isPreview)) {
+        if (!document.getElementById('draftPreviewBanner')) {
+          const banner = document.createElement('div');
+          banner.id = 'draftPreviewBanner';
+          banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:linear-gradient(90deg,#f59e0b,#d97706);color:#000;font-family:sans-serif;font-size:12px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;padding:8px 20px;display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:0 4px 15px rgba(0,0,0,0.5);';
+          banner.innerHTML = `<span>📝 DRAFT PREVIEW MODE — This article is saved as a Draft and is not visible to public visitors.</span>`;
+          document.body.appendChild(banner);
+          document.body.style.paddingTop = '36px';
+        }
+      }
+
       const title = data.title || 'Untitled Article';
       const cat = data.cat || data.category || 'Journal';
       const subtitle = data.subtitle || data.excerpt || '';
       const date = data.date || 'May 2026';
       const readTime = data.read_time || data.readTime || '5 min read';
-      const img = data.thumb_url || data.img || (data.images && data.images[0]?.url) || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&q=80';
+      const img = data.thumb_url || data.img || (data.images && data.images[0]?.url) || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&q=80&auto=format';
       const caption = data.imgCap || (data.images && data.images[0]?.caption) || subtitle || title;
       const rawBody = data.body || (data.content ? (data.content.includes('<p>') ? data.content : `<p>${data.content.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>')}</p>`) : `<p>${subtitle}</p>`);
       const bodyHtml = typeof sbSanitize === 'function' ? sbSanitize(rawBody) : (typeof DOMPurify !== 'undefined' ? DOMPurify.sanitize(rawBody) : rawBody);
@@ -700,7 +882,7 @@
             }
           }
         }
-      } catch (_) {}
+      } catch (_) { }
 
       if (!hasRendered) {
         if (typeof blogArticles !== 'undefined' && blogArticles[currentArticleId]) {
@@ -724,10 +906,10 @@
         const rows = typeof sbGet === 'function'
           ? await sbGet(`journal_posts?id=eq.${cleanId}&select=*&limit=1`, { timeout: 8000, retries: 1 })
           : await (async () => {
-              const h = { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON };
-              const r = await fetch(`${SUPABASE_URL}/rest/v1/journal_posts?id=eq.${cleanId}&select=*&limit=1`, { headers: h });
-              return r.ok ? await r.json() : null;
-            })();
+            const h = { 'apikey': window.SUPABASE_ANON, 'Authorization': 'Bearer ' + window.SUPABASE_ANON };
+            const r = await fetch(`${window.SUPABASE_URL}/rest/v1/journal_posts?id=eq.${cleanId}&select=*&limit=1`, { headers: h });
+            return r.ok ? await r.json() : null;
+          })();
 
         if (rows && rows.length > 0) {
           hasRendered = true;
@@ -767,4 +949,5 @@
     }
   </script>
 </body>
+
 </html>

@@ -11,7 +11,8 @@ import urllib.parse
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8080
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+# Project root is one level up from server/
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 class CleanURLHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
@@ -40,8 +41,16 @@ class CleanURLHandler(SimpleHTTPRequestHandler):
             self.path = '/portfolio.html'
             return super().do_GET()
 
-        # 4. Check if pathname directly exists
         rel_path = pathname.lstrip('/')
+
+        # 4. Backward-compatible sample routes: /sample-* or /sweetbasket -> /samples/*.html
+        if pathname.startswith('/sample-') or pathname == '/sweetbasket':
+            sample_file = os.path.join(ROOT_DIR, 'samples', rel_path + '.html')
+            if os.path.exists(sample_file):
+                self.path = '/samples/' + rel_path + '.html'
+                return super().do_GET()
+
+        # 5. Check if pathname directly exists
         local_path = os.path.join(ROOT_DIR, rel_path)
 
         if os.path.isdir(local_path):

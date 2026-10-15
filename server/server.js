@@ -10,7 +10,8 @@ const path = require('path');
 const url = require('url');
 
 const PORT = parseInt(process.argv[2] || process.env.PORT || '8080', 10);
-const ROOT_DIR = __dirname;
+// Project root is one level up from server/
+const ROOT_DIR = path.resolve(__dirname, '..');
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -129,12 +130,21 @@ const server = http.createServer((req, res) => {
     }
 
     // 5. Clean URL rewrite: Check if fullPath + '.html' exists
-    // (e.g. /about -> about.html, /sonicmediaadmin -> sonicmediaadmin.html, /services/web -> services/web.html)
+    // (e.g. /about -> about.html, /sonicmediaadmin -> sonicmediaadmin.html, /services/web -> services/web.html, /samples/sample-dentist -> samples/sample-dentist.html)
     const htmlCandidate = fullPath + '.html';
     fs.stat(htmlCandidate, (htmlErr, htmlStat) => {
       if (!htmlErr && htmlStat.isFile()) {
         serveFile(htmlCandidate);
         return;
+      }
+
+      // Backward-compatible alias for /sample-* or /sweetbasket -> samples/*.html
+      if (pathname.startsWith('/sample-') || pathname === '/sweetbasket') {
+        const sampleTarget = path.join(ROOT_DIR, 'samples', pathname.slice(1) + '.html');
+        if (fs.existsSync(sampleTarget)) {
+          serveFile(sampleTarget);
+          return;
+        }
       }
 
       // 6. Special dynamic routes: /project/:id, /article/:id, /case-study/:id, /studio
@@ -190,6 +200,5 @@ server.listen(PORT, () => {
   console.log(`                    http://localhost:${PORT}/casestudies`);
   console.log(`                    http://localhost:${PORT}/journal`);
   console.log(`                    http://localhost:${PORT}/contact`);
-  console.log(`                    http://localhost:${PORT}/sonicmediaadmin`);
   console.log(`======================================================\n`);
 });

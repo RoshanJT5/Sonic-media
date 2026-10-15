@@ -8,26 +8,42 @@
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Strict-Transport-Security", "value": "max-age=63072000" },
-        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
+        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), payment=()" },
         {
-          "key": "Content-Security-Policy-Report-Only",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://res.cloudinary.com https://images.unsplash.com https://plytoawhcvzdjtrgtnrn.supabase.co; connect-src 'self' https://plytoawhcvzdjtrgtnrn.supabase.co; media-src 'self' https://res.cloudinary.com; object-src 'none'; base-uri 'self'; frame-ancestors 'self'"
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://plytoawhcvzdjtrgtnrn.supabase.co https://lh3.googleusercontent.com https://placehold.co; connect-src 'self' https://plytoawhcvzdjtrgtnrn.supabase.co wss://plytoawhcvzdjtrgtnrn.supabase.co https://api.web3forms.com; media-src 'self' https://res.cloudinary.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
         }
       ]
     },
     {
       "source": "/sonicmediaadmin",
       "headers": [
-        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" },
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }
+        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, private" },
+        { "key": "Pragma", "value": "no-cache" },
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive, nosnippet" },
+        { "key": "X-Frame-Options", "value": "DENY" }
       ]
     },
     {
       "source": "/sonicmediaadmin.html",
       "headers": [
-        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" },
-        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive" }
+        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, private" },
+        { "key": "Pragma", "value": "no-cache" },
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive, nosnippet" },
+        { "key": "X-Frame-Options", "value": "DENY" }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/(favicon.ico|favicon.png)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=2592000" }
       ]
     }
   ],
@@ -58,7 +74,14 @@
     { "source": "/services/ecom",    "destination": "/services/ecom.html" },
     { "source": "/services/content", "destination": "/services/content.html" },
     { "source": "/services/brand",   "destination": "/services/brand.html" },
-    { "source": "/services/ai",      "destination": "/services/ai.html" }
+    { "source": "/services/ai",      "destination": "/services/ai.html" },
+    { "source": "/samples/:splat",   "destination": "/samples/:splat.html" },
+    { "source": "/sample-dentist",   "destination": "/samples/sample-dentist.html" },
+    { "source": "/sample-finance-dsa", "destination": "/samples/sample-finance-dsa.html" },
+    { "source": "/sample-interiordesigner", "destination": "/samples/sample-interiordesigner.html" },
+    { "source": "/sample-verdan",    "destination": "/samples/sample-verdan.html" },
+    { "source": "/sample-vertex",    "destination": "/samples/sample-vertex.html" },
+    { "source": "/sweetbasket",      "destination": "/samples/sweetbasket.html" }
   ],
   "redirects": [
     { "source": "/about.html",             "destination": "/about",             "permanent": true },
@@ -85,6 +108,12 @@
     { "source": "/services/ecom.html",     "destination": "/services/ecom",     "permanent": true },
     { "source": "/services/content.html",  "destination": "/services/content",  "permanent": true },
     { "source": "/services/brand.html",    "destination": "/services/brand",    "permanent": true },
-    { "source": "/services/ai.html",       "destination": "/services/ai",       "permanent": true }
+    { "source": "/services/ai.html",       "destination": "/services/ai",       "permanent": true },
+    { "source": "/sample-dentist.html",    "destination": "/samples/sample-dentist",    "permanent": true },
+    { "source": "/sample-finance-dsa.html","destination": "/samples/sample-finance-dsa","permanent": true },
+    { "source": "/sample-interiordesigner.html","destination": "/samples/sample-interiordesigner","permanent": true },
+    { "source": "/sample-verdan.html",     "destination": "/samples/sample-verdan",     "permanent": true },
+    { "source": "/sample-vertex.html",     "destination": "/samples/sample-vertex",     "permanent": true },
+    { "source": "/sweetbasket.html",       "destination": "/samples/sweetbasket",       "permanent": true }
   ]
 }

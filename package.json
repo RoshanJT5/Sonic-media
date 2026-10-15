@@ -2,12 +2,12 @@
   "name": "sonic-media-website",
   "version": "1.0.0",
   "description": "The Sonic Media — Premium Digital Marketing Agency Website",
-  "main": "server.js",
+  "main": "server/server.js",
   "scripts": {
-    "dev": "node server.js 8080",
-    "start": "node server.js 8080",
-    "serve": "node server.js 8080",
-    "serve:py": "python server.py 8080"
+    "dev": "node server/server.js 8080",
+    "start": "node server/server.js 8080",
+    "serve": "node server/server.js 8080",
+    "serve:py": "python server/server.py 8080"
   },
   "author": "The Sonic Media",
   "license": "UNLICENSED"

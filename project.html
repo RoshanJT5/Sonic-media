@@ -1,41 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title id="pageTitle">Project Details — The Sonic Media</title>
-  <meta name="description" id="pageDesc" content="Portfolio project by The Sonic Media, a premium digital marketing agency in India.">
-  <link rel="icon" type="image/png" href="https://res.cloudinary.com/dq2nrpky0/image/upload/v1779787887/favicon_oalxfi.png">
-  <link rel="apple-touch-icon" href="https://res.cloudinary.com/dq2nrpky0/image/upload/v1779787887/favicon_oalxfi.png">
+  <meta name="description" id="pageDesc"
+    content="Portfolio project by The Sonic Media, a premium digital marketing agency in India.">
+  <link rel="icon" type="image/png"
+    href="https://res.cloudinary.com/dq2nrpky0/image/upload/f_auto,q_auto/v1779787887/favicon_oalxfi.png">
+  <link rel="apple-touch-icon" href="https://res.cloudinary.com/dq2nrpky0/image/upload/f_auto,q_auto/v1779787887/favicon_oalxfi.png">
 
   <!-- OpenGraph / Twitter -->
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="The Sonic Media">
   <meta property="og:title" id="ogTitle" content="Project Details — The Sonic Media">
   <meta property="og:description" id="ogDesc" content="A portfolio project crafted by The Sonic Media.">
-  <meta property="og:image" id="ogImage" content="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1200&q=80">
+  <meta property="og:image" id="ogImage"
+    content="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1200&q=80&auto=format">
   <meta property="og:locale" content="en_IN">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@thesonicmedia">
   <meta name="robots" content="index, follow">
 
   <link rel="preconnect" href="https://plytoawhcvzdjtrgtnrn.supabase.co" crossorigin>
+  <link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+  <link rel="dns-prefetch" href="https://res.cloudinary.com">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="assets/css/styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" defer
+    integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a"
+    crossorigin="anonymous"></script>
 
   <style>
     :root {
       --orange: #FF5C00;
-      --orange-dim: rgba(255,92,0,0.12);
-      --orange-glow: 0 0 40px rgba(255,92,0,0.45);
+      --orange-dim: rgba(255, 92, 0, 0.12);
+      --orange-glow: 0 0 40px rgba(255, 92, 0, 0.45);
       --black: #080808;
       --white: #F5F0EB;
     }
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; cursor: none !important; }
-    html { font-size: 16px; scroll-behavior: smooth; }
+
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      cursor: none !important;
+    }
+
+    html {
+      font-size: 16px;
+      scroll-behavior: smooth;
+    }
+
     body {
       font-family: 'DM Sans', sans-serif;
       background: #080808;
@@ -45,16 +69,33 @@
       overflow-x: hidden;
       cursor: none;
     }
+
     /* Touch / Mobile: restore default cursor */
     @media (hover: none) and (pointer: coarse) {
-      *, *::before, *::after { cursor: auto !important; }
-      body { cursor: auto !important; }
-      #cursor, #cursor-follower, #cursor-trail, #mouse-glow { display: none !important; }
+
+      *,
+      *::before,
+      *::after {
+        cursor: auto !important;
+      }
+
+      body {
+        cursor: auto !important;
+      }
+
+      #cursor,
+      #cursor-follower,
+      #cursor-trail,
+      #mouse-glow {
+        display: none !important;
+      }
     }
+
     /* Custom Cursor */
     #cursor {
       position: fixed;
-      width: 12px; height: 12px;
+      width: 12px;
+      height: 12px;
       background: #FF5C00;
       border-radius: 50%;
       pointer-events: none;
@@ -64,10 +105,12 @@
       mix-blend-mode: normal;
       will-change: transform;
     }
+
     #cursor-follower {
       position: fixed;
-      width: 40px; height: 40px;
-      border: 1.5px solid rgba(255,92,0,0.6);
+      width: 40px;
+      height: 40px;
+      border: 1.5px solid rgba(255, 92, 0, 0.6);
       border-radius: 50%;
       pointer-events: none;
       z-index: 9999998;
@@ -75,37 +118,89 @@
       transition: all 0.18s cubic-bezier(0.22, 1, 0.36, 1);
       will-change: transform;
     }
-    #cursor-trail { position: fixed; pointer-events: none; z-index: 9999997; top: 0; left: 0; width: 100%; height: 100%; }
-    body:hover #cursor { opacity: 1; }
-    .cursor-hover #cursor { width: 48px; height: 48px; background: transparent; border: 2px solid #FF5C00; mix-blend-mode: normal; }
-    .cursor-hover #cursor-follower { width: 10px; height: 10px; background: #FF5C00; border-color: transparent; }
+
+    #cursor-trail {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999997;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    body:hover #cursor {
+      opacity: 1;
+    }
+
+    .cursor-hover #cursor {
+      width: 48px;
+      height: 48px;
+      background: transparent;
+      border: 2px solid #FF5C00;
+      mix-blend-mode: normal;
+    }
+
+    .cursor-hover #cursor-follower {
+      width: 10px;
+      height: 10px;
+      background: #FF5C00;
+      border-color: transparent;
+    }
+
     #mouse-glow {
       position: fixed;
-      width: 600px; height: 600px;
-      background: radial-gradient(circle, rgba(255,92,0,0.06) 0%, transparent 70%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(255, 92, 0, 0.06) 0%, transparent 70%);
       pointer-events: none;
       z-index: 0;
       transform: translate3d(-50%, -50%, 0);
       will-change: transform;
     }
-    @keyframes blink { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(255,255,255,.4)} 50%{opacity:.6;box-shadow:0 0 0 6px rgba(255,255,255,0)} }
-    @keyframes fadeUp { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:translateY(0)} }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1;
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, .4)
+      }
+
+      50% {
+        opacity: .6;
+        box-shadow: 0 0 0 6px rgba(255, 255, 255, 0)
+      }
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(28px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
 
     /* Top Sticky Bar */
     .wd-nav {
       position: sticky;
       top: 0;
       z-index: 100;
-      background: rgba(8,8,8,.94);
+      background: rgba(8, 8, 8, .94);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(255,255,255,.07);
+      border-bottom: 1px solid rgba(255, 255, 255, .07);
       padding: 0 48px;
       height: 72px;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
+
     .wd-brand {
       display: flex;
       align-items: center;
@@ -113,6 +208,7 @@
       text-decoration: none;
       line-height: 1.2;
     }
+
     .wd-brand .nav-brand {
       font-family: 'Syne', sans-serif;
       font-size: 15px;
@@ -121,17 +217,19 @@
       line-height: 1.2;
       color: #F5F0EB;
     }
+
     .wd-nav-actions {
       display: flex;
       align-items: center;
       gap: 12px;
     }
+
     .wd-nav-btn {
       padding: 9px 24px;
       border-radius: 50px;
-      background: rgba(255,255,255,.05);
-      border: 1px solid rgba(255,255,255,.12);
-      color: rgba(245,240,235,.8);
+      background: rgba(255, 255, 255, .05);
+      border: 1px solid rgba(255, 255, 255, .12);
+      color: rgba(245, 240, 235, .8);
       font-family: 'Syne', sans-serif;
       font-size: 12px;
       font-weight: 700;
@@ -144,9 +242,10 @@
       transition: all .25s ease;
       cursor: pointer;
     }
+
     .wd-nav-btn:hover {
-      background: rgba(255,92,0,.15);
-      border-color: rgba(255,92,0,.4);
+      background: rgba(255, 92, 0, .15);
+      border-color: rgba(255, 92, 0, .4);
       color: #FF5C00;
       transform: translateY(-1px);
     }
@@ -157,8 +256,9 @@
       background: #0d0d0d;
       position: relative;
       overflow: hidden;
-      border-bottom: 1px solid rgba(255,92,0,.15);
+      border-bottom: 1px solid rgba(255, 92, 0, .15);
     }
+
     .wd-hero::before {
       content: '';
       position: absolute;
@@ -166,9 +266,10 @@
       right: -100px;
       width: 750px;
       height: 750px;
-      background: radial-gradient(circle, rgba(255,92,0,.1) 0%, transparent 65%);
+      background: radial-gradient(circle, rgba(255, 92, 0, .1) 0%, transparent 65%);
       pointer-events: none;
     }
+
     .wd-hero::after {
       content: '';
       position: absolute;
@@ -176,12 +277,14 @@
       left: 0;
       right: 0;
       height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255,92,0,.28), transparent);
+      background: linear-gradient(90deg, transparent, rgba(255, 92, 0, .28), transparent);
     }
+
     .wd-hero-inner {
       max-width: 1200px;
       margin: 0 auto;
     }
+
     .wd-eyebrow {
       display: inline-flex;
       align-items: center;
@@ -195,6 +298,7 @@
       margin-bottom: 24px;
       animation: fadeUp .6s .1s both;
     }
+
     .wd-eyebrow::before {
       content: '';
       width: 26px;
@@ -202,6 +306,7 @@
       background: #FF5C00;
       display: inline-block;
     }
+
     .wd-h1 {
       font-family: 'Bebas Neue', sans-serif;
       font-size: clamp(52px, 8vw, 110px);
@@ -211,20 +316,23 @@
       animation: fadeUp .7s .2s both;
       color: #F5F0EB;
     }
+
     .wd-h1 em {
       color: #FF5C00;
       font-style: normal;
       display: block;
     }
+
     .wd-sub {
       font-size: 18px;
-      color: rgba(245,240,235,.6);
+      color: rgba(245, 240, 235, .6);
       font-weight: 300;
       max-width: 620px;
       margin-bottom: 36px;
       line-height: 1.8;
       animation: fadeUp .7s .3s both;
     }
+
     .wd-tags-row {
       display: flex;
       gap: 10px;
@@ -232,11 +340,12 @@
       margin-bottom: 48px;
       animation: fadeUp .7s .4s both;
     }
+
     .wd-tag-pill {
       display: inline-flex;
       align-items: center;
       padding: 6px 18px;
-      border: 1px solid rgba(255,92,0,.35);
+      border: 1px solid rgba(255, 92, 0, .35);
       border-radius: 50px;
       font-family: 'Syne', sans-serif;
       font-size: 11px;
@@ -244,7 +353,7 @@
       letter-spacing: .12em;
       text-transform: uppercase;
       color: #FF5C00;
-      background: rgba(255,92,0,.06);
+      background: rgba(255, 92, 0, .06);
     }
 
     /* Meta Strip */
@@ -253,20 +362,23 @@
       grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 16px;
       padding-top: 36px;
-      border-top: 1px solid rgba(255,255,255,.07);
+      border-top: 1px solid rgba(255, 255, 255, .07);
       animation: fadeUp .7s .5s both;
     }
+
     .wd-meta-card {
       padding: 22px 24px;
       border-radius: 14px;
-      background: rgba(255,255,255,.025);
-      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255, 255, 255, .025);
+      border: 1px solid rgba(255, 255, 255, .08);
       transition: border-color .3s, transform .3s;
     }
+
     .wd-meta-card:hover {
-      border-color: rgba(255,92,0,.35);
+      border-color: rgba(255, 92, 0, .35);
       transform: translateY(-2px);
     }
+
     .wd-meta-icon {
       font-size: 20px;
       margin-bottom: 12px;
@@ -274,15 +386,17 @@
       align-items: center;
       color: #FF5C00;
     }
+
     .wd-meta-label {
       font-family: 'Syne', sans-serif;
       font-size: 10px;
       font-weight: 700;
       letter-spacing: .2em;
       text-transform: uppercase;
-      color: rgba(245,240,235,.4);
+      color: rgba(245, 240, 235, .4);
       margin-bottom: 6px;
     }
+
     .wd-meta-val {
       font-family: 'Syne', sans-serif;
       font-size: 15px;
@@ -296,24 +410,28 @@
       margin: 0 auto;
       padding: 88px 56px 120px;
     }
+
     .wd-two-col {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 28px;
       margin-bottom: 28px;
     }
+
     .wd-card {
       padding: 40px 42px;
       border-radius: 18px;
-      background: rgba(255,255,255,.025);
-      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255, 255, 255, .025);
+      border: 1px solid rgba(255, 255, 255, .08);
       position: relative;
       overflow: hidden;
       transition: border-color .3s;
     }
+
     .wd-card:hover {
-      border-color: rgba(255,92,0,.3);
+      border-color: rgba(255, 92, 0, .3);
     }
+
     .wd-card::before {
       content: '';
       position: absolute;
@@ -323,18 +441,20 @@
       height: 2px;
       background: linear-gradient(90deg, #FF5C00, transparent);
     }
+
     .wd-card-icon {
       width: 46px;
       height: 46px;
       border-radius: 12px;
-      background: rgba(255,92,0,.12);
-      border: 1px solid rgba(255,92,0,.25);
+      background: rgba(255, 92, 0, .12);
+      border: 1px solid rgba(255, 92, 0, .25);
       display: flex;
       align-items: center;
       justify-content: center;
       margin-bottom: 22px;
       color: #FF5C00;
     }
+
     .wd-card-title {
       font-family: 'Syne', sans-serif;
       font-size: 11px;
@@ -344,9 +464,10 @@
       color: #FF5C00;
       margin-bottom: 16px;
     }
+
     .wd-card-body {
       font-size: 15.5px;
-      color: rgba(245,240,235,.75);
+      color: rgba(245, 240, 235, .75);
       font-weight: 300;
       line-height: 1.88;
     }
@@ -355,15 +476,17 @@
       margin-bottom: 28px;
       padding: 40px 42px;
       border-radius: 18px;
-      background: rgba(255,255,255,.025);
-      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255, 255, 255, .025);
+      border: 1px solid rgba(255, 255, 255, .08);
       position: relative;
       overflow: hidden;
       transition: border-color .3s;
     }
+
     .wd-full-card:hover {
-      border-color: rgba(255,92,0,.3);
+      border-color: rgba(255, 92, 0, .3);
     }
+
     .wd-full-card::before {
       content: '';
       position: absolute;
@@ -382,20 +505,23 @@
       grid-template-columns: 1fr;
       gap: 12px;
     }
+
     .wd-deliverable-item {
       display: flex;
       align-items: flex-start;
       gap: 16px;
       padding: 16px 22px;
       border-radius: 12px;
-      background: rgba(255,92,0,.04);
-      border: 1px solid rgba(255,92,0,.12);
+      background: rgba(255, 92, 0, .04);
+      border: 1px solid rgba(255, 92, 0, .12);
       transition: transform .2s, border-color .2s;
     }
+
     .wd-deliverable-item:hover {
       transform: translateX(4px);
-      border-color: rgba(255,92,0,.3);
+      border-color: rgba(255, 92, 0, .3);
     }
+
     .wd-deliverable-dot {
       width: 8px;
       height: 8px;
@@ -403,8 +529,9 @@
       background: #FF5C00;
       flex-shrink: 0;
       margin-top: 8px;
-      box-shadow: 0 0 10px rgba(255,92,0,.6);
+      box-shadow: 0 0 10px rgba(255, 92, 0, .6);
     }
+
     .wd-deliverable-text {
       font-family: 'Syne', sans-serif;
       font-size: 14.5px;
@@ -419,22 +546,24 @@
       gap: 10px;
       flex-wrap: wrap;
     }
+
     .wd-tech-pill {
       padding: 10px 22px;
       border-radius: 8px;
-      background: rgba(255,255,255,.04);
-      border: 1px solid rgba(255,255,255,.1);
+      background: rgba(255, 255, 255, .04);
+      border: 1px solid rgba(255, 255, 255, .1);
       font-family: 'Syne', sans-serif;
       font-size: 12px;
       font-weight: 600;
-      color: rgba(245,240,235,.75);
+      color: rgba(245, 240, 235, .75);
       letter-spacing: .06em;
       transition: all .2s;
     }
+
     .wd-tech-pill:hover {
-      border-color: rgba(255,92,0,.4);
+      border-color: rgba(255, 92, 0, .4);
       color: #FF5C00;
-      background: rgba(255,92,0,.08);
+      background: rgba(255, 92, 0, .08);
     }
 
     /* Section Label */
@@ -450,6 +579,7 @@
       color: #FF5C00;
       margin: 48px 0 28px;
     }
+
     .wd-section-heading::before {
       content: '';
       width: 30px;
@@ -465,42 +595,48 @@
       gap: 32px;
       margin-top: 10px;
     }
+
     .wd-gallery-card {
       border-radius: 18px;
       overflow: hidden;
-      background: rgba(255,255,255,.025);
-      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(255, 255, 255, .025);
+      border: 1px solid rgba(255, 255, 255, .08);
       transition: transform .35s ease, border-color .35s ease;
       display: flex;
       flex-direction: column;
     }
+
     .wd-gallery-card:hover {
       transform: translateY(-4px);
-      border-color: rgba(255,92,0,.4);
+      border-color: rgba(255, 92, 0, .4);
     }
+
     .wd-gallery-img-box {
       aspect-ratio: 16/10;
       background: #141414;
       position: relative;
       overflow: hidden;
     }
+
     .wd-gallery-img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
-      transition: transform .6s cubic-bezier(.25,1,.5,1);
+      transition: transform .6s cubic-bezier(.25, 1, .5, 1);
     }
+
     .wd-gallery-card:hover .wd-gallery-img {
       transform: scale(1.05);
     }
+
     .wd-gallery-num {
       position: absolute;
       top: 14px;
       left: 14px;
-      background: rgba(8,8,8,.75);
+      background: rgba(8, 8, 8, .75);
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,.12);
+      border: 1px solid rgba(255, 255, 255, .12);
       border-radius: 6px;
       padding: 5px 12px;
       font-family: 'Syne', sans-serif;
@@ -509,12 +645,14 @@
       letter-spacing: .12em;
       color: #FF5C00;
     }
+
     .wd-gallery-info {
       padding: 24px 26px;
       flex: 1;
       display: flex;
       flex-direction: column;
     }
+
     .wd-gallery-title {
       font-family: 'Syne', sans-serif;
       font-size: 17px;
@@ -522,20 +660,22 @@
       color: #F5F0EB;
       margin-bottom: 8px;
     }
+
     .wd-gallery-desc {
       font-size: 14px;
-      color: rgba(245,240,235,.55);
+      color: rgba(245, 240, 235, .55);
       font-weight: 300;
       line-height: 1.75;
     }
 
     /* Long-form Case Study / Blog Article Styling */
     .wd-article-body {
-      color: rgba(245,240,235,.82);
+      color: rgba(245, 240, 235, .82);
       font-size: 16px;
       line-height: 1.85;
       font-weight: 300;
     }
+
     .wd-article-body h2 {
       font-family: 'Syne', sans-serif;
       font-size: clamp(22px, 3vw, 28px);
@@ -544,9 +684,11 @@
       margin: 32px 0 16px;
       letter-spacing: -0.01em;
     }
+
     .wd-article-body h2:first-child {
       margin-top: 0;
     }
+
     .wd-article-body h3 {
       font-family: 'Syne', sans-serif;
       font-size: clamp(18px, 2.4vw, 22px);
@@ -554,27 +696,33 @@
       color: #FF5C00;
       margin: 24px 0 12px;
     }
+
     .wd-article-body p {
       margin-bottom: 20px;
     }
+
     .wd-article-body strong {
       color: #F5F0EB;
       font-weight: 600;
     }
+
     .wd-article-body blockquote {
       border-left: 3px solid #FF5C00;
       padding: 16px 24px;
       margin: 28px 0;
-      background: rgba(255,92,0,.04);
+      background: rgba(255, 92, 0, .04);
       border-radius: 0 12px 12px 0;
       font-style: italic;
       color: #F5F0EB;
       font-size: 16.5px;
     }
-    .wd-article-body ul, .wd-article-body ol {
+
+    .wd-article-body ul,
+    .wd-article-body ol {
       padding-left: 28px;
       margin: 18px 0 24px;
     }
+
     .wd-article-body li {
       margin-bottom: 10px;
       line-height: 1.7;
@@ -583,13 +731,14 @@
     /* CTA Band */
     .wd-cta-band {
       background: #0d0d0d;
-      border-top: 1px solid rgba(255,92,0,.15);
-      border-bottom: 1px solid rgba(255,92,0,.15);
+      border-top: 1px solid rgba(255, 92, 0, .15);
+      border-bottom: 1px solid rgba(255, 92, 0, .15);
       padding: 84px 32px;
       text-align: center;
       position: relative;
       overflow: hidden;
     }
+
     .wd-cta-band::before {
       content: '';
       position: absolute;
@@ -598,9 +747,10 @@
       transform: translate(-50%, -50%);
       width: 800px;
       height: 350px;
-      background: radial-gradient(ellipse, rgba(255,92,0,.1) 0%, transparent 70%);
+      background: radial-gradient(ellipse, rgba(255, 92, 0, .1) 0%, transparent 70%);
       pointer-events: none;
     }
+
     .wd-cta-eyebrow {
       display: inline-flex;
       align-items: center;
@@ -613,6 +763,7 @@
       color: #FF5C00;
       margin-bottom: 18px;
     }
+
     .wd-cta-eyebrow::before {
       content: '';
       width: 22px;
@@ -620,6 +771,7 @@
       background: #FF5C00;
       display: inline-block;
     }
+
     .wd-cta-h {
       font-family: 'Bebas Neue', sans-serif;
       font-size: clamp(42px, 6vw, 84px);
@@ -627,18 +779,21 @@
       color: #F5F0EB;
       margin-bottom: 18px;
     }
+
     .wd-cta-h em {
       color: #FF5C00;
       font-style: normal;
     }
+
     .wd-cta-p {
       font-size: 16px;
-      color: rgba(245,240,235,.55);
+      color: rgba(245, 240, 235, .55);
       font-weight: 300;
       max-width: 500px;
       margin: 0 auto 38px;
       line-height: 1.8;
     }
+
     .wd-cta-btns {
       display: flex;
       gap: 16px;
@@ -648,7 +803,7 @@
 
     /* Footer */
     .wd-footer {
-      border-top: 1px solid rgba(255,255,255,.06);
+      border-top: 1px solid rgba(255, 255, 255, .06);
       padding: 32px 56px;
       display: flex;
       justify-content: space-between;
@@ -656,14 +811,17 @@
       flex-wrap: wrap;
       gap: 14px;
     }
+
     .wd-footer-copy {
       font-size: 13.5px;
-      color: rgba(245,240,235,.4);
+      color: rgba(245, 240, 235, .4);
     }
+
     .wd-footer-copy em {
       color: #FF5C00;
       font-style: normal;
     }
+
     .wd-back {
       display: inline-flex;
       align-items: center;
@@ -677,20 +835,42 @@
       text-decoration: none;
       transition: gap .2s;
     }
+
     .wd-back:hover {
       gap: 14px;
     }
 
     @media (max-width: 900px) {
-      .wd-two-col { grid-template-columns: 1fr; }
-      .wd-gallery-grid { grid-template-columns: 1fr; }
-      .wd-hero { padding: 72px 24px 60px; }
-      .wd-body { padding: 56px 24px 80px; }
-      .wd-nav, .wd-footer { padding-left: 20px; padding-right: 20px; }
-      .wd-card, .wd-full-card { padding: 28px 24px; }
+      .wd-two-col {
+        grid-template-columns: 1fr;
+      }
+
+      .wd-gallery-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .wd-hero {
+        padding: 72px 24px 60px;
+      }
+
+      .wd-body {
+        padding: 56px 24px 80px;
+      }
+
+      .wd-nav,
+      .wd-footer {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+
+      .wd-card,
+      .wd-full-card {
+        padding: 28px 24px;
+      }
     }
   </style>
 </head>
+
 <body>
 
   <!-- Custom Cursor & Mouse Glow -->
@@ -702,15 +882,19 @@
   <!-- NAVIGATION -->
   <nav class="wd-nav">
     <a href="/" class="wd-brand" title="The Sonic Media — Home">
-      <img src="https://res.cloudinary.com/dq2nrpky0/image/upload/v1779787887/favicon_oalxfi.png"
-        alt="The Sonic Media Logo" style="width:36px;height:36px;object-fit:contain;flex-shrink:0;" />
+      <img src="https://res.cloudinary.com/dq2nrpky0/image/upload/f_auto,q_auto/v1779787887/favicon_oalxfi.png"
+        alt="The Sonic Media Logo" style="width:36px;height:36px;object-fit:contain;flex-shrink:0;" decoding="async" loading="lazy">
       <div class="nav-brand">
         THE SONIC MEDIA
       </div>
     </a>
     <div class="wd-nav-actions">
       <a href="/portfolio" class="wd-nav-btn">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
         All Projects
       </a>
       <a href="/contact" class="btn-p" style="padding:9px 22px;font-size:12px;">Start Project →</a>
@@ -723,7 +907,7 @@
       <div class="wd-eyebrow" id="projectCategory">PORTFOLIO · CLIENT SHOWCASE</div>
       <h1 class="wd-h1" id="projectTitle">THE SONIC<br><em>MEDIA</em></h1>
       <p class="wd-sub" id="projectSubtitle">Strategy · Creative Direction · Digital Execution</p>
-      
+
       <div class="wd-tags-row" id="projectTagsRow">
         <!-- Tags populated dynamically -->
       </div>
@@ -741,7 +925,20 @@
     <div class="wd-two-col">
       <div class="wd-card" id="cardAboutClient">
         <div class="wd-card-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><line x1="9" y1="22" x2="9" y2="22.01"/><line x1="15" y1="22" x2="15" y2="22.01"/><line x1="9" y1="6" x2="9" y2="6.01"/><line x1="15" y1="6" x2="15" y2="6.01"/><line x1="9" y1="10" x2="9" y2="10.01"/><line x1="15" y1="10" x2="15" y2="10.01"/><line x1="9" y1="14" x2="9" y2="14.01"/><line x1="15" y1="14" x2="15" y2="14.01"/><line x1="9" y1="18" x2="9" y2="18.01"/><line x1="15" y1="18" x2="15" y2="18.01"/></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
+            <line x1="9" y1="22" x2="9" y2="22.01" />
+            <line x1="15" y1="22" x2="15" y2="22.01" />
+            <line x1="9" y1="6" x2="9" y2="6.01" />
+            <line x1="15" y1="6" x2="15" y2="6.01" />
+            <line x1="9" y1="10" x2="9" y2="10.01" />
+            <line x1="15" y1="10" x2="15" y2="10.01" />
+            <line x1="9" y1="14" x2="9" y2="14.01" />
+            <line x1="15" y1="14" x2="15" y2="14.01" />
+            <line x1="9" y1="18" x2="9" y2="18.01" />
+            <line x1="15" y1="18" x2="15" y2="18.01" />
+          </svg>
         </div>
         <div class="wd-card-title">About The Client</div>
         <div class="wd-card-body" id="projectAbout">
@@ -751,7 +948,10 @@
 
       <div class="wd-card" id="cardChallenge">
         <div class="wd-card-icon">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+          </svg>
         </div>
         <div class="wd-card-title">The Challenge</div>
         <div class="wd-card-body" id="projectChallenge">
@@ -764,7 +964,12 @@
     <div class="wd-full-card" id="cardSolution">
       <div style="display:flex;align-items:flex-start;gap:24px;">
         <div class="wd-card-icon" style="flex-shrink:0;">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-7 7c0 2.5 1.5 4.5 3 6h8c1.5-1.5 3-3.5 3-6a7 7 0 0 0-7-7z"/></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18h6" />
+            <path d="M10 22h4" />
+            <path d="M12 2a7 7 0 0 0-7 7c0 2.5 1.5 4.5 3 6h8c1.5-1.5 3-3.5 3-6a7 7 0 0 0-7-7z" />
+          </svg>
         </div>
         <div style="flex:1;">
           <div class="wd-card-title">The Solution</div>
@@ -779,7 +984,14 @@
     <!-- Key Deliverables -->
     <div class="wd-full-card" id="cardDeliverables">
       <div class="wd-card-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <line x1="16.5" y1="9.4" x2="7.5" y2="4.21" />
+          <path
+            d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+          <line x1="12" y1="22.08" x2="12" y2="12" />
+        </svg>
       </div>
       <div class="wd-card-title">Key Deliverables</div>
       <ul class="wd-deliverables-list" id="projectDeliverablesList">
@@ -790,7 +1002,11 @@
     <!-- Tech & Skills -->
     <div class="wd-full-card" id="cardTechSkills">
       <div class="wd-card-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path
+            d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+        </svg>
       </div>
       <div class="wd-card-title">Tech &amp; Skills</div>
       <div class="wd-tech-row" id="projectTechSkills">
@@ -808,7 +1024,8 @@
     <div id="projectArticleWrap" style="display:none;margin-top:48px;">
       <div class="wd-section-heading">In-Depth Case Study &amp; Story</div>
       <div class="wd-full-card" style="padding:48px 40px;">
-        <div id="projectArticleContent" class="wd-article-body" data-cms-editable="true" data-cms-type="portfolio-item" data-cms-label="📝 Edit In-Depth Case Study Article">
+        <div id="projectArticleContent" class="wd-article-body" data-cms-editable="true" data-cms-type="portfolio-item"
+          data-cms-label="📝 Edit In-Depth Case Study Article">
           <!-- Populated dynamically from details.articleBody -->
         </div>
       </div>
@@ -820,7 +1037,8 @@
   <div class="wd-cta-band">
     <div class="wd-cta-eyebrow">Ready to Build Something Great?</div>
     <div class="wd-cta-h">Work With <em>The Sonic Media</em></div>
-    <p class="wd-cta-p">Let's craft your brand's next digital chapter — strategy, design, development, and growth under one roof.</p>
+    <p class="wd-cta-p">Let's craft your brand's next digital chapter — strategy, design, development, and growth under
+      one roof.</p>
     <div class="wd-cta-btns">
       <a href="/contact" class="btn-p" style="padding:15px 36px;font-size:13px;box-shadow:0 0 28px rgba(255,92,0,.4);">
         Start a Project →
@@ -836,6 +1054,7 @@
   </div>
 
   <!-- SUPABASE & DATA LOADER SCRIPT -->
+  <script src="assets/js/supabase-config.js"></script>
   <script src="assets/js/supabase-rest.js"></script>
   <script src="assets/js/app.js"></script>
   <script>
@@ -866,12 +1085,12 @@
           'Brand-consistent UI with professional, trustworthy feel'
         ],
         images: [
-          { url: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=900&q=80', title: 'Professional Web Presence', desc: 'Clean, trust-building website designed to attract businesses and individuals seeking reliable tax and compliance advisory services in Ahmedabad.' },
-          { url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=900&q=80', title: 'Service Pages', desc: 'Dedicated pages for GST, Income Tax, Accounting & Compliance — each structured to clearly communicate expertise and drive enquiries.' },
-          { url: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=900&q=80', title: 'Responsive Design', desc: 'Fully responsive layout optimised for mobile and desktop — ensuring a seamless experience across all devices for potential clients.' },
-          { url: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=900&q=80', title: 'Lead Generation', desc: 'Strategic contact and inquiry sections designed to convert visitors into consultation requests and qualified leads.' },
-          { url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=900&q=80', title: 'SEO-Optimised Structure', desc: 'Content architecture built for search — keyword-rich headings, meta structure, and semantic HTML to improve local discovery in Ahmedabad.' },
-          { url: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=900&q=80', title: 'Brand-Consistent UI', desc: 'Professional, trustworthy visual identity that reflects the firm\'s credibility and positions LedgerLink as a premium advisory partner.' }
+          { url: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=900&q=80&auto=format', title: 'Professional Web Presence', desc: 'Clean, trust-building website designed to attract businesses and individuals seeking reliable tax and compliance advisory services in Ahmedabad.' },
+          { url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=900&q=80&auto=format', title: 'Service Pages', desc: 'Dedicated pages for GST, Income Tax, Accounting & Compliance — each structured to clearly communicate expertise and drive enquiries.' },
+          { url: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=900&q=80&auto=format', title: 'Responsive Design', desc: 'Fully responsive layout optimised for mobile and desktop — ensuring a seamless experience across all devices for potential clients.' },
+          { url: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=900&q=80&auto=format', title: 'Lead Generation', desc: 'Strategic contact and inquiry sections designed to convert visitors into consultation requests and qualified leads.' },
+          { url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=900&q=80&auto=format', title: 'SEO-Optimised Structure', desc: 'Content architecture built for search — keyword-rich headings, meta structure, and semantic HTML to improve local discovery in Ahmedabad.' },
+          { url: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=900&q=80&auto=format', title: 'Brand-Consistent UI', desc: 'Professional, trustworthy visual identity that reflects the firm\'s credibility and positions LedgerLink as a premium advisory partner.' }
         ]
       },
       techvault: {
@@ -897,12 +1116,12 @@
           'Brand-focused typography system'
         ],
         images: [
-          { url: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=900&q=80', title: 'Gym Posters & Banners', desc: 'Bold, energetic posters and banners designed to capture attention and communicate the power of Titan Fitness Club\'s brand.' },
-          { url: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=900&q=80', title: 'Membership Offer Creatives', desc: 'High-impact promotional visuals for membership packages — designed to drive sign-ups and communicate value instantly.' },
-          { url: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=900&q=80', title: 'Outdoor Flex Design', desc: 'Large-format outdoor flex creatives built to command visibility at street level and attract footfall to the studio.' },
-          { url: 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=900&q=80', title: 'Social Media Launch Visuals', desc: 'Eye-catching social media creatives built for the launch week campaign — consistent with the brand identity.' },
-          { url: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=900&q=80', title: 'Brand Typography System', desc: 'A brand-focused typography system developed for Titan Fitness Club — bold, impactful, and consistent across every touchpoint.' },
-          { url: 'https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=900&q=80', title: 'Launch Campaign Overview', desc: 'Complete launch campaign package — all assets aligned to one visual language that builds brand recognition from day one.' }
+          { url: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=900&q=80&auto=format', title: 'Gym Posters & Banners', desc: 'Bold, energetic posters and banners designed to capture attention and communicate the power of Titan Fitness Club\'s brand.' },
+          { url: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=900&q=80&auto=format', title: 'Membership Offer Creatives', desc: 'High-impact promotional visuals for membership packages — designed to drive sign-ups and communicate value instantly.' },
+          { url: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=900&q=80&auto=format', title: 'Outdoor Flex Design', desc: 'Large-format outdoor flex creatives built to command visibility at street level and attract footfall to the studio.' },
+          { url: 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=900&q=80&auto=format', title: 'Social Media Launch Visuals', desc: 'Eye-catching social media creatives built for the launch week campaign — consistent with the brand identity.' },
+          { url: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=900&q=80&auto=format', title: 'Brand Typography System', desc: 'A brand-focused typography system developed for Titan Fitness Club — bold, impactful, and consistent across every touchpoint.' },
+          { url: 'https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=900&q=80&auto=format', title: 'Launch Campaign Overview', desc: 'Complete launch campaign package — all assets aligned to one visual language that builds brand recognition from day one.' }
         ]
       },
       retailmax: {
@@ -928,11 +1147,11 @@
           'Print-ready branding assets'
         ],
         images: [
-          { url: 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=900&q=80', title: 'Company Profile Booklet', desc: 'A professionally designed company profile booklet — structured to communicate Nexora\'s scale, services, and credibility at investor meetings.' },
-          { url: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=900&q=80', title: 'Corporate Brochure Design', desc: 'Clean, high-impact brochure layouts presenting Nexora\'s construction and development projects with visual clarity.' },
-          { url: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=900&q=80', title: 'Presentation Deck Visuals', desc: 'Polished presentation slides designed for client pitches and investor meetings — modern, data-friendly, and on-brand.' },
-          { url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=900&q=80', title: 'Business Proposal Layouts', desc: 'Structured proposal templates that make Nexora\'s service offerings and project capabilities easy to read and compelling to act on.' },
-          { url: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=900&q=80', title: 'Print-Ready Branding Assets', desc: 'All materials prepared as print-ready production files — exact colours, bleeds, and resolutions for professional printing.' }
+          { url: 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=900&q=80&auto=format', title: 'Company Profile Booklet', desc: 'A professionally designed company profile booklet — structured to communicate Nexora\'s scale, services, and credibility at investor meetings.' },
+          { url: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=900&q=80&auto=format', title: 'Corporate Brochure Design', desc: 'Clean, high-impact brochure layouts presenting Nexora\'s construction and development projects with visual clarity.' },
+          { url: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=900&q=80&auto=format', title: 'Presentation Deck Visuals', desc: 'Polished presentation slides designed for client pitches and investor meetings — modern, data-friendly, and on-brand.' },
+          { url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=900&q=80&auto=format', title: 'Business Proposal Layouts', desc: 'Structured proposal templates that make Nexora\'s service offerings and project capabilities easy to read and compelling to act on.' },
+          { url: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=900&q=80&auto=format', title: 'Print-Ready Branding Assets', desc: 'All materials prepared as print-ready production files — exact colours, bleeds, and resolutions for professional printing.' }
         ]
       },
       nexahealth: {
@@ -958,11 +1177,11 @@
           'Print-ready production files'
         ],
         images: [
-          { url: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=900&q=80', title: 'Menu Card Design', desc: 'Visually rich menu layouts designed to elevate the dining experience — premium feel with clear readability across all sections.' },
-          { url: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=900&q=80', title: 'Food Packaging Design', desc: 'Takeaway packaging crafted to be as impressive as the food inside — brand-consistent design that travels well and makes an impression.' },
-          { url: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=900&q=80', title: 'Flyers & Table-Top Creatives', desc: 'Promotional print materials and table-top creatives that bring the brand to life in-venue and attract new customers.' },
-          { url: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=900&q=80', title: 'Brand Typography & Color Styling', desc: 'A cohesive typographic and colour system developed for Spice Theory Kitchen — modern, warm, and distinctly premium.' },
-          { url: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=900&q=80', title: 'Print-Ready Production Files', desc: 'All creative assets delivered as fully print-ready files — exact specifications met for professional production and reproduction.' }
+          { url: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=900&q=80&auto=format', title: 'Menu Card Design', desc: 'Visually rich menu layouts designed to elevate the dining experience — premium feel with clear readability across all sections.' },
+          { url: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=900&q=80&auto=format', title: 'Food Packaging Design', desc: 'Takeaway packaging crafted to be as impressive as the food inside — brand-consistent design that travels well and makes an impression.' },
+          { url: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=900&q=80&auto=format', title: 'Flyers & Table-Top Creatives', desc: 'Promotional print materials and table-top creatives that bring the brand to life in-venue and attract new customers.' },
+          { url: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=900&q=80&auto=format', title: 'Brand Typography & Color Styling', desc: 'A cohesive typographic and colour system developed for Spice Theory Kitchen — modern, warm, and distinctly premium.' },
+          { url: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=900&q=80&auto=format', title: 'Print-Ready Production Files', desc: 'All creative assets delivered as fully print-ready files — exact specifications met for professional production and reproduction.' }
         ]
       },
       houseelira: {
@@ -988,11 +1207,11 @@
           'Fashion catalog creatives'
         ],
         images: [
-          { url: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=900&q=80', title: 'Campaign Moodboards', desc: 'Curated moodboards that defined the visual direction of the shoot — mood, palette, styling, and composition references aligned with House of Elira\'s brand identity.' },
-          { url: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=900&q=80', title: 'Photoshoot Creative Direction', desc: 'On-set creative direction ensuring every frame, angle, and styling choice reflected the premium ethnic and Indo-western aesthetic of the brand.' },
-          { url: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=900&q=80', title: 'Edited Promotional Visuals', desc: 'Post-production editing delivering polished, campaign-ready visuals — colour graded and retouched to a premium standard for catalog and marketing use.' },
-          { url: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=900&q=80', title: 'Social Media Campaign Assets', desc: 'Platform-optimised creatives designed for Instagram, Facebook, and digital campaigns — each tailored to drive engagement and communicate the brand\'s premium positioning.' },
-          { url: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=900&q=80', title: 'Fashion Catalog Creatives', desc: 'Catalog layouts built to showcase the collection with elegance — structured for both print and digital distribution to buyers and end customers.' }
+          { url: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=900&q=80&auto=format', title: 'Campaign Moodboards', desc: 'Curated moodboards that defined the visual direction of the shoot — mood, palette, styling, and composition references aligned with House of Elira\'s brand identity.' },
+          { url: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=900&q=80&auto=format', title: 'Photoshoot Creative Direction', desc: 'On-set creative direction ensuring every frame, angle, and styling choice reflected the premium ethnic and Indo-western aesthetic of the brand.' },
+          { url: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=900&q=80&auto=format', title: 'Edited Promotional Visuals', desc: 'Post-production editing delivering polished, campaign-ready visuals — colour graded and retouched to a premium standard for catalog and marketing use.' },
+          { url: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=900&q=80&auto=format', title: 'Social Media Campaign Assets', desc: 'Platform-optimised creatives designed for Instagram, Facebook, and digital campaigns — each tailored to drive engagement and communicate the brand\'s premium positioning.' },
+          { url: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=900&q=80&auto=format', title: 'Fashion Catalog Creatives', desc: 'Catalog layouts built to showcase the collection with elegance — structured for both print and digital distribution to buyers and end customers.' }
         ]
       },
       ahmdstartup: {
@@ -1018,11 +1237,11 @@
           'Print-ready marketing creatives'
         ],
         images: [
-          { url: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=900&q=80', title: 'Event Poster Design', desc: 'High-impact event posters designed to generate buzz, communicate the event\'s value proposition, and drive registrations across both print and digital channels.' },
-          { url: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=900&q=80', title: 'Stage & Backdrop Visuals', desc: 'Large-format stage backdrops and environment visuals that created a professional, branded atmosphere for the event venue from every angle.' },
-          { url: 'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=900&q=80', title: 'Social Media Promotional Assets', desc: 'A cohesive set of social creatives for pre-event, during-event, and post-event coverage — designed to build anticipation and amplify reach across platforms.' },
-          { url: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=900&q=80', title: 'Pass & Badge Designs', desc: 'Professionally designed attendee passes and badges that reinforced the event\'s visual identity and gave participants a premium, memorable keepsake.' },
-          { url: 'https://images.unsplash.com/photo-1499914485622-a88fac536970?w=900&q=80', title: 'Print-Ready Marketing Creatives', desc: 'All promotional materials delivered as print-ready production files — ensuring accurate colour reproduction and professional output for every touchpoint.' }
+          { url: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=900&q=80&auto=format', title: 'Event Poster Design', desc: 'High-impact event posters designed to generate buzz, communicate the event\'s value proposition, and drive registrations across both print and digital channels.' },
+          { url: 'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=900&q=80&auto=format', title: 'Stage & Backdrop Visuals', desc: 'Large-format stage backdrops and environment visuals that created a professional, branded atmosphere for the event venue from every angle.' },
+          { url: 'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=900&q=80&auto=format', title: 'Social Media Promotional Assets', desc: 'A cohesive set of social creatives for pre-event, during-event, and post-event coverage — designed to build anticipation and amplify reach across platforms.' },
+          { url: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=900&q=80&auto=format', title: 'Pass & Badge Designs', desc: 'Professionally designed attendee passes and badges that reinforced the event\'s visual identity and gave participants a premium, memorable keepsake.' },
+          { url: 'https://images.unsplash.com/photo-1499914485622-a88fac536970?w=900&q=80&auto=format', title: 'Print-Ready Marketing Creatives', desc: 'All promotional materials delivered as print-ready production files — ensuring accurate colour reproduction and professional output for every touchpoint.' }
         ]
       }
     };
@@ -1040,7 +1259,7 @@
       if (!id) {
         try {
           id = sessionStorage.getItem('current_project_id') || localStorage.getItem('current_project_id');
-        } catch (_) {}
+        } catch (_) { }
       }
       id = (id || 'luxefashion').toLowerCase();
       const ALIASES = {
@@ -1071,6 +1290,33 @@
     // 2. Hydrate Project Page from data
     function renderProjectDetail(data) {
       if (!data) return;
+
+      const hasAdmin = !!(window.sessionStorage?.getItem('sonicmedia_admin_session') || window.localStorage?.getItem('sonicmedia_admin_session'));
+      const isPreview = window.location.search.includes('preview=true');
+
+      if (data.status === 'draft' && !hasAdmin && !isPreview) {
+        document.title = `Project Draft — The Sonic Media`;
+        const titleEl = document.getElementById('projectTitle');
+        if (titleEl) titleEl.innerHTML = `<em>Project Draft</em>`;
+        const subEl = document.getElementById('projectSubtitle');
+        if (subEl) subEl.textContent = 'This project is currently saved as a draft and has not yet been published live.';
+        const aboutEl = document.getElementById('projectAbout');
+        if (aboutEl) aboutEl.textContent = 'Our team is curating the visuals and case study content for this project. Check back soon for the live release!';
+        const galleryGrid = document.getElementById('projectGalleryGrid');
+        if (galleryGrid) galleryGrid.innerHTML = '<div style="padding:60px 20px;color:#888;text-align:center;grid-column:1/-1;border:1px dashed rgba(255,255,255,0.1);border-radius:12px;">Deliverables and assets will appear here once published to the live site.</div>';
+        return;
+      }
+
+      if (data.status === 'draft' && (hasAdmin || isPreview)) {
+        if (!document.getElementById('draftPreviewBanner')) {
+          const banner = document.createElement('div');
+          banner.id = 'draftPreviewBanner';
+          banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99999;background:linear-gradient(90deg,#f59e0b,#d97706);color:#000;font-family:sans-serif;font-size:12px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;padding:8px 20px;display:flex;align-items:center;justify-content:center;gap:12px;box-shadow:0 4px 15px rgba(0,0,0,0.5);';
+          banner.innerHTML = `<span>📝 DRAFT PREVIEW MODE — This project is saved as a Draft and is not visible to public visitors.</span>`;
+          document.body.appendChild(banner);
+          document.body.style.paddingTop = '36px';
+        }
+      }
 
       const title = data.title || data.name || 'Project';
       const subtitle = data.subtitle || data.cat || '';
@@ -1243,13 +1489,13 @@
       const galleryGrid = document.getElementById('projectGalleryGrid');
       const galleryImages = Array.isArray(data.images) && data.images.length > 0
         ? data.images
-        : [{ url: data.img || 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=900&q=80', title: title, desc: subtitle }];
-      
+        : [{ url: data.img || 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=900&q=80&auto=format', title: title, desc: subtitle }];
+
       if (galleryGrid) {
         galleryGrid.innerHTML = galleryImages.map((img, idx) => `
-          <div class="wd-gallery-card" data-cms-editable="true" data-cms-type="portfolio-item" data-cms-id="${currentProjectId}" data-cms-label="🖼️ Edit Deliverable #${idx+1}">
+          <div class="wd-gallery-card" data-cms-editable="true" data-cms-type="portfolio-item" data-cms-id="${currentProjectId}" data-cms-label="🖼️ Edit Deliverable #${idx + 1}">
             <div class="wd-gallery-img-box">
-              <img src="${img.url}" alt="${escapeHtml(img.title || title)}" class="wd-gallery-img" loading="lazy">
+              <img src="${img.url}" alt="${escapeHtml(img.title || title)}" class="wd-gallery-img" loading="lazy" decoding="async">
               <div class="wd-gallery-num">${String(idx + 1).padStart(2, '0')}</div>
             </div>
             <div class="wd-gallery-info">
@@ -1293,7 +1539,7 @@
     }
 
     function escapeHtml(str) {
-      return String(str || '').replace(/[&<>"']/g, s => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[s]));
+      return String(str || '').replace(/[&<>"']/g, s => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[s]));
     }
 
     function renderProjectError(isNotFound) {
@@ -1331,12 +1577,12 @@
             const row = cached.portfolio.find(p => (p.id || '').toLowerCase() === currentProjectId.toLowerCase());
             if (row) {
               let d = row.details;
-              if (typeof d === 'string') { try { d = JSON.parse(d); } catch(_) { d = {}; } }
+              if (typeof d === 'string') { try { d = JSON.parse(d); } catch (_) { d = {}; } }
               initialData = Object.assign({}, row, d || {});
             }
           }
         }
-      } catch (_) {}
+      } catch (_) { }
 
       // Tier 2: Check workDetails from assets/js/app.js
       if (!initialData && typeof workDetails !== 'undefined' && workDetails[currentProjectId]) {
@@ -1360,16 +1606,16 @@
         const rows = typeof sbGet === 'function'
           ? await sbGet(`portfolio_items?id=eq.${cleanId}&select=*&limit=1`, { timeout: 8000, retries: 1 })
           : await (async () => {
-              const h = { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON };
-              const r = await fetch(`${SUPABASE_URL}/rest/v1/portfolio_items?id=eq.${cleanId}&select=*&limit=1`, { headers: h });
-              return r.ok ? await r.json() : null;
-            })();
+            const h = { 'apikey': window.SUPABASE_ANON, 'Authorization': 'Bearer ' + window.SUPABASE_ANON };
+            const r = await fetch(`${window.SUPABASE_URL}/rest/v1/portfolio_items?id=eq.${cleanId}&select=*&limit=1`, { headers: h });
+            return r.ok ? await r.json() : null;
+          })();
 
         if (rows && rows.length > 0) {
           hasRendered = true;
           const row = rows[0];
           let d = row.details;
-          if (typeof d === 'string') { try { d = JSON.parse(d); } catch(_) { d = {}; } }
+          if (typeof d === 'string') { try { d = JSON.parse(d); } catch (_) { d = {}; } }
           const merged = Object.assign({}, row, d || {});
           renderProjectDetail(merged);
 
@@ -1382,7 +1628,7 @@
               else cur.portfolio.push(row);
               localStorage.setItem('tsm_supabase_cache', JSON.stringify(cur));
             }
-          } catch (_) {}
+          } catch (_) { }
         } else if (!hasRendered) {
           renderProjectError(true);
         }
@@ -1402,4 +1648,5 @@
     }
   </script>
 </body>
+
 </html>

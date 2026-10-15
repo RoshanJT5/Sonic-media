@@ -43,3 +43,18 @@
 /linktree              /linktree.html      200
 /sonicmediaadmin       /sonicmediaadmin.html 200
 /services/:splat       /services/:splat.html 200
+/samples/:splat        /samples/:splat.html 200
+
+# Legacy Sample aliases (backward compatibility)
+/sample-dentist.html          /samples/sample-dentist        301
+/sample-dentist               /samples/sample-dentist.html   200
+/sample-finance-dsa.html      /samples/sample-finance-dsa    301
+/sample-finance-dsa           /samples/sample-finance-dsa.html 200
+/sample-interiordesigner.html /samples/sample-interiordesigner 301
+/sample-interiordesigner      /samples/sample-interiordesigner.html 200
+/sample-verdan.html           /samples/sample-verdan         301
+/sample-verdan                /samples/sample-verdan.html    200
+/sample-vertex.html           /samples/sample-vertex         301
+/sample-vertex                /samples/sample-vertex.html    200
+/sweetbasket.html             /samples/sweetbasket           301
+/sweetbasket                  /samples/sweetbasket.html      200

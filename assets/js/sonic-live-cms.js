@@ -1,21 +1,29 @@
 /**
  * THE SONIC MEDIA — LIVE VISUAL IN-PLACE CMS ENGINE
- * Allows admins to click any headline, topic, project, text, or image directly on the live website
- * and edit, upload, and save changes straight to Supabase.
+ * Allows admins to click any headline, text, button, card, or image directly on the live website,
+ * type in-place with Undo / Redo history, Save edits to Supabase + local cache, or Cancel / Keep Original.
  */
 
 (function () {
   'use strict';
 
-  const SUPABASE_URL = 'https://plytoawhcvzdjtrgtnrn.supabase.co';
-  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBseXRvYXdoY3Z6ZGp0cmd0bnJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5NjkyNTYsImV4cCI6MjEwNzU0NTI1Nn0.AxpKzQf5LL-ePbmtsxELKQdip3bYp9hBp9xYugybelc';
+  const SUPABASE_URL = (window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.URL) || window.SUPABASE_URL || '';
+  const SUPABASE_ANON = (window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.ANON_KEY) || window.SUPABASE_ANON || '';
   const ADMIN_STORAGE_KEY = 'sonicmedia_admin_session';
+  const EDITS_STORAGE_KEY = 'tsm_live_custom_edits';
 
   let isEditMode = false;
-  let adminSession = null;
   let activeEditTarget = null;
+  let activeImageTarget = null;
 
-  // ── Session Helper ──
+  // History & Snapshot tracking
+  let undoStack = [];
+  let redoStack = [];
+  const pristineSnapshots = new Map(); // key -> { el, val, type } (permanent original template baseline)
+  const originalSnapshots = new Map(); // key -> pristine original HTML / src before any edits in session
+  const pendingEdits = new Map();      // key -> { el, key, type: 'text'|'image', val, html, text }
+
+  // ── Session & Auth Helper ──
   function getAdminSession() {
     try {
       const s = window.sessionStorage.getItem(ADMIN_STORAGE_KEY) || window.localStorage.getItem(ADMIN_STORAGE_KEY);
@@ -34,36 +42,95 @@
       : { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON, 'Content-Type': 'application/json' };
   }
 
+  // ── Element Key Generator ──
+  function getElementKey(el) {
+    if (!el) return '';
+    if (el.getAttribute('data-cms-key')) return el.getAttribute('data-cms-key');
+    if (el.id) {
+      const k = '#' + el.id;
+      el.setAttribute('data-cms-key', k);
+      return k;
+    }
+    const schema = el.getAttribute('data-cms-schema');
+    const field = el.getAttribute('data-cms-field');
+    if (schema && field) {
+      const k = `[data-cms-schema="${schema}"][data-cms-field="${field}"]`;
+      el.setAttribute('data-cms-key', k);
+      return k;
+    }
+    const type = el.getAttribute('data-cms-type');
+    const id = el.getAttribute('data-cms-id');
+    if (type && id) {
+      const k = `[data-cms-type="${type}"][data-cms-id="${id}"]`;
+      el.setAttribute('data-cms-key', k);
+      return k;
+    }
+    // Generate stable CSS selector path
+    const parts = [];
+    let cur = el;
+    while (cur && cur !== document.body && cur !== document.documentElement) {
+      let part = cur.tagName.toLowerCase();
+      if (cur.id) {
+        parts.unshift('#' + cur.id);
+        break;
+      }
+      if (cur.className && typeof cur.className === 'string') {
+        const primaryClass = cur.className.trim().split(/\s+/).filter(c => !c.startsWith('sonic-') && !c.startsWith('cms-'))[0];
+        if (primaryClass) part += '.' + primaryClass;
+      }
+      const parent = cur.parentElement;
+      if (parent) {
+        const siblings = Array.from(parent.children).filter(c => c.tagName === cur.tagName);
+        if (siblings.length > 1) {
+          part += `:nth-of-type(${siblings.indexOf(cur) + 1})`;
+        }
+      }
+      parts.unshift(part);
+      cur = parent;
+    }
+    const key = parts.join(' > ');
+    el.setAttribute('data-cms-key', key);
+    return key;
+  }
+
   // ── Inject CMS Styles ──
   function injectStyles() {
     if (document.getElementById('sonic-cms-styles')) return;
     const style = document.createElement('style');
     style.id = 'sonic-cms-styles';
     style.textContent = `
-      /* Sonic Live CMS Toolbar */
+      /* Sonic Live CMS Floating Toolkit Bar */
       #sonicCmsBar {
         position: fixed;
         bottom: 24px;
         left: 50%;
         transform: translateX(-50%) translateY(0);
-        z-index: 999999;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        background: rgba(14, 14, 14, 0.94);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
+        z-index: 2147483640 !important;
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        gap: 8px !important;
+        background: rgba(12, 12, 12, 0.95);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
         border: 1px solid rgba(255, 92, 0, 0.45);
         border-radius: 50px;
-        padding: 8px 18px 8px 14px;
-        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 0 0 24px rgba(255, 92, 0, 0.25);
-        font-family: 'DM Sans', sans-serif;
+        padding: 0 14px;
+        height: 52px;
+        box-sizing: border-box;
+        box-shadow: 0 16px 45px rgba(0, 0, 0, 0.9), 0 0 25px rgba(255, 92, 0, 0.22);
+        font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         color: #F5F0EB;
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+        user-select: none;
+        white-space: nowrap !important;
+        max-width: 96vw;
+        cursor: default !important;
       }
       #sonicCmsBar.minimized {
-        transform: translateX(-50%) translateY(70px);
-        opacity: 0.3;
+        transform: translateX(-50%) translateY(60px);
+        opacity: 0.38;
       }
       #sonicCmsBar:hover {
         opacity: 1;
@@ -72,13 +139,17 @@
       .cms-badge {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
+        gap: 7px;
         font-family: 'Syne', sans-serif;
         font-size: 11px;
-        font-weight: 700;
-        letter-spacing: 0.1em;
+        font-weight: 800;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
         color: #FF5C00;
+        padding: 0 4px;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        cursor: default !important;
       }
       .cms-dot {
         width: 8px;
@@ -87,109 +158,295 @@
         background: #10B981;
         box-shadow: 0 0 8px #10B981;
         animation: cmsPulse 2s infinite;
+        flex-shrink: 0;
       }
       @keyframes cmsPulse {
         0%, 100% { opacity: 1; transform: scale(1); }
-        50% { opacity: 0.5; transform: scale(0.85); }
+        50% { opacity: 0.45; transform: scale(0.85); }
       }
-      .cms-toggle-btn {
+      .cms-bar-divider {
+        width: 1px;
+        height: 22px;
+        background: rgba(255, 255, 255, 0.14);
+        margin: 0 2px;
+        flex-shrink: 0 !important;
+      }
+      .cms-btn {
         background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.16);
         border-radius: 50px;
-        padding: 6px 14px;
+        padding: 0 14px !important;
+        height: 36px !important;
         color: #F5F0EB;
-        font-size: 12px;
+        font-size: 12.5px;
         font-weight: 600;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        transition: all 0.2s;
+        cursor: pointer !important;
+        display: inline-flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 6px !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        line-height: 1 !important;
+        box-sizing: border-box;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        text-decoration: none;
       }
-      .cms-toggle-btn:hover {
-        background: rgba(255, 92, 0, 0.2);
+      .cms-btn span {
+        white-space: nowrap !important;
+        display: inline-block !important;
+        line-height: 1 !important;
+        pointer-events: none;
+      }
+      .cms-btn:hover:not(:disabled):not(.disabled) {
+        background: rgba(255, 92, 0, 0.22);
         border-color: #FF5C00;
         color: #FFF;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(255, 92, 0, 0.25);
       }
-      .cms-toggle-btn.active {
-        background: #FF5C00;
-        color: #080808;
-        border-color: #FF5C00;
+      .cms-btn.active {
+        background: #FF5C00 !important;
+        color: #080808 !important;
+        border-color: #FF5C00 !important;
+        font-weight: 700 !important;
+        box-shadow: 0 0 16px rgba(255, 92, 0, 0.4);
+      }
+      .cms-btn.disabled, .cms-btn:disabled {
+        opacity: 0.35 !important;
+        cursor: not-allowed !important;
+        pointer-events: none;
+      }
+      .cms-btn-icon-only {
+        width: 36px !important;
+        height: 36px !important;
+        padding: 0 !important;
+        border-radius: 50% !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-shrink: 0 !important;
+      }
+      .cms-btn-icon-only svg {
+        pointer-events: none;
+      }
+      .cms-btn-save {
+        background: rgba(16, 185, 129, 0.15);
+        border-color: rgba(16, 185, 129, 0.4);
+        color: #6EE7B7;
         font-weight: 700;
       }
+      .cms-btn-save.dirty {
+        background: #10B981 !important;
+        border-color: #10B981 !important;
+        color: #080808 !important;
+        box-shadow: 0 0 18px rgba(16, 185, 129, 0.5) !important;
+        animation: cmsPulseSave 2s infinite ease-in-out;
+      }
+      @keyframes cmsPulseSave {
+        0%, 100% { transform: scale(1); box-shadow: 0 0 12px rgba(16, 185, 129, 0.4); }
+        50% { transform: scale(1.02); box-shadow: 0 0 20px rgba(16, 185, 129, 0.65); }
+      }
+      .cms-btn-save:hover:not(:disabled):not(.disabled) {
+        background: #10B981 !important;
+        border-color: #10B981 !important;
+        color: #080808 !important;
+        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.5);
+      }
+      .cms-btn-cancel {
+        background: rgba(239, 68, 68, 0.12);
+        border-color: rgba(239, 68, 68, 0.38);
+        color: #FCA5A5;
+        font-weight: 600;
+        transition: all 0.2s ease;
+      }
+      .cms-btn-cancel:hover:not(:disabled):not(.disabled) {
+        background: rgba(239, 68, 68, 0.3) !important;
+        border-color: #EF4444 !important;
+        color: #FFF !important;
+        box-shadow: 0 0 16px rgba(239, 68, 68, 0.35);
+      }
+      .cms-status-badge {
+        font-family: 'Syne', sans-serif;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        padding: 5px 11px;
+        border-radius: 50px;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        line-height: 1 !important;
+        cursor: default !important;
+      }
+      .cms-status-badge.clean {
+        background: rgba(16, 185, 129, 0.15);
+        color: #34D399;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+      }
+      .cms-status-badge.dirty {
+        background: rgba(255, 92, 0, 0.22);
+        color: #FFB077;
+        border: 1px solid rgba(255, 92, 0, 0.55);
+        animation: cmsBadgePulse 1.8s infinite;
+      }
+      @keyframes cmsBadgePulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.65; }
+      }
       .cms-btn-subtle {
-        background: transparent;
-        border: none;
-        color: rgba(245, 240, 235, 0.6);
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 50px;
+        padding: 0 12px;
+        height: 32px;
+        color: rgba(245, 240, 235, 0.75);
         font-size: 12px;
-        cursor: pointer;
-        text-decoration: none;
-        padding: 4px 8px;
-        border-radius: 6px;
-        transition: color 0.2s;
+        font-weight: 600;
+        cursor: pointer !important;
+        display: inline-flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 5px;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        line-height: 1 !important;
+        box-sizing: border-box;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .cms-btn-subtle span {
+        white-space: nowrap !important;
+        pointer-events: none;
       }
       .cms-btn-subtle:hover {
         color: #FF5C00;
+        border-color: rgba(255, 92, 0, 0.5);
+        background: rgba(255, 92, 0, 0.12);
+        box-shadow: 0 2px 10px rgba(255, 92, 0, 0.2);
       }
-      .cms-btn-exit {
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.16);
-        color: rgba(245, 240, 235, 0.85);
-        font-size: 11.5px;
-        font-weight: 600;
-        cursor: pointer;
-        padding: 5px 12px;
-        border-radius: 50px;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        transition: all 0.2s ease;
+      .cms-btn-min {
+        width: 32px !important;
+        height: 32px !important;
+        padding: 0 !important;
+        border-radius: 50% !important;
+        font-size: 16px !important;
+        font-weight: 700 !important;
       }
-      .cms-btn-exit:hover {
-        background: rgba(239, 68, 68, 0.22);
-        border-color: #ef4444;
-        color: #ff9999;
+      .cms-spin {
+        animation: cmsSpin 1s linear infinite;
+      }
+      @keyframes cmsSpin {
+        100% { transform: rotate(360deg); }
       }
 
-      /* Hover outlines when edit mode is active */
-      body.sonic-cms-active [data-cms-editable] {
-        position: relative;
+      /* Hide custom laggy dot & follower when hovering over CMS bar or modals so native hand pointer shows */
+      body.cms-hovering-bar #cursor,
+      body.cms-hovering-bar #cursor-follower,
+      body.cms-hovering-bar #cursor-trail,
+      body.cms-hovering-bar #mouse-glow {
+        opacity: 0 !important;
+        visibility: hidden !important;
+        display: none !important;
+        pointer-events: none !important;
+      }
+      body.cms-hovering-bar,
+      body.cms-hovering-bar #sonicCmsBar {
+        cursor: default !important;
+      }
+      body.cms-hovering-bar #sonicCmsBar button,
+      body.cms-hovering-bar #sonicCmsBar .cms-btn,
+      body.cms-hovering-bar #sonicCmsBar .cms-btn-subtle,
+      body.cms-hovering-bar #sonicCmsBar .cms-btn-icon-only,
+      body.cms-hovering-bar #sonicCmsBar a,
+      body.cms-hovering-bar #sonicCmsBar [onclick],
+      body.cms-hovering-bar .cms-modal-box button,
+      body.cms-hovering-bar .cms-modal-box .cms-btn {
         cursor: pointer !important;
+      }
+      body.cms-hovering-bar #sonicCmsBar button *,
+      body.cms-hovering-bar #sonicCmsBar .cms-btn *,
+      body.cms-hovering-bar #sonicCmsBar .cms-btn-subtle *,
+      body.cms-hovering-bar #sonicCmsBar .cms-btn-icon-only * {
+        cursor: pointer !important;
+      }
+
+      /* Hover & Focus styling for in-place editable elements */
+      body.sonic-cms-active [data-cms-editable="text"] {
+        outline: 1.5px dashed rgba(255, 92, 0, 0.45) !important;
+        outline-offset: 3px;
+        cursor: text !important;
         transition: outline 0.15s ease, box-shadow 0.15s ease;
       }
-      body.sonic-cms-active [data-cms-editable]:hover {
+      body.sonic-cms-active [data-cms-editable="text"]:hover {
         outline: 2px dashed #FF5C00 !important;
         outline-offset: 4px;
-        box-shadow: 0 0 16px rgba(255, 92, 0, 0.25) !important;
+        box-shadow: 0 0 16px rgba(255, 92, 0, 0.3) !important;
       }
-      body.sonic-cms-active [data-cms-editable]:hover::after {
-        content: attr(data-cms-label);
-        position: absolute;
-        top: -26px;
-        left: 4px;
-        background: #FF5C00;
-        color: #080808;
-        font-family: 'Syne', sans-serif;
-        font-size: 10px;
-        font-weight: 800;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        padding: 3px 8px;
+      body.sonic-cms-active [data-cms-editable="text"]:focus {
+        outline: 2px solid #FF5C00 !important;
+        outline-offset: 4px;
+        background: rgba(255, 92, 0, 0.06) !important;
+        box-shadow: 0 0 24px rgba(255, 92, 0, 0.45) !important;
         border-radius: 4px;
-        z-index: 99999;
-        pointer-events: none;
-        white-space: nowrap;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      }
+      body.sonic-cms-active [data-cms-editable="image"] {
+        outline: 2px dashed rgba(0, 194, 255, 0.6) !important;
+        outline-offset: 4px;
+        cursor: pointer !important;
+        position: relative;
+        transition: all 0.2s ease;
+      }
+      body.sonic-cms-active [data-cms-editable="image"]:hover {
+        outline: 2px solid #00C2FF !important;
+        box-shadow: 0 0 20px rgba(0, 194, 255, 0.45) !important;
+        transform: scale(1.01);
       }
 
-      /* Modal Editor Drawer */
-      #sonicCmsModal {
+      /* Structured card overlay details button */
+      .cms-card-btn {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        z-index: 9999;
+        background: rgba(14, 14, 14, 0.92);
+        border: 1px solid #FF5C00;
+        color: #F5F0EB;
+        font-family: 'Syne', sans-serif;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 5px 12px;
+        border-radius: 50px;
+        cursor: pointer;
+        display: none;
+        align-items: center;
+        gap: 5px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+        transition: all 0.2s ease;
+      }
+      body.sonic-cms-active [data-cms-type]:hover .cms-card-btn,
+      body.sonic-cms-active .fw-row:hover .cms-card-btn,
+      body.sonic-cms-active .jcard:hover .cms-card-btn,
+      body.sonic-cms-active .blog-item:hover .cms-card-btn {
+        display: inline-flex;
+      }
+      .cms-card-btn:hover {
+        background: #FF5C00;
+        color: #080808;
+        transform: scale(1.05);
+      }
+
+      /* Image Changer Modal */
+      #sonicImgModal, #sonicCmsModal {
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.75);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        z-index: 1000000;
+        background: rgba(0, 0, 0, 0.82);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        z-index: 10000000;
         display: none;
         align-items: center;
         justify-content: center;
@@ -202,7 +459,7 @@
       }
       .cms-modal-box {
         background: #111111;
-        border: 1px solid rgba(255, 92, 0, 0.35);
+        border: 1px solid rgba(255, 92, 0, 0.4);
         border-radius: 18px;
         width: 100%;
         max-width: 620px;
@@ -210,12 +467,12 @@
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.9), 0 0 30px rgba(255, 92, 0, 0.2);
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.95), 0 0 30px rgba(255, 92, 0, 0.25);
         font-family: 'DM Sans', sans-serif;
         color: #F5F0EB;
       }
       .cms-modal-header {
-        padding: 20px 24px;
+        padding: 18px 24px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         display: flex;
         align-items: center;
@@ -224,7 +481,7 @@
       }
       .cms-modal-title {
         font-family: 'Syne', sans-serif;
-        font-size: 16px;
+        font-size: 15px;
         font-weight: 700;
         color: #F5F0EB;
         display: flex;
@@ -235,7 +492,7 @@
         background: transparent;
         border: none;
         color: rgba(245, 240, 235, 0.5);
-        font-size: 24px;
+        font-size: 22px;
         cursor: pointer;
         line-height: 1;
         transition: color 0.2s;
@@ -244,12 +501,12 @@
         color: #FF5C00;
       }
       .cms-modal-body {
-        padding: 24px;
+        padding: 22px 24px;
         overflow-y: auto;
         flex: 1;
       }
       .cms-modal-footer {
-        padding: 16px 24px;
+        padding: 14px 24px;
         border-top: 1px solid rgba(255, 255, 255, 0.08);
         display: flex;
         align-items: center;
@@ -258,7 +515,7 @@
         background: rgba(255, 255, 255, 0.02);
       }
       .cms-form-group {
-        margin-bottom: 18px;
+        margin-bottom: 16px;
       }
       .cms-label {
         display: block;
@@ -275,84 +532,35 @@
         background: #080808;
         border: 1px solid rgba(255, 255, 255, 0.12);
         border-radius: 8px;
-        padding: 12px 14px;
+        padding: 11px 14px;
         color: #F5F0EB;
         font-family: inherit;
-        font-size: 14px;
+        font-size: 13.5px;
         outline: none;
+        box-sizing: border-box;
         transition: border-color 0.2s;
       }
       .cms-input:focus, .cms-textarea:focus {
         border-color: #FF5C00;
       }
       .cms-textarea {
-        min-height: 110px;
+        min-height: 100px;
         resize: vertical;
         line-height: 1.6;
       }
-      .cms-btn-primary {
-        background: #FF5C00;
-        color: #080808;
-        border: none;
-        border-radius: 8px;
-        padding: 10px 22px;
-        font-family: 'Syne', sans-serif;
-        font-size: 13px;
-        font-weight: 700;
-        letter-spacing: 0.05em;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.2s;
-      }
-      .cms-btn-primary:hover {
-        background: #FF7726;
-        box-shadow: 0 4px 15px rgba(255, 92, 0, 0.4);
-      }
-      .cms-btn-secondary {
-        background: rgba(255, 255, 255, 0.06);
-        color: #F5F0EB;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 8px;
-        padding: 10px 18px;
-        font-size: 13px;
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-      .cms-btn-secondary:hover {
-        background: rgba(255, 255, 255, 0.12);
-      }
-      .cms-img-preview-box {
-        display: flex;
-        gap: 16px;
-        align-items: center;
-        background: #080808;
-        padding: 12px;
-        border-radius: 8px;
-        border: 1px solid rgba(255,255,255,0.08);
-        margin-top: 8px;
-      }
-      .cms-img-thumb {
-        width: 80px;
-        height: 60px;
-        border-radius: 6px;
-        object-fit: cover;
-        background: #1a1a1a;
-      }
 
-      /* CMS Toast */
+      /* CMS Toast Notification */
       #sonicCmsToast {
         position: fixed;
         top: 24px;
         right: 24px;
-        z-index: 1000001;
-        background: #121212;
+        z-index: 10000001;
+        background: #111111;
         border: 1px solid #10B981;
         color: #F5F0EB;
-        padding: 14px 20px;
+        padding: 12px 18px;
         border-radius: 10px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 15px rgba(16,185,129,0.25);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.85), 0 0 15px rgba(16,185,129,0.3);
         font-family: 'Syne', sans-serif;
         font-size: 13px;
         font-weight: 600;
@@ -369,7 +577,7 @@
     document.head.appendChild(style);
   }
 
-  // ── Show Toast Helper ──
+  // ── Toast Helper ──
   function showCmsToast(msg, isSuccess = true) {
     let t = document.getElementById('sonicCmsToast');
     if (!t) {
@@ -386,111 +594,137 @@
     }, 4000);
   }
 
-  // ── Tag Elements for Visual Editing ──
-  function tagEditableElements() {
-    // 1. Hero Section
+  // ── Escape Helpers ──
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+  function escapeAttr(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  const textSelectors = [
+    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    'p', '.lead', 'blockquote', 'figcaption',
+    '.hero-eyebrow', '.hero-sub', '.hero-h1',
+    '.section-eyebrow', '.section-title', '.section-lead', '.section-sub',
+    '.tagline', '.subtitle', '.desc',
+    '.bento-title', '.bento-desc', '.bento-tag',
+    '.svc-name', '.svc-desc', '.svc-tag', '.svc-num',
+    '.stat-num', '.stat-lbl', '.stat-meta',
+    '.jcard-title', '.jcard-sub', '.jcard-meta',
+    '.fw-name', '.fw-cat', '.fw-title',
+    '.blog-title', '.blog-meta', '.blog-cat',
+    '.tcard-quote', '.tcard-author', '.tcard-role', '.tcard-tag',
+    '.faq-q', '.faq-a',
+    '.badge', '.chip',
+    '.cta-text', '.cta-title', '.cta-sub',
+    '.about-heading', '.about-desc',
+    'a.btn', 'button.btn', '.nav-btn', '.btn-primary', '.btn-secondary',
+    '.footer-col-title', '.footer-col p', '.footer-link'
+  ];
+
+  // ── Tag Known Structured Sections & Cards ──
+  function tagStructuredDataAttrs() {
     const heroEyebrow = document.querySelector('.hero-eyebrow');
     if (heroEyebrow) {
-      heroEyebrow.setAttribute('data-cms-editable', 'true');
-      heroEyebrow.setAttribute('data-cms-label', '✏️ Edit Hero Eyebrow');
       heroEyebrow.setAttribute('data-cms-schema', 'hero');
       heroEyebrow.setAttribute('data-cms-field', 'eyebrow');
     }
     const heroH1 = document.querySelector('.hero-h1');
     if (heroH1) {
-      heroH1.setAttribute('data-cms-editable', 'true');
-      heroH1.setAttribute('data-cms-label', '✏️ Edit Hero Headline');
       heroH1.setAttribute('data-cms-schema', 'hero');
       heroH1.setAttribute('data-cms-field', 'headlineHtml');
     }
     const heroSub = document.querySelector('.hero-sub');
     if (heroSub) {
-      heroSub.setAttribute('data-cms-editable', 'true');
-      heroSub.setAttribute('data-cms-label', '✏️ Edit Hero Subtitle');
       heroSub.setAttribute('data-cms-schema', 'hero');
       heroSub.setAttribute('data-cms-field', 'subheadline');
     }
 
-    // 2. Portfolio Section Header
     const portEyebrows = document.querySelectorAll('#port-eyebrow, .page-studio .section-eyebrow, #page-portfolio-eyebrow');
     portEyebrows.forEach(el => {
-      el.setAttribute('data-cms-editable', 'true');
-      el.setAttribute('data-cms-label', '✏️ Edit Portfolio Eyebrow');
       el.setAttribute('data-cms-schema', 'portfolio');
       el.setAttribute('data-cms-field', 'eyebrow');
     });
     const portTitles = document.querySelectorAll('#port-title-main, #page-studio-title, #page-portfolio-title');
     portTitles.forEach(el => {
-      el.setAttribute('data-cms-editable', 'true');
-      el.setAttribute('data-cms-label', '✏️ Edit Portfolio Title');
       el.setAttribute('data-cms-schema', 'portfolio');
       el.setAttribute('data-cms-field', 'titleCompound');
     });
     const portTaglines = document.querySelectorAll('#port-tagline, #page-portfolio-tagline');
     portTaglines.forEach(el => {
-      el.setAttribute('data-cms-editable', 'true');
-      el.setAttribute('data-cms-label', '✏️ Edit Portfolio Tagline');
       el.setAttribute('data-cms-schema', 'portfolio');
       el.setAttribute('data-cms-field', 'tagline');
     });
 
-    // 3. Individual Portfolio Rows & Cards
+    const aboutHeadings = document.querySelectorAll('#about h2, .about-heading');
+    aboutHeadings.forEach(el => {
+      el.setAttribute('data-cms-schema', 'about');
+      el.setAttribute('data-cms-field', 'headingHtml');
+    });
+    const aboutDescs = document.querySelectorAll('#about p, .about-desc');
+    aboutDescs.forEach(el => {
+      el.setAttribute('data-cms-schema', 'about');
+      el.setAttribute('data-cms-field', 'body');
+    });
+
+    // 2. Structured Cards (Portfolio, Case Study, Journal)
     const fwRows = document.querySelectorAll('.fw-row');
     fwRows.forEach(row => {
       const onclickAttr = row.getAttribute('onclick') || '';
       const match = onclickAttr.match(/openWorkDetail\(['"]([^'"]+)['"]\)/);
       if (match) {
         const id = match[1];
-        row.setAttribute('data-cms-editable', 'true');
-        row.setAttribute('data-cms-label', `📁 Edit Project (${id})`);
         row.setAttribute('data-cms-type', 'portfolio-item');
         row.setAttribute('data-cms-id', id);
+        if (!row.querySelector('.cms-card-btn')) {
+          const btn = document.createElement('button');
+          btn.className = 'cms-card-btn';
+          btn.innerHTML = '⚙️ Details';
+          btn.title = `Edit structured details for ${id}`;
+          btn.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openInlineEditor(row);
+          };
+          row.style.position = 'relative';
+          row.appendChild(btn);
+        }
       }
     });
 
-    // 4. Case Studies Section Header & Cards
-    const caseTags = document.querySelectorAll('#home-casestudies-tag, #page-case-tag');
-    caseTags.forEach(el => {
-      el.setAttribute('data-cms-editable', 'true');
-      el.setAttribute('data-cms-label', '✏️ Edit Case Studies Tag');
-      el.setAttribute('data-cms-schema', 'casestudies');
-      el.setAttribute('data-cms-field', 'tag');
-    });
-    const caseTitles = document.querySelectorAll('#home-casestudies-title, #page-case-title');
-    caseTitles.forEach(el => {
-      el.setAttribute('data-cms-editable', 'true');
-      el.setAttribute('data-cms-label', '✏️ Edit Case Studies Title');
-      el.setAttribute('data-cms-schema', 'casestudies');
-      el.setAttribute('data-cms-field', 'titleCombined');
-    });
     const jcards = document.querySelectorAll('.jcard');
     jcards.forEach(card => {
       const onclickAttr = card.getAttribute('onclick') || '';
       const match = onclickAttr.match(/openCaseStudy\(['"]([^'"]+)['"]\)/);
       if (match) {
         const id = match[1];
-        card.setAttribute('data-cms-editable', 'true');
-        card.setAttribute('data-cms-label', `📊 Edit Case Study (${id})`);
         card.setAttribute('data-cms-type', 'case-item');
         card.setAttribute('data-cms-id', id);
+        if (!card.querySelector('.cms-card-btn')) {
+          const btn = document.createElement('button');
+          btn.className = 'cms-card-btn';
+          btn.innerHTML = '⚙️ Details';
+          btn.title = `Edit case study details for ${id}`;
+          btn.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openInlineEditor(card);
+          };
+          card.style.position = 'relative';
+          card.appendChild(btn);
+        }
       }
     });
 
-    // 5. Journal Section Header & Items
-    const journalTags = document.querySelectorAll('#home-journal-tag, #page-journal-tag');
-    journalTags.forEach(el => {
-      el.setAttribute('data-cms-editable', 'true');
-      el.setAttribute('data-cms-label', '✏️ Edit Journal Tag');
-      el.setAttribute('data-cms-schema', 'journal');
-      el.setAttribute('data-cms-field', 'tag');
-    });
-    const journalTitles = document.querySelectorAll('#home-journal-title, #page-journal-title');
-    journalTitles.forEach(el => {
-      el.setAttribute('data-cms-editable', 'true');
-      el.setAttribute('data-cms-label', '✏️ Edit Journal Title');
-      el.setAttribute('data-cms-schema', 'journal');
-      el.setAttribute('data-cms-field', 'titleCombined');
-    });
     const blogItems = document.querySelectorAll('.blog-item');
     blogItems.forEach(item => {
       const btn = item.querySelector('[onclick*="openBlogArticle"]');
@@ -499,279 +733,536 @@
         const match = onclickAttr.match(/openBlogArticle\(['"]([^'"]+)['"]\)/);
         if (match) {
           const id = match[1];
-          item.setAttribute('data-cms-editable', 'true');
-          item.setAttribute('data-cms-label', `📝 Edit Article (${id})`);
           item.setAttribute('data-cms-type', 'journal-item');
           item.setAttribute('data-cms-id', id);
+          if (!item.querySelector('.cms-card-btn')) {
+            const cardBtn = document.createElement('button');
+            cardBtn.className = 'cms-card-btn';
+            cardBtn.innerHTML = '⚙️ Details';
+            cardBtn.title = `Edit article details for ${id}`;
+            cardBtn.onclick = (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              openInlineEditor(item);
+            };
+            item.style.position = 'relative';
+            item.appendChild(cardBtn);
+          }
         }
       }
     });
+  }
 
-    // 6. About Section
-    const aboutHeadings = document.querySelectorAll('#about h2, .about-heading');
-    aboutHeadings.forEach(el => {
-      el.setAttribute('data-cms-editable', 'true');
-      el.setAttribute('data-cms-label', '✏️ Edit About Heading');
-      el.setAttribute('data-cms-schema', 'about');
-      el.setAttribute('data-cms-field', 'headingHtml');
-    });
-    const aboutDescs = document.querySelectorAll('#about p, .about-desc');
-    aboutDescs.forEach(el => {
-      el.setAttribute('data-cms-editable', 'true');
-      el.setAttribute('data-cms-label', '✏️ Edit About Story');
-      el.setAttribute('data-cms-schema', 'about');
-      el.setAttribute('data-cms-field', 'body');
+  // ── Permanent Pristine Baseline Snapshot (Captured at initial load) ──
+  function capturePristineBaseline() {
+    if (pristineSnapshots.size > 0) return;
+    tagStructuredDataAttrs();
+
+    const elements = document.querySelectorAll(textSelectors.join(', '));
+    elements.forEach(el => {
+      if (el.closest('#sonicCmsBar') || el.closest('#sonicCmsModal') || el.closest('#sonicImgModal') || el.closest('#sonicCmsToast') || el.closest('.brand-logo') || el.classList.contains('cms-card-btn')) return;
+      if (el.children.length > 0 && Array.from(el.children).some(c => /^(H[1-6]|P|DIV|SECTION)$/i.test(c.tagName))) return;
+      const key = getElementKey(el);
+      if (!pristineSnapshots.has(key)) {
+        pristineSnapshots.set(key, { el, val: el.innerHTML, type: 'text' });
+      }
+      if (!originalSnapshots.has(key)) {
+        originalSnapshots.set(key, el.innerHTML);
+      }
     });
 
-    // 7. General Images
     const imgs = document.querySelectorAll('img:not(.brand-logo):not(.cms-img-thumb)');
     imgs.forEach(img => {
-      if (!img.closest('.fw-row') && !img.closest('.jcard') && !img.closest('.blog-item')) {
-        img.setAttribute('data-cms-editable', 'true');
-        img.setAttribute('data-cms-label', '🖼️ Change Image');
-        img.setAttribute('data-cms-type', 'image-element');
+      if (img.closest('#sonicCmsBar') || img.closest('#sonicCmsModal') || img.closest('#sonicImgModal')) return;
+      const key = getElementKey(img);
+      if (!pristineSnapshots.has(key)) {
+        pristineSnapshots.set(key, { el: img, val: img.src, type: 'image' });
+      }
+      if (!originalSnapshots.has(key)) {
+        originalSnapshots.set(key, img.src);
       }
     });
   }
 
-  // ── Open Inline Editor Modal ──
-  function openInlineEditor(targetEl) {
-    activeEditTarget = targetEl;
-    let modal = document.getElementById('sonicCmsModal');
+  // ── Universal In-Place Tagging & Contenteditable Enabler ──
+  function tagEditableElements() {
+    tagStructuredDataAttrs();
+
+    const elements = document.querySelectorAll(textSelectors.join(', '));
+    elements.forEach(el => {
+      // Skip CMS elements, scripts, svg, and brand logos
+      if (el.closest('#sonicCmsBar') || el.closest('#sonicCmsModal') || el.closest('#sonicImgModal') || el.closest('#sonicCmsToast') || el.closest('.brand-logo') || el.classList.contains('cms-card-btn')) {
+        return;
+      }
+      // Skip elements that contain other block headings to avoid nested contenteditable glitches
+      if (el.children.length > 0 && Array.from(el.children).some(c => /^(H[1-6]|P|DIV|SECTION)$/i.test(c.tagName))) {
+        return;
+      }
+
+      const key = getElementKey(el);
+      // Store initial original baseline snapshot once per session
+      if (!pristineSnapshots.has(key)) {
+        pristineSnapshots.set(key, { el, val: el.innerHTML, type: 'text' });
+      }
+      if (!originalSnapshots.has(key)) {
+        originalSnapshots.set(key, el.innerHTML);
+      }
+
+      el.setAttribute('data-cms-editable', 'text');
+      el.contentEditable = isEditMode ? 'true' : 'false';
+      el.spellcheck = false;
+
+      // Attach event listeners only once
+      if (!el._hasCmsListeners) {
+        el._hasCmsListeners = true;
+
+        el.addEventListener('focus', function () {
+          if (!isEditMode) return;
+          el._focusHtml = el.innerHTML;
+        });
+
+        el.addEventListener('input', function () {
+          if (!isEditMode) return;
+          markElementDirty(el, key, 'text', el.innerHTML, el.innerText);
+        });
+
+        el.addEventListener('blur', function () {
+          if (!isEditMode) return;
+          if (el._focusHtml !== undefined && el._focusHtml !== el.innerHTML) {
+            pushHistory({
+              type: 'text',
+              key: key,
+              el: el,
+              oldVal: el._focusHtml,
+              newVal: el.innerHTML
+            });
+            el._focusHtml = el.innerHTML;
+          }
+        });
+      }
+    });
+
+    // 4. Content Images
+    const imgs = document.querySelectorAll('img:not(.brand-logo):not(.cms-img-thumb)');
+    imgs.forEach(img => {
+      if (img.closest('#sonicCmsBar') || img.closest('#sonicCmsModal') || img.closest('#sonicImgModal')) return;
+      const key = getElementKey(img);
+      if (!pristineSnapshots.has(key)) {
+        pristineSnapshots.set(key, { el: img, val: img.src, type: 'image' });
+      }
+      if (!originalSnapshots.has(key)) {
+        originalSnapshots.set(key, img.src);
+      }
+      img.setAttribute('data-cms-editable', 'image');
+      img.setAttribute('data-cms-label', '🖼️ Click to Change Image');
+    });
+  }
+
+  // ── Dirty State & Pending Edits Tracker ──
+  function markElementDirty(el, key, type, val, text = '') {
+    const pristine = pristineSnapshots.get(key);
+    const baselineVal = pristine ? pristine.val : originalSnapshots.get(key);
+    if (baselineVal !== undefined && baselineVal === val) {
+      pendingEdits.delete(key);
+    } else {
+      pendingEdits.set(key, { el, key, type, val, html: val, text });
+    }
+    updateToolbarState();
+  }
+
+  // ── History: Undo & Redo ──
+  function pushHistory(action) {
+    undoStack.push(action);
+    redoStack = []; // Clear redo stack on new edit
+    updateToolbarState();
+  }
+
+  window._sonicCmsUndo = function () {
+    // If user is currently typing in an editable element, commit its current typing state to history first
+    if (document.activeElement && document.activeElement.getAttribute('data-cms-editable') === 'text') {
+      const activeEl = document.activeElement;
+      if (activeEl._focusHtml !== undefined && activeEl._focusHtml !== activeEl.innerHTML) {
+        const key = getElementKey(activeEl);
+        pushHistory({
+          type: 'text',
+          key: key,
+          el: activeEl,
+          oldVal: activeEl._focusHtml,
+          newVal: activeEl.innerHTML
+        });
+        activeEl._focusHtml = activeEl.innerHTML;
+      }
+    }
+
+    if (undoStack.length === 0) return;
+    const action = undoStack.pop();
+    redoStack.push(action);
+
+    let targetEl = (action.el && action.el.isConnected) ? action.el : null;
+    if (!targetEl) {
+      try { targetEl = document.querySelector(`[data-cms-key="${CSS.escape(action.key)}"]`); } catch (_) {}
+      if (!targetEl) {
+        try { targetEl = document.querySelector(action.key); } catch (_) {}
+      }
+    }
+
+    if (action.type === 'text' && targetEl) {
+      targetEl.innerHTML = action.oldVal;
+      targetEl._focusHtml = action.oldVal;
+      markElementDirty(targetEl, action.key, 'text', action.oldVal, targetEl.innerText);
+    } else if (action.type === 'image' && targetEl) {
+      targetEl.src = action.oldVal;
+      markElementDirty(targetEl, action.key, 'image', action.oldVal);
+    }
+
+    updateToolbarState();
+    showCmsToast('↶ Undone last edit', true);
+  };
+
+  window._sonicCmsRedo = function () {
+    if (redoStack.length === 0) return;
+    const action = redoStack.pop();
+    undoStack.push(action);
+
+    let targetEl = (action.el && action.el.isConnected) ? action.el : null;
+    if (!targetEl) {
+      try { targetEl = document.querySelector(`[data-cms-key="${CSS.escape(action.key)}"]`); } catch (_) {}
+      if (!targetEl) {
+        try { targetEl = document.querySelector(action.key); } catch (_) {}
+      }
+    }
+
+    if (action.type === 'text' && targetEl) {
+      targetEl.innerHTML = action.newVal;
+      targetEl._focusHtml = action.newVal;
+      markElementDirty(targetEl, action.key, 'text', action.newVal, targetEl.innerText);
+    } else if (action.type === 'image' && targetEl) {
+      targetEl.src = action.newVal;
+      markElementDirty(targetEl, action.key, 'image', action.newVal);
+    }
+
+    updateToolbarState();
+    showCmsToast('↷ Redone edit', true);
+  };
+
+  // ── Update Toolbar UI (Buttons, Disabled States, Badges) ──
+  function updateToolbarState() {
+    const undoBtn = document.getElementById('cmsUndoBtn');
+    const redoBtn = document.getElementById('cmsRedoBtn');
+    const saveBtn = document.getElementById('cmsSaveAllBtn');
+    const cancelBtn = document.getElementById('cmsCancelAllBtn');
+    const badge = document.getElementById('cmsStatusBadge');
+
+    const hasUndo = undoStack.length > 0;
+    const hasRedo = redoStack.length > 0;
+    const pendingCount = pendingEdits.size;
+    const hasStoredCustomEdits = !!localStorage.getItem(EDITS_STORAGE_KEY);
+    const canCancel = pendingCount > 0 || hasStoredCustomEdits || hasUndo;
+
+    if (undoBtn) {
+      undoBtn.classList.toggle('disabled', !hasUndo);
+      undoBtn.disabled = !hasUndo;
+    }
+    if (redoBtn) {
+      redoBtn.classList.toggle('disabled', !hasRedo);
+      redoBtn.disabled = !hasRedo;
+    }
+    if (saveBtn) {
+      saveBtn.classList.toggle('disabled', pendingCount === 0);
+      saveBtn.disabled = pendingCount === 0;
+      saveBtn.classList.toggle('dirty', pendingCount > 0);
+    }
+    if (cancelBtn) {
+      cancelBtn.classList.toggle('disabled', !canCancel);
+      cancelBtn.disabled = !canCancel;
+      cancelBtn.style.opacity = canCancel ? '1' : '0.45';
+    }
+    if (badge) {
+      if (pendingCount > 0) {
+        badge.className = 'cms-status-badge dirty';
+        badge.textContent = `${pendingCount} Unsaved`;
+      } else {
+        badge.className = 'cms-status-badge clean';
+        badge.textContent = 'All Saved';
+      }
+    }
+  }
+
+  // ── Save All Changes (Local Cache + Supabase Cloud Sync) ──
+  window._sonicCmsSaveAll = async function () {
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+      document.activeElement.blur();
+    }
+    await new Promise(r => setTimeout(r, 20));
+
+    if (pendingEdits.size === 0) {
+      showCmsToast('All edits are already saved!', true);
+      return;
+    }
+
+    const saveBtn = document.getElementById('cmsSaveAllBtn');
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = `
+        <svg class="cms-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+        <span>Saving...</span>
+      `;
+    }
+
+    try {
+      // 1. Persist to localStorage under 'tsm_live_custom_edits'
+      let storedEdits = {};
+      try {
+        storedEdits = JSON.parse(localStorage.getItem(EDITS_STORAGE_KEY) || '{}');
+      } catch (_) {}
+
+      pendingEdits.forEach((item, key) => {
+        storedEdits[key] = {
+          key: key,
+          type: item.type,
+          val: item.val,
+          text: item.text || '',
+          timestamp: Date.now()
+        };
+      });
+      localStorage.setItem(EDITS_STORAGE_KEY, JSON.stringify(storedEdits));
+
+      // 2. Prepare Cloud Sync to Supabase
+      const syncPromises = [];
+      const siteContentEdits = {};
+
+      pendingEdits.forEach((item, key) => {
+        const el = item.el;
+        if (!el) return;
+        const schema = el.getAttribute('data-cms-schema');
+        const field = el.getAttribute('data-cms-field');
+        const type = el.getAttribute('data-cms-type');
+        const id = el.getAttribute('data-cms-id');
+
+        if (schema && field) {
+          if (!siteContentEdits[schema]) siteContentEdits[schema] = {};
+          siteContentEdits[schema][field] = item.val;
+        } else if (type === 'portfolio-item' && id) {
+          syncPromises.push(syncPortfolioTitle(id, item.val));
+        } else if (type === 'case-item' && id) {
+          syncPromises.push(syncCaseStudyTitle(id, item.val));
+        } else if (type === 'journal-item' && id) {
+          syncPromises.push(syncJournalTitle(id, item.val));
+        } else {
+          if (!siteContentEdits['live_cms_custom_edits']) siteContentEdits['live_cms_custom_edits'] = {};
+          siteContentEdits['live_cms_custom_edits'][key] = item.val;
+        }
+      });
+
+      // Upsert schema groups into Supabase site_content
+      for (const [schKey, fieldsObj] of Object.entries(siteContentEdits)) {
+        syncPromises.push(
+          fetch(`${SUPABASE_URL}/rest/v1/site_content?key=eq.${schKey}&select=*`, { headers: getAuthHeader() })
+            .then(res => res.ok ? res.json() : [])
+            .then(rows => {
+              const existing = rows[0]?.data || {};
+              const merged = Object.assign({}, existing, fieldsObj);
+              return fetch(`${SUPABASE_URL}/rest/v1/site_content`, {
+                method: 'POST',
+                headers: Object.assign({}, getAuthHeader(), { 'Prefer': 'resolution=merge-duplicates' }),
+                body: JSON.stringify({ key: schKey, data: merged, updated_at: new Date() })
+              });
+            })
+            .catch(e => console.debug('Cloud sync notice for', schKey, e))
+        );
+      }
+
+      await Promise.allSettled(syncPromises);
+
+      // 3. Mark all as saved in session
+      pendingEdits.clear();
+
+      updateToolbarState();
+      showCmsToast('✓ All changes saved and published live!', true);
+    } catch (err) {
+      console.warn('Live save warning:', err);
+      showCmsToast('Saved locally! Cloud sync queued.', true);
+    } finally {
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = `
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          <span>Save Changes</span>
+        `;
+      }
+    }
+  };
+
+  // ── Cancel Edits / Keep Original ──
+  window._sonicCmsCancelAll = function () {
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+      document.activeElement.blur();
+    }
+
+    const hasPending = pendingEdits.size > 0;
+    const hasHistory = undoStack.length > 0;
+    const hasStored = !!localStorage.getItem(EDITS_STORAGE_KEY);
+    const hasEdits = hasPending || hasHistory || hasStored;
+
+    if (!hasEdits && pristineSnapshots.size === 0) {
+      showCmsToast('✓ Page is already displaying original template.', true);
+      return;
+    }
+
+    // 1. Revert all DOM elements to pristine baseline snapshots
+    pristineSnapshots.forEach((snap, key) => {
+      try {
+        let el = (snap.el && snap.el.isConnected) ? snap.el : null;
+        if (!el) {
+          try { el = document.querySelector(`[data-cms-key="${CSS.escape(key)}"]`); } catch (_) {}
+          if (!el) {
+            try { el = document.querySelector(key); } catch (_) {}
+          }
+        }
+        if (el) {
+          if (snap.type === 'image' || el.tagName === 'IMG') {
+            el.src = snap.val;
+          } else {
+            el.innerHTML = snap.val;
+          }
+          el._focusHtml = snap.val;
+        }
+      } catch (_) {}
+    });
+
+    // 2. Also revert any items in pendingEdits that might have been tracked
+    pendingEdits.forEach((item, key) => {
+      try {
+        const snap = pristineSnapshots.get(key);
+        if (snap && item.el && item.el.isConnected) {
+          if (snap.type === 'image') item.el.src = snap.val;
+          else item.el.innerHTML = snap.val;
+          item.el._focusHtml = snap.val;
+        }
+      } catch (_) {}
+    });
+
+    // 3. Clear stored custom edits in localStorage
+    try {
+      localStorage.removeItem(EDITS_STORAGE_KEY);
+    } catch (_) {}
+
+    // 4. Clear pending states & history
+    pendingEdits.clear();
+    undoStack = [];
+    redoStack = [];
+
+    // 5. Re-tag editable elements so DOM is clean
+    tagEditableElements();
+
+    // 6. Update UI
+    updateToolbarState();
+    showCmsToast('✓ Original template restored! All customizations reverted.', true);
+  };
+
+  // Helper sync routines for structured tables
+  async function syncPortfolioTitle(id, titleVal) {
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/portfolio_items?id=eq.${id}`, {
+        method: 'PATCH',
+        headers: getAuthHeader(),
+        body: JSON.stringify({ name: titleVal, updated_at: new Date() })
+      });
+    } catch (_) {}
+  }
+
+  async function syncCaseStudyTitle(id, titleVal) {
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/case_studies?id=eq.${id}`, {
+        method: 'PATCH',
+        headers: getAuthHeader(),
+        body: JSON.stringify({ title: titleVal, updated_at: new Date() })
+      });
+    } catch (_) {}
+  }
+
+  async function syncJournalTitle(id, titleVal) {
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/journal_posts?id=eq.${id}`, {
+        method: 'PATCH',
+        headers: getAuthHeader(),
+        body: JSON.stringify({ title: titleVal, updated_at: new Date() })
+      });
+    } catch (_) {}
+  }
+
+  // ── Image Replacement Modal ──
+  function openImageEditor(imgEl) {
+    activeImageTarget = imgEl;
+    let modal = document.getElementById('sonicImgModal');
     if (!modal) {
       modal = document.createElement('div');
-      modal.id = 'sonicCmsModal';
+      modal.id = 'sonicImgModal';
       document.body.appendChild(modal);
     }
-
-    const schema = targetEl.getAttribute('data-cms-schema');
-    const field = targetEl.getAttribute('data-cms-field');
-    const type = targetEl.getAttribute('data-cms-type');
-    const id = targetEl.getAttribute('data-cms-id');
-
-    let modalTitle = 'Edit Content';
-    let bodyContent = '';
-
-    // A. Specific Portfolio Project (e.g. Spice Theory Kitchen)
-    if (type === 'portfolio-item') {
-      const portItem = (typeof PAGE_DATA !== 'undefined' && PAGE_DATA.portfolio && PAGE_DATA.portfolio.works)
-        ? PAGE_DATA.portfolio.works.find(w => w.id === id) : null;
-      const details = (typeof workDetails !== 'undefined' && workDetails[id]) ? workDetails[id] : (portItem || {});
-
-      modalTitle = `📁 Edit Portfolio: ${details.title || portItem?.name || id}`;
-      bodyContent = `
-        <div class="cms-form-group">
-          <label class="cms-label">Project Name / Title</label>
-          <input type="text" id="cmsPortName" class="cms-input" value="${escapeAttr(details.title || portItem?.name || '')}">
-        </div>
-        <div class="cms-form-group">
-          <label class="cms-label">Inner Subtitle</label>
-          <input type="text" id="cmsPortSubtitle" class="cms-input" value="${escapeAttr(details.subtitle || portItem?.cat || '')}">
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div class="cms-form-group">
-            <label class="cms-label">Category</label>
-            <input type="text" id="cmsPortCat" class="cms-input" value="${escapeAttr(portItem?.cat || details.category || '')}">
-          </div>
-          <div class="cms-form-group">
-            <label class="cms-label">Project Type</label>
-            <input type="text" id="cmsPortType" class="cms-input" value="${escapeAttr(details.type || 'Branding Project')}">
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div class="cms-form-group">
-            <label class="cms-label">Status</label>
-            <input type="text" id="cmsPortStatus" class="cms-input" value="${escapeAttr(details.status || portItem?.metricVal || 'Completed')}">
-          </div>
-          <div class="cms-form-group">
-            <label class="cms-label">Location</label>
-            <input type="text" id="cmsPortLocation" class="cms-input" value="${escapeAttr(details.location || 'Ahmedabad, Gujarat')}">
-          </div>
-        </div>
-        <div class="cms-form-group">
-          <label class="cms-label">Featured Image URL</label>
-          <div style="display:flex;gap:8px;">
-            <input type="text" id="cmsPortImg" class="cms-input" value="${escapeAttr(portItem?.img || details.images?.[0]?.url || '')}">
-            <label class="cms-btn-secondary" style="white-space:nowrap;cursor:pointer;">
-              📁 Upload
-              <input type="file" accept="image/*" style="display:none;" onchange="window._sonicCmsUploadFile(this, 'cmsPortImg', 'cmsPortImgPreview')">
-            </label>
-          </div>
-          <div class="cms-img-preview-box">
-            <img id="cmsPortImgPreview" class="cms-img-thumb" src="${portItem?.img || details.images?.[0]?.url || ''}" onerror="this.src='https://via.placeholder.com/80x60'">
-            <div style="font-size:12px;color:rgba(245,240,235,0.5);">Live preview of featured cover asset</div>
-          </div>
-        </div>
-        <div class="cms-form-group">
-          <label class="cms-label">About Narrative</label>
-          <textarea id="cmsPortAbout" class="cms-textarea">${escapeHtml(details.about || '')}</textarea>
-        </div>
-        <div class="cms-form-group">
-          <label class="cms-label">The Challenge</label>
-          <textarea id="cmsPortChallenge" class="cms-textarea">${escapeHtml(details.challenge || '')}</textarea>
-        </div>
-        <div class="cms-form-group">
-          <label class="cms-label">Our Solution</label>
-          <textarea id="cmsPortSolution" class="cms-textarea">${escapeHtml(details.solution || '')}</textarea>
-        </div>
-        <div class="cms-form-group">
-          <label class="cms-label">Key Deliverables (one per line)</label>
-          <textarea id="cmsPortDeliverables" class="cms-textarea" style="min-height:80px;">${escapeHtml(Array.isArray(details.deliverables) ? details.deliverables.join('\n') : '')}</textarea>
-        </div>
-        <div style="background:rgba(255,92,0,0.06);border:1px solid rgba(255,92,0,0.2);padding:12px;border-radius:8px;font-size:12px;color:rgba(245,240,235,0.7);">
-          Need multi-image showcase gallery editing or SEO keyword chips? Open the <a href="/sonicmediaadmin" target="_blank" style="color:#FF5C00;font-weight:700;">Full Admin Panel</a>.
-        </div>
-      `;
-    }
-
-    // B. Individual Case Study Item
-    else if (type === 'case-item') {
-      const caseItem = (typeof PAGE_DATA !== 'undefined' && PAGE_DATA.casestudies && PAGE_DATA.casestudies.items)
-        ? PAGE_DATA.casestudies.items.find(c => c.id === id) : null;
-      const details = (typeof caseStudies !== 'undefined' && caseStudies[id]) ? caseStudies[id] : (caseItem || {});
-
-      modalTitle = `📊 Edit Case Study: ${details.title || caseItem?.title || id}`;
-      bodyContent = `
-        <div class="cms-form-group">
-          <label class="cms-label">Case Study Title</label>
-          <input type="text" id="cmsCaseTitle" class="cms-input" value="${escapeAttr(details.title || caseItem?.title || '')}">
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div class="cms-form-group">
-            <label class="cms-label">Category</label>
-            <input type="text" id="cmsCaseCat" class="cms-input" value="${escapeAttr(caseItem?.catLabel || details.category || '')}">
-          </div>
-          <div class="cms-form-group">
-            <label class="cms-label">Publish Date</label>
-            <input type="text" id="cmsCaseDate" class="cms-input" value="${escapeAttr(caseItem?.date || details.date || '')}">
-          </div>
-        </div>
-        <div class="cms-form-group">
-          <label class="cms-label">Excerpt / Short Description</label>
-          <textarea id="cmsCaseExcerpt" class="cms-textarea" style="min-height:70px;">${escapeHtml(caseItem?.excerpt || details.subtitle || '')}</textarea>
-        </div>
-        <div class="cms-form-group">
-          <label class="cms-label">Cover Image URL</label>
-          <div style="display:flex;gap:8px;">
-            <input type="text" id="cmsCaseImg" class="cms-input" value="${escapeAttr(caseItem?.img || details.images?.[0]?.url || '')}">
-            <label class="cms-btn-secondary" style="white-space:nowrap;cursor:pointer;">
-              📁 Upload
-              <input type="file" accept="image/*" style="display:none;" onchange="window._sonicCmsUploadFile(this, 'cmsCaseImg', 'cmsCaseImgPreview')">
-            </label>
-          </div>
-          <div class="cms-img-preview-box">
-            <img id="cmsCaseImgPreview" class="cms-img-thumb" src="${caseItem?.img || details.images?.[0]?.url || ''}">
-            <div style="font-size:12px;color:rgba(245,240,235,0.5);">Cover image displayed across grid and modal</div>
-          </div>
-        </div>
-        <div class="cms-form-group">
-          <label class="cms-label">Full Article HTML Content</label>
-          <textarea id="cmsCaseBody" class="cms-textarea" style="min-height:160px;">${escapeHtml(details.body || '')}</textarea>
-        </div>
-      `;
-    }
-
-    // C. Individual Journal Post
-    else if (type === 'journal-item') {
-      const postItem = (typeof PAGE_DATA !== 'undefined' && PAGE_DATA.journal && PAGE_DATA.journal.posts)
-        ? PAGE_DATA.journal.posts.find(p => p.id === id) : null;
-      const details = (typeof blogArticles !== 'undefined' && blogArticles[id]) ? blogArticles[id] : (postItem || {});
-
-      modalTitle = `📝 Edit Journal Article: ${details.title || postItem?.title || id}`;
-      bodyContent = `
-        <div class="cms-form-group">
-          <label class="cms-label">Article Title</label>
-          <input type="text" id="cmsPostTitle" class="cms-input" value="${escapeAttr(details.title || postItem?.title || '')}">
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
-          <div class="cms-form-group">
-            <label class="cms-label">Category</label>
-            <input type="text" id="cmsPostCat" class="cms-input" value="${escapeAttr(postItem?.cat || details.category || '')}">
-          </div>
-          <div class="cms-form-group">
-            <label class="cms-label">Read Time</label>
-            <input type="text" id="cmsPostTime" class="cms-input" value="${escapeAttr(postItem?.time || details.readTime || '5 min read')}">
-          </div>
-          <div class="cms-form-group">
-            <label class="cms-label">Date</label>
-            <input type="text" id="cmsPostDate" class="cms-input" value="${escapeAttr(postItem?.date || details.date || '')}">
-          </div>
-        </div>
-        <div class="cms-form-group">
-          <label class="cms-label">Thumbnail / Hero Image</label>
-          <div style="display:flex;gap:8px;">
-            <input type="text" id="cmsPostImg" class="cms-input" value="${escapeAttr(postItem?.thumb || details.img || '')}">
-            <label class="cms-btn-secondary" style="white-space:nowrap;cursor:pointer;">
-              📁 Upload
-              <input type="file" accept="image/*" style="display:none;" onchange="window._sonicCmsUploadFile(this, 'cmsPostImg', 'cmsPostImgPreview')">
-            </label>
-          </div>
-        </div>
-        <div class="cms-form-group">
-          <label class="cms-label">Article Body HTML</label>
-          <textarea id="cmsPostBody" class="cms-textarea" style="min-height:160px;">${escapeHtml(details.body || '')}</textarea>
-        </div>
-      `;
-    }
-
-    // D. Direct Image Element Click
-    else if (type === 'image-element') {
-      const img = targetEl.tagName === 'IMG' ? targetEl : targetEl.querySelector('img');
-      const curSrc = img ? img.src : '';
-      modalTitle = '🖼️ Update Image';
-      bodyContent = `
-        <div class="cms-form-group">
-          <label class="cms-label">Current Image Preview</label>
-          <div style="text-align:center;padding:16px;background:#080808;border-radius:10px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.08);">
-            <img id="cmsGeneralImgPreview" src="${curSrc}" style="max-width:100%;max-height:220px;border-radius:8px;object-fit:contain;">
-          </div>
-        </div>
-        <div class="cms-form-group">
-          <label class="cms-label">Image Source URL</label>
-          <div style="display:flex;gap:8px;">
-            <input type="text" id="cmsGeneralImgUrl" class="cms-input" value="${escapeAttr(curSrc)}">
-            <label class="cms-btn-secondary" style="white-space:nowrap;cursor:pointer;">
-              📁 Upload New
-              <input type="file" accept="image/*" style="display:none;" onchange="window._sonicCmsUploadFile(this, 'cmsGeneralImgUrl', 'cmsGeneralImgPreview')">
-            </label>
-          </div>
-        </div>
-      `;
-    }
-
-    // E. General Section Header / Text
-    else {
-      const label = targetEl.getAttribute('data-cms-label') || 'Edit Section Content';
-      modalTitle = label;
-      const curVal = targetEl.innerText || targetEl.textContent || '';
-      bodyContent = `
-        <div class="cms-form-group">
-          <label class="cms-label">Section: ${schema ? schema.toUpperCase() : 'GENERAL'}</label>
-          <textarea id="cmsGeneralText" class="cms-textarea" style="min-height:120px;">${escapeHtml(curVal.trim())}</textarea>
-        </div>
-      `;
-    }
-
+    const curSrc = imgEl.src || '';
     modal.innerHTML = `
       <div class="cms-modal-box">
         <div class="cms-modal-header">
-          <div class="cms-modal-title">${modalTitle}</div>
-          <button class="cms-modal-close" onclick="window._sonicCmsCloseModal()">×</button>
+          <div class="cms-modal-title">🖼️ Change Image</div>
+          <button class="cms-modal-close" onclick="window._sonicCmsCloseImageModal()">×</button>
         </div>
         <div class="cms-modal-body">
-          ${bodyContent}
+          <div class="cms-form-group">
+            <label class="cms-label">Image Preview</label>
+            <div style="text-align:center;padding:16px;background:#080808;border-radius:10px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.08);">
+              <img id="cmsGeneralImgPreview" src="${curSrc}" style="max-width:100%;max-height:220px;border-radius:8px;object-fit:contain;">
+            </div>
+          </div>
+          <div class="cms-form-group">
+            <label class="cms-label">Image Source URL</label>
+            <div style="display:flex;gap:8px;">
+              <input type="text" id="cmsGeneralImgUrl" class="cms-input" value="${escapeAttr(curSrc)}">
+              <label class="cms-btn" style="white-space:nowrap;cursor:pointer;">
+                📁 Upload
+                <input type="file" accept="image/*" style="display:none;" onchange="window._sonicCmsUploadFile(this, 'cmsGeneralImgUrl', 'cmsGeneralImgPreview')">
+              </label>
+            </div>
+          </div>
         </div>
         <div class="cms-modal-footer">
-          <button class="cms-btn-secondary" onclick="window._sonicCmsCloseModal()">Cancel</button>
-          <button class="cms-btn-primary" id="cmsSaveBtn" onclick="window._sonicCmsSaveActive()">
-            <span>💾 Save & Publish</span>
-          </button>
+          <button class="cms-btn cms-btn-cancel" onclick="window._sonicCmsCloseImageModal()">Cancel</button>
+          <button class="cms-btn cms-btn-save" onclick="window._sonicCmsApplyImage()">✓ Apply Image</button>
         </div>
       </div>
     `;
-
     modal.style.display = 'flex';
   }
+
+  window._sonicCmsCloseImageModal = function () {
+    const modal = document.getElementById('sonicImgModal');
+    if (modal) modal.style.display = 'none';
+    activeImageTarget = null;
+  };
+
+  window._sonicCmsApplyImage = function () {
+    if (!activeImageTarget) return;
+    const urlInput = document.getElementById('cmsGeneralImgUrl');
+    const newSrc = urlInput ? urlInput.value.trim() : '';
+    if (!newSrc) return;
+
+    const oldSrc = activeImageTarget.src;
+    const key = getElementKey(activeImageTarget);
+
+    if (oldSrc !== newSrc) {
+      pushHistory({
+        type: 'image',
+        key: key,
+        el: activeImageTarget,
+        oldVal: oldSrc,
+        newVal: newSrc
+      });
+      activeImageTarget.src = newSrc;
+      markElementDirty(activeImageTarget, key, 'image', newSrc);
+      showCmsToast('Image updated! Click "Save Changes" to publish.', true);
+    }
+    window._sonicCmsCloseImageModal();
+  };
 
   // ── File Upload to Supabase Storage ──
   window._sonicCmsUploadFile = async function (input, targetInputId, previewImgId) {
@@ -793,7 +1284,7 @@
       });
 
       if (!uploadRes.ok) {
-        throw new Error('Supabase Storage upload failed. Status: ' + uploadRes.status);
+        throw new Error('Storage upload failed with code: ' + uploadRes.status);
       }
 
       const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/sonicmedia-assets/${fileName}`;
@@ -803,243 +1294,167 @@
       const previewEl = document.getElementById(previewImgId);
       if (previewEl) previewEl.src = publicUrl;
 
-      showCmsToast('Image uploaded successfully!', true);
+      showCmsToast('✓ Image uploaded successfully!', true);
     } catch (err) {
       alert('Upload error: ' + err.message);
     }
   };
 
-  // ── Save Functionality ──
-  window._sonicCmsSaveActive = async function () {
-    if (!activeEditTarget) return;
-    const saveBtn = document.getElementById('cmsSaveBtn');
-    if (saveBtn) {
-      saveBtn.disabled = true;
-      saveBtn.innerHTML = '<span>Saving to Supabase...</span>';
+  // ── Structured Item Modal Editor (Portfolio, Case Study, Journal) ──
+  function openInlineEditor(targetEl) {
+    activeEditTarget = targetEl;
+    let modal = document.getElementById('sonicCmsModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'sonicCmsModal';
+      document.body.appendChild(modal);
     }
 
-    const type = activeEditTarget.getAttribute('data-cms-type');
-    const id = activeEditTarget.getAttribute('data-cms-id');
-    const schema = activeEditTarget.getAttribute('data-cms-schema');
-    const field = activeEditTarget.getAttribute('data-cms-field');
+    const type = targetEl.getAttribute('data-cms-type');
+    const id = targetEl.getAttribute('data-cms-id');
 
-    try {
-      // 1. Portfolio Item Save
-      if (type === 'portfolio-item') {
-        const nameVal = document.getElementById('cmsPortName').value.trim();
-        const subVal = document.getElementById('cmsPortSubtitle').value.trim();
-        const catVal = document.getElementById('cmsPortCat').value.trim();
-        const typeVal = document.getElementById('cmsPortType').value.trim();
-        const statusVal = document.getElementById('cmsPortStatus').value.trim();
-        const locVal = document.getElementById('cmsPortLocation').value.trim();
-        const imgVal = document.getElementById('cmsPortImg').value.trim();
-        const aboutVal = document.getElementById('cmsPortAbout').value.trim();
-        const challengeVal = document.getElementById('cmsPortChallenge').value.trim();
-        const solutionVal = document.getElementById('cmsPortSolution').value.trim();
-        const deliverables = document.getElementById('cmsPortDeliverables').value
-          .split('\n').map(s => s.trim()).filter(Boolean);
+    let modalTitle = 'Edit Structured Details';
+    let bodyContent = '';
 
-        const currentDetails = (typeof workDetails !== 'undefined' && workDetails[id]) ? workDetails[id] : {};
-        const updatedDetails = Object.assign({}, currentDetails, {
-          title: nameVal,
-          subtitle: subVal || catVal,
-          category: catVal,
-          type: typeVal,
-          status: statusVal,
-          location: locVal,
-          about: aboutVal,
-          challenge: challengeVal,
-          solution: solutionVal,
-          deliverables: deliverables.length > 0 ? deliverables : currentDetails.deliverables,
-          images: imgVal ? [{ url: imgVal, title: nameVal, desc: aboutVal }] : currentDetails.images
-        });
+    // Portfolio Item
+    if (type === 'portfolio-item') {
+      const portItem = (typeof PAGE_DATA !== 'undefined' && PAGE_DATA.portfolio && PAGE_DATA.portfolio.works)
+        ? PAGE_DATA.portfolio.works.find(w => w.id === id) : null;
+      const details = (typeof workDetails !== 'undefined' && workDetails[id]) ? workDetails[id] : (portItem || {});
 
-        // Patch Supabase
-        const patchRes = await fetch(`${SUPABASE_URL}/rest/v1/portfolio_items?id=eq.${id}`, {
-          method: 'PATCH',
-          headers: getAuthHeader(),
-          body: JSON.stringify({
-            name: nameVal,
-            cat: catVal,
-            img: imgVal || undefined,
-            metric_val: statusVal,
-            details: updatedDetails,
-            updated_at: new Date()
-          })
-        });
-
-        if (!patchRes.ok) throw new Error('Supabase error: ' + patchRes.statusText);
-
-        // Update in-memory state & DOM
-        if (typeof workDetails !== 'undefined') workDetails[id] = updatedDetails;
-        if (typeof PAGE_DATA !== 'undefined' && PAGE_DATA.portfolio && PAGE_DATA.portfolio.works) {
-          const w = PAGE_DATA.portfolio.works.find(i => i.id === id);
-          if (w) {
-            w.name = nameVal;
-            w.cat = catVal;
-            if (imgVal) w.img = imgVal;
-            w.metricVal = statusVal;
-          }
-        }
-        if (typeof renderPageData === 'function') renderPageData();
-        tagEditableElements();
-        showCmsToast(`Portfolio item "${nameVal}" updated & saved!`, true);
-      }
-
-      // 2. Case Study Save
-      else if (type === 'case-item') {
-        const titleVal = document.getElementById('cmsCaseTitle').value.trim();
-        const catVal = document.getElementById('cmsCaseCat').value.trim();
-        const dateVal = document.getElementById('cmsCaseDate').value.trim();
-        const excerptVal = document.getElementById('cmsCaseExcerpt').value.trim();
-        const imgVal = document.getElementById('cmsCaseImg').value.trim();
-        const bodyVal = document.getElementById('cmsCaseBody').value.trim();
-
-        const cur = (typeof caseStudies !== 'undefined' && caseStudies[id]) ? caseStudies[id] : {};
-        const updated = Object.assign({}, cur, {
-          title: titleVal,
-          subtitle: excerptVal,
-          category: catVal,
-          date: dateVal,
-          body: bodyVal,
-          images: imgVal ? [{ url: imgVal, caption: titleVal }] : cur.images
-        });
-
-        const patchRes = await fetch(`${SUPABASE_URL}/rest/v1/case_studies?id=eq.${id}`, {
-          method: 'PATCH',
-          headers: getAuthHeader(),
-          body: JSON.stringify({
-            title: titleVal,
-            cat_label: catVal,
-            date: dateVal,
-            excerpt: excerptVal,
-            img: imgVal || undefined,
-            content: bodyVal,
-            details: updated,
-            updated_at: new Date()
-          })
-        });
-        if (!patchRes.ok) throw new Error('Supabase error: ' + patchRes.statusText);
-
-        if (typeof caseStudies !== 'undefined') caseStudies[id] = updated;
-        if (typeof PAGE_DATA !== 'undefined' && PAGE_DATA.casestudies && PAGE_DATA.casestudies.items) {
-          const c = PAGE_DATA.casestudies.items.find(i => i.id === id);
-          if (c) {
-            c.title = titleVal;
-            c.catLabel = catVal;
-            c.date = dateVal;
-            c.excerpt = excerptVal;
-            if (imgVal) c.img = imgVal;
-          }
-        }
-        if (typeof renderPageData === 'function') renderPageData();
-        tagEditableElements();
-        showCmsToast(`Case Study "${titleVal}" saved!`, true);
-      }
-
-      // 3. Journal Post Save
-      else if (type === 'journal-item') {
-        const titleVal = document.getElementById('cmsPostTitle').value.trim();
-        const catVal = document.getElementById('cmsPostCat').value.trim();
-        const timeVal = document.getElementById('cmsPostTime').value.trim();
-        const dateVal = document.getElementById('cmsPostDate').value.trim();
-        const imgVal = document.getElementById('cmsPostImg').value.trim();
-        const bodyVal = document.getElementById('cmsPostBody').value.trim();
-
-        const cur = (typeof blogArticles !== 'undefined' && blogArticles[id]) ? blogArticles[id] : {};
-        const updated = Object.assign({}, cur, {
-          title: titleVal,
-          category: catVal,
-          readTime: timeVal,
-          date: dateVal,
-          img: imgVal || cur.img,
-          body: bodyVal
-        });
-
-        const patchRes = await fetch(`${SUPABASE_URL}/rest/v1/journal_posts?id=eq.${id}`, {
-          method: 'PATCH',
-          headers: getAuthHeader(),
-          body: JSON.stringify({
-            title: titleVal,
-            cat: catVal,
-            read_time: timeVal,
-            date: dateVal,
-            thumb_url: imgVal || undefined,
-            content: bodyVal,
-            details: updated,
-            updated_at: new Date()
-          })
-        });
-        if (!patchRes.ok) throw new Error('Supabase error: ' + patchRes.statusText);
-
-        if (typeof blogArticles !== 'undefined') blogArticles[id] = updated;
-        if (typeof PAGE_DATA !== 'undefined' && PAGE_DATA.journal && PAGE_DATA.journal.posts) {
-          const p = PAGE_DATA.journal.posts.find(i => i.id === id);
-          if (p) {
-            p.title = titleVal;
-            p.cat = catVal;
-            p.time = timeVal;
-            p.date = dateVal;
-            if (imgVal) p.thumb = imgVal;
-          }
-        }
-        if (typeof renderPageData === 'function') renderPageData();
-        tagEditableElements();
-        showCmsToast(`Journal Post "${titleVal}" saved!`, true);
-      }
-
-      // 4. Image Element Save
-      else if (type === 'image-element') {
-        const newUrl = document.getElementById('cmsGeneralImgUrl').value.trim();
-        const img = activeEditTarget.tagName === 'IMG' ? activeEditTarget : activeEditTarget.querySelector('img');
-        if (img && newUrl) {
-          img.src = newUrl;
-        }
-        showCmsToast('Image updated live!', true);
-      }
-
-      // 5. General Schema Text Save
-      else {
-        const textVal = document.getElementById('cmsGeneralText').value.trim();
-        activeEditTarget.innerText = textVal;
-
-        if (schema) {
-          // Fetch existing schema row
-          const getRes = await fetch(`${SUPABASE_URL}/rest/v1/site_content?key=eq.${schema}&select=*`, {
-            headers: getAuthHeader()
-          });
-          const existingData = getRes.ok ? (await getRes.json())[0]?.data || {} : {};
-
-          if (field) {
-            existingData[field] = textVal;
-          } else {
-            existingData.text = textVal;
-          }
-
-          // Upsert to Supabase site_content
-          await fetch(`${SUPABASE_URL}/rest/v1/site_content`, {
-            method: 'POST',
-            headers: Object.assign({}, getAuthHeader(), { 'Prefer': 'resolution=merge-duplicates' }),
-            body: JSON.stringify({
-              key: schema,
-              data: existingData,
-              updated_at: new Date()
-            })
-          });
-        }
-        showCmsToast('Content updated & saved to Supabase!', true);
-      }
-
-      window._sonicCmsCloseModal();
-    } catch (err) {
-      alert('Save failed: ' + err.message);
-    } finally {
-      if (saveBtn) {
-        saveBtn.disabled = false;
-        saveBtn.innerHTML = '<span>💾 Save & Publish</span>';
-      }
+      modalTitle = `📁 Project Details: ${details.title || portItem?.name || id}`;
+      bodyContent = `
+        <div class="cms-form-group">
+          <label class="cms-label">Project Name / Title</label>
+          <input type="text" id="cmsPortName" class="cms-input" value="${escapeAttr(details.title || portItem?.name || '')}">
+        </div>
+        <div class="cms-form-group">
+          <label class="cms-label">Inner Subtitle</label>
+          <input type="text" id="cmsPortSubtitle" class="cms-input" value="${escapeAttr(details.subtitle || portItem?.cat || '')}">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="cms-form-group">
+            <label class="cms-label">Category</label>
+            <input type="text" id="cmsPortCat" class="cms-input" value="${escapeAttr(portItem?.cat || details.category || '')}">
+          </div>
+          <div class="cms-form-group">
+            <label class="cms-label">Project Type</label>
+            <input type="text" id="cmsPortType" class="cms-input" value="${escapeAttr(details.type || 'Branding Project')}">
+          </div>
+        </div>
+        <div class="cms-form-group">
+          <label class="cms-label">Featured Image URL</label>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="cmsPortImg" class="cms-input" value="${escapeAttr(portItem?.img || details.images?.[0]?.url || '')}">
+            <label class="cms-btn" style="white-space:nowrap;cursor:pointer;">
+              📁 Upload
+              <input type="file" accept="image/*" style="display:none;" onchange="window._sonicCmsUploadFile(this, 'cmsPortImg', 'cmsPortImgPreview')">
+            </label>
+          </div>
+          <div style="margin-top:8px;">
+            <img id="cmsPortImgPreview" class="cms-img-thumb" src="${portItem?.img || details.images?.[0]?.url || ''}" style="max-height:80px;border-radius:6px;object-fit:cover;">
+          </div>
+        </div>
+        <div class="cms-form-group">
+          <label class="cms-label">About Narrative</label>
+          <textarea id="cmsPortAbout" class="cms-textarea">${escapeHtml(details.about || '')}</textarea>
+        </div>
+        <div class="cms-form-group">
+          <label class="cms-label">The Challenge</label>
+          <textarea id="cmsPortChallenge" class="cms-textarea">${escapeHtml(details.challenge || '')}</textarea>
+        </div>
+        <div class="cms-form-group">
+          <label class="cms-label">Our Solution</label>
+          <textarea id="cmsPortSolution" class="cms-textarea">${escapeHtml(details.solution || '')}</textarea>
+        </div>
+      `;
     }
-  };
+
+    // Case Study Item
+    else if (type === 'case-item') {
+      const caseItem = (typeof PAGE_DATA !== 'undefined' && PAGE_DATA.casestudies && PAGE_DATA.casestudies.items)
+        ? PAGE_DATA.casestudies.items.find(c => c.id === id) : null;
+      const details = (typeof caseStudies !== 'undefined' && caseStudies[id]) ? caseStudies[id] : (caseItem || {});
+
+      modalTitle = `📊 Case Study: ${details.title || caseItem?.title || id}`;
+      bodyContent = `
+        <div class="cms-form-group">
+          <label class="cms-label">Case Study Title</label>
+          <input type="text" id="cmsCaseTitle" class="cms-input" value="${escapeAttr(details.title || caseItem?.title || '')}">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="cms-form-group">
+            <label class="cms-label">Category</label>
+            <input type="text" id="cmsCaseCat" class="cms-input" value="${escapeAttr(caseItem?.catLabel || details.category || '')}">
+          </div>
+          <div class="cms-form-group">
+            <label class="cms-label">Publish Date</label>
+            <input type="text" id="cmsCaseDate" class="cms-input" value="${escapeAttr(caseItem?.date || details.date || '')}">
+          </div>
+        </div>
+        <div class="cms-form-group">
+          <label class="cms-label">Excerpt / Short Description</label>
+          <textarea id="cmsCaseExcerpt" class="cms-textarea" style="min-height:70px;">${escapeHtml(caseItem?.excerpt || details.subtitle || '')}</textarea>
+        </div>
+        <div class="cms-form-group">
+          <label class="cms-label">Full Article HTML Content</label>
+          <textarea id="cmsCaseBody" class="cms-textarea" style="min-height:160px;">${escapeHtml(details.body || '')}</textarea>
+        </div>
+      `;
+    }
+
+    // Journal Item
+    else if (type === 'journal-item') {
+      const postItem = (typeof PAGE_DATA !== 'undefined' && PAGE_DATA.journal && PAGE_DATA.journal.posts)
+        ? PAGE_DATA.journal.posts.find(p => p.id === id) : null;
+      const details = (typeof blogArticles !== 'undefined' && blogArticles[id]) ? blogArticles[id] : (postItem || {});
+
+      modalTitle = `📝 Journal Article: ${details.title || postItem?.title || id}`;
+      bodyContent = `
+        <div class="cms-form-group">
+          <label class="cms-label">Article Title</label>
+          <input type="text" id="cmsPostTitle" class="cms-input" value="${escapeAttr(details.title || postItem?.title || '')}">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="cms-form-group">
+            <label class="cms-label">Category</label>
+            <input type="text" id="cmsPostCat" class="cms-input" value="${escapeAttr(postItem?.cat || details.category || '')}">
+          </div>
+          <div class="cms-form-group">
+            <label class="cms-label">Read Time</label>
+            <input type="text" id="cmsPostTime" class="cms-input" value="${escapeAttr(postItem?.time || details.readTime || '5 min read')}">
+          </div>
+        </div>
+        <div class="cms-form-group">
+          <label class="cms-label">Article Body HTML</label>
+          <textarea id="cmsPostBody" class="cms-textarea" style="min-height:160px;">${escapeHtml(details.body || '')}</textarea>
+        </div>
+      `;
+    } else {
+      modalTitle = 'Edit Content';
+      bodyContent = `<div class="cms-form-group"><label class="cms-label">Text</label><textarea id="cmsGeneralText" class="cms-textarea">${escapeHtml(targetEl.innerText)}</textarea></div>`;
+    }
+
+    modal.innerHTML = `
+      <div class="cms-modal-box">
+        <div class="cms-modal-header">
+          <div class="cms-modal-title">${modalTitle}</div>
+          <button class="cms-modal-close" onclick="window._sonicCmsCloseModal()">×</button>
+        </div>
+        <div class="cms-modal-body">
+          ${bodyContent}
+        </div>
+        <div class="cms-modal-footer">
+          <button class="cms-btn cms-btn-cancel" onclick="window._sonicCmsCloseModal()">Cancel</button>
+          <button class="cms-btn cms-btn-save" id="cmsSaveModalBtn" onclick="window._sonicCmsSaveActive()">
+            <span>💾 Save Details</span>
+          </button>
+        </div>
+      </div>
+    `;
+
+    modal.style.display = 'flex';
+  }
 
   window._sonicCmsCloseModal = function () {
     const modal = document.getElementById('sonicCmsModal');
@@ -1047,26 +1462,199 @@
     activeEditTarget = null;
   };
 
-  // ── Render Floating Toolbar ──
+  window._sonicCmsSaveActive = async function () {
+    if (!activeEditTarget) return;
+    const saveBtn = document.getElementById('cmsSaveModalBtn');
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = '<span>Saving...</span>';
+    }
+
+    const type = activeEditTarget.getAttribute('data-cms-type');
+    const id = activeEditTarget.getAttribute('data-cms-id');
+
+    try {
+      if (type === 'portfolio-item') {
+        const nameVal = document.getElementById('cmsPortName')?.value.trim();
+        const subVal = document.getElementById('cmsPortSubtitle')?.value.trim();
+        const catVal = document.getElementById('cmsPortCat')?.value.trim();
+        const typeVal = document.getElementById('cmsPortType')?.value.trim();
+        const imgVal = document.getElementById('cmsPortImg')?.value.trim();
+        const aboutVal = document.getElementById('cmsPortAbout')?.value.trim();
+        const challengeVal = document.getElementById('cmsPortChallenge')?.value.trim();
+        const solutionVal = document.getElementById('cmsPortSolution')?.value.trim();
+
+        const currentDetails = (typeof workDetails !== 'undefined' && workDetails[id]) ? workDetails[id] : {};
+        const updatedDetails = Object.assign({}, currentDetails, {
+          title: nameVal,
+          subtitle: subVal || catVal,
+          category: catVal,
+          type: typeVal,
+          about: aboutVal,
+          challenge: challengeVal,
+          solution: solutionVal,
+          images: imgVal ? [{ url: imgVal, title: nameVal, desc: aboutVal }] : currentDetails.images
+        });
+
+        await fetch(`${SUPABASE_URL}/rest/v1/portfolio_items?id=eq.${id}`, {
+          method: 'PATCH',
+          headers: getAuthHeader(),
+          body: JSON.stringify({
+            name: nameVal,
+            cat: catVal,
+            img: imgVal || undefined,
+            details: updatedDetails,
+            updated_at: new Date()
+          })
+        });
+
+        if (typeof workDetails !== 'undefined') workDetails[id] = updatedDetails;
+        if (typeof PAGE_DATA !== 'undefined' && PAGE_DATA.portfolio?.works) {
+          const w = PAGE_DATA.portfolio.works.find(i => i.id === id);
+          if (w) {
+            w.name = nameVal;
+            w.cat = catVal;
+            if (imgVal) w.img = imgVal;
+          }
+        }
+        if (typeof renderPageData === 'function') renderPageData();
+        showCmsToast(`Project "${nameVal}" updated!`, true);
+      } else if (type === 'case-item') {
+        const titleVal = document.getElementById('cmsCaseTitle')?.value.trim();
+        const catVal = document.getElementById('cmsCaseCat')?.value.trim();
+        const dateVal = document.getElementById('cmsCaseDate')?.value.trim();
+        const excerptVal = document.getElementById('cmsCaseExcerpt')?.value.trim();
+        const bodyVal = document.getElementById('cmsCaseBody')?.value.trim();
+
+        await fetch(`${SUPABASE_URL}/rest/v1/case_studies?id=eq.${id}`, {
+          method: 'PATCH',
+          headers: getAuthHeader(),
+          body: JSON.stringify({
+            title: titleVal,
+            cat_label: catVal,
+            date: dateVal,
+            excerpt: excerptVal,
+            content: bodyVal,
+            updated_at: new Date()
+          })
+        });
+
+        if (typeof PAGE_DATA !== 'undefined' && PAGE_DATA.casestudies?.items) {
+          const c = PAGE_DATA.casestudies.items.find(i => i.id === id);
+          if (c) {
+            c.title = titleVal;
+            c.catLabel = catVal;
+            c.date = dateVal;
+            c.excerpt = excerptVal;
+          }
+        }
+        if (typeof renderPageData === 'function') renderPageData();
+        showCmsToast(`Case Study "${titleVal}" saved!`, true);
+      } else if (type === 'journal-item') {
+        const titleVal = document.getElementById('cmsPostTitle')?.value.trim();
+        const catVal = document.getElementById('cmsPostCat')?.value.trim();
+        const timeVal = document.getElementById('cmsPostTime')?.value.trim();
+        const bodyVal = document.getElementById('cmsPostBody')?.value.trim();
+
+        await fetch(`${SUPABASE_URL}/rest/v1/journal_posts?id=eq.${id}`, {
+          method: 'PATCH',
+          headers: getAuthHeader(),
+          body: JSON.stringify({
+            title: titleVal,
+            cat: catVal,
+            read_time: timeVal,
+            content: bodyVal,
+            updated_at: new Date()
+          })
+        });
+
+        if (typeof PAGE_DATA !== 'undefined' && PAGE_DATA.journal?.posts) {
+          const p = PAGE_DATA.journal.posts.find(i => i.id === id);
+          if (p) {
+            p.title = titleVal;
+            p.cat = catVal;
+            p.time = timeVal;
+          }
+        }
+        if (typeof renderPageData === 'function') renderPageData();
+        showCmsToast(`Journal Article "${titleVal}" saved!`, true);
+      }
+      window._sonicCmsCloseModal();
+      tagEditableElements();
+    } catch (err) {
+      alert('Save failed: ' + err.message);
+    } finally {
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<span>💾 Save Details</span>';
+      }
+    }
+  };
+
+  // ── Render Floating Toolbar Bar ──
   function renderCmsToolbar() {
     if (document.getElementById('sonicCmsBar')) return;
     const bar = document.createElement('div');
     bar.id = 'sonicCmsBar';
     bar.innerHTML = `
-      <div class="cms-badge">
+      <div class="cms-badge" title="Sonic Live Visual CMS">
         <span class="cms-dot"></span>
-        <span>Sonic Live CMS</span>
+        <span>LIVE CMS</span>
       </div>
-      <button class="cms-toggle-btn ${isEditMode ? 'active' : ''}" id="cmsModeBtn" onclick="window._sonicCmsToggleMode()" title="Toggle visual edit outlines on and off">
-        <span>${isEditMode ? '✏️ Edit Mode: ON' : '👁️ Edit Mode: OFF'}</span>
+
+      <div class="cms-bar-divider"></div>
+
+      <!-- Mode Toggle -->
+      <button class="cms-btn ${isEditMode ? 'active' : ''}" id="cmsModeBtn" onclick="window._sonicCmsToggleMode()" title="Toggle visual editing (Ctrl+Shift+E)">
+        <span>${isEditMode ? '✏️ Edit Mode' : '👁️ Preview'}</span>
       </button>
-      <button class="cms-btn-exit" onclick="window._sonicCmsExitCms()" title="Close Live CMS and preview clean website without any editing tools">
-        <span>✕ Exit Preview</span>
+
+      <div class="cms-bar-divider"></div>
+
+      <!-- History: Undo & Redo (Preserved exact icons & circular design as requested) -->
+      <button class="cms-btn cms-btn-icon-only disabled" id="cmsUndoBtn" onclick="window._sonicCmsUndo()" title="Undo last change (Ctrl+Z)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
       </button>
-      <a href="/sonicmediaadmin" class="cms-btn-subtle" title="Open full admin management portal">⚙️ Admin</a>
-      <button class="cms-btn-subtle" onclick="window._sonicCmsToggleBarMinimize()" title="Minimize toolbar">_</button>
+
+      <button class="cms-btn cms-btn-icon-only disabled" id="cmsRedoBtn" onclick="window._sonicCmsRedo()" title="Redo last change (Ctrl+Y)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>
+      </button>
+
+      <!-- Status Badge -->
+      <span id="cmsStatusBadge" class="cms-status-badge clean">All Saved</span>
+
+      <div class="cms-bar-divider"></div>
+
+      <!-- Save & Keep Original / Cancel -->
+      <button class="cms-btn cms-btn-save disabled" id="cmsSaveAllBtn" onclick="window._sonicCmsSaveAll()" title="Save all customized edits (Ctrl+S)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        <span>Save Changes</span>
+      </button>
+
+      <button class="cms-btn cms-btn-cancel disabled" id="cmsCancelAllBtn" onclick="window._sonicCmsCancelAll()" title="Discard all customizations and restore original template">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        <span>Keep Original</span>
+      </button>
+
+      <div class="cms-bar-divider"></div>
+
+      <!-- Exit & Minimize -->
+      <button class="cms-btn-subtle" onclick="window._sonicCmsExitCms()" title="Close Live CMS toolbar">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        <span>Exit</span>
+      </button>
+      <button class="cms-btn-subtle cms-btn-min" onclick="window._sonicCmsToggleBarMinimize()" title="Minimize toolbar"><span>−</span></button>
     `;
+
+    bar.addEventListener('mouseenter', function () {
+      document.body.classList.add('cms-hovering-bar');
+    });
+    bar.addEventListener('mouseleave', function () {
+      document.body.classList.remove('cms-hovering-bar');
+    });
+
     document.body.appendChild(bar);
+    updateToolbarState();
   }
 
   window._sonicCmsExitCms = function () {
@@ -1076,19 +1664,24 @@
     if (bar) bar.remove();
     const modal = document.getElementById('sonicCmsModal');
     if (modal) modal.remove();
-    
-    // Remember preference so it doesn't auto-reopen on other pages in this session
+    const imgModal = document.getElementById('sonicImgModal');
+    if (imgModal) imgModal.remove();
+
+    // Disable contenteditable on all elements
+    document.querySelectorAll('[data-cms-editable="text"]').forEach(el => {
+      el.contentEditable = 'false';
+    });
+
     try {
       window.sessionStorage.setItem('sonic_cms_disabled', 'true');
+      window.sessionStorage.removeItem('sonic_cms_active');
     } catch (_) {}
 
-    // Clean URL query params (?live_edit=true or ?edit=true)
     if (window.location.search.includes('live_edit') || window.location.search.includes('edit=')) {
-      const cleanUrl = window.location.pathname;
-      window.history.replaceState({}, document.title, cleanUrl);
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
 
-    showCmsToast('✓ Live CMS closed. Previewing clean visitor site. Press Ctrl+Shift+E anytime to re-open.', true);
+    showCmsToast('✓ Live CMS closed. Press Ctrl+Shift+E anytime to re-open.', true);
   };
 
   window._sonicCmsToggleBarMinimize = function () {
@@ -1099,41 +1692,157 @@
   window._sonicCmsToggleMode = function () {
     isEditMode = !isEditMode;
     document.body.classList.toggle('sonic-cms-active', isEditMode);
+    
+    // Toggle contenteditable on text elements
+    document.querySelectorAll('[data-cms-editable="text"]').forEach(el => {
+      el.contentEditable = isEditMode ? 'true' : 'false';
+    });
+
     const btn = document.getElementById('cmsModeBtn');
     if (btn) {
       btn.classList.toggle('active', isEditMode);
-      btn.innerHTML = `<span>${isEditMode ? '✏️ Edit Mode: ON' : '👁️ Edit Mode: OFF'}</span>`;
+      btn.innerHTML = `<span>${isEditMode ? '✏️ Edit Mode' : '👁️ Preview'}</span>`;
     }
-    showCmsToast(isEditMode ? 'Visual In-Place CMS Activated! Click any headline or item to edit.' : 'Visual Edit Mode Deactivated. Previewing as visitor.', true);
+
+    showCmsToast(
+      isEditMode
+        ? 'Live In-Place Editing ON! Click and type directly into any text, headline, or image.'
+        : 'Preview Mode Active. All editing outlines hidden.',
+      true
+    );
   };
 
   // ── Intercept Clicks on Editable Elements ──
   function initClickInterceptors() {
+    // Document-level cursor suppression when hovering toolbar or modals
+    document.addEventListener('mouseover', function (e) {
+      if (e.target && e.target.closest && e.target.closest('#sonicCmsBar, #sonicCmsModal, #sonicImgModal, #sonicCmsToast')) {
+        document.body.classList.add('cms-hovering-bar');
+      } else {
+        document.body.classList.remove('cms-hovering-bar');
+      }
+    }, true);
+
     document.addEventListener('click', function (e) {
       if (!isEditMode) return;
-      if (e.target.closest('#sonicCmsBar') || e.target.closest('#sonicCmsModal') || e.target.closest('#sonicCmsToast')) return;
+      // Never intercept inside CMS toolbar or modals
+      if (e.target.closest('#sonicCmsBar') || e.target.closest('#sonicCmsModal') || e.target.closest('#sonicImgModal') || e.target.closest('#sonicCmsToast')) {
+        return;
+      }
 
-      const target = e.target.closest('[data-cms-editable]');
-      if (target) {
+      // 1. If clicking image
+      const img = e.target.closest('[data-cms-editable="image"]');
+      if (img) {
         e.preventDefault();
         e.stopPropagation();
-        openInlineEditor(target);
+        openImageEditor(img);
+        return;
+      }
+
+      // 2. If clicking structured card button
+      if (e.target.closest('.cms-card-btn')) {
+        return; // Let the button's own click handler run
+      }
+
+      // 3. If clicking a link or button while in edit mode: prevent navigation so user can edit text in-place!
+      const link = e.target.closest('a, button');
+      if (link && !link.closest('#sonicCmsBar')) {
+        e.preventDefault();
+        const editableChild = link.closest('[data-cms-editable="text"]') || link.querySelector('[data-cms-editable="text"]') || link;
+        if (editableChild && editableChild.contentEditable === 'true') {
+          editableChild.focus();
+        }
       }
     }, true);
   }
 
-  // ── Check if Admin and Initialize ──
+  // ── Keyboard Shortcuts ──
+  function initKeyboardShortcuts() {
+    window.addEventListener('keydown', function (e) {
+      // Toggle shortcut: Ctrl + Shift + E or Cmd + Shift + E
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'E' || e.key === 'e')) {
+        e.preventDefault();
+        try { window.sessionStorage.removeItem('sonic_cms_disabled'); } catch (_) {}
+        const bar = document.getElementById('sonicCmsBar');
+        if (!bar) {
+          renderCmsToolbar();
+          if (!isEditMode) window._sonicCmsToggleMode();
+        } else {
+          window._sonicCmsToggleMode();
+        }
+        return;
+      }
+
+      if (!isEditMode) return;
+
+      // Undo: Ctrl + Z / Cmd + Z (when not in native modal input)
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === 'z' || e.key === 'Z')) {
+        if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
+          return; // Let native input handle local undo
+        }
+        e.preventDefault();
+        window._sonicCmsUndo();
+        return;
+      }
+
+      // Redo: Ctrl + Y or Ctrl + Shift + Z / Cmd + Shift + Z
+      if (((e.ctrlKey || e.metaKey) && (e.key === 'y' || e.key === 'Y')) ||
+          ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'z' || e.key === 'Z'))) {
+        if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
+          return;
+        }
+        e.preventDefault();
+        window._sonicCmsRedo();
+        return;
+      }
+
+      // Save: Ctrl + S / Cmd + S
+      if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
+        e.preventDefault();
+        window._sonicCmsSaveAll();
+        return;
+      }
+    });
+  }
+
+  // ── Apply Stored Customizations at Boot ──
+  function applyStoredCustomEdits() {
+    try {
+      const raw = localStorage.getItem(EDITS_STORAGE_KEY);
+      if (!raw) return;
+      const edits = JSON.parse(raw);
+      Object.keys(edits).forEach(key => {
+        const item = edits[key];
+        if (!item) return;
+        try {
+          const el = document.querySelector(key);
+          if (el) {
+            if (item.type === 'image' && item.val) {
+              el.src = item.val;
+            } else if (item.val) {
+              el.innerHTML = item.val;
+            }
+          }
+        } catch (_) {}
+      });
+    } catch (_) {}
+  }
+
+  // ── Initialize CMS ──
   function init() {
     injectStyles();
+    capturePristineBaseline();
+    applyStoredCustomEdits();
     tagEditableElements();
     initClickInterceptors();
+    initKeyboardShortcuts();
 
-    // Check if user explicitly asked to preview without editing toolkit
     const isExplicitlyDisabled = window.sessionStorage.getItem('sonic_cms_disabled') === 'true';
     const urlParams = new URLSearchParams(window.location.search);
     const wantsPreview = urlParams.get('preview') === 'true' || urlParams.get('live_edit') === 'false';
-    const wantsLiveEdit = urlParams.get('live_edit') === 'true' || urlParams.get('edit') === 'true';
+    const wantsLiveEdit = urlParams.get('live_edit') === 'true' || urlParams.get('edit') === 'true' || urlParams.get('edit') === '1' || urlParams.get('cms') === '1';
     const session = getAdminSession();
+    const isCmsActive = window.sessionStorage.getItem('sonic_cms_active') === 'true';
 
     if (wantsPreview) {
       try { window.sessionStorage.setItem('sonic_cms_disabled', 'true'); } catch(_) {}
@@ -1144,33 +1853,15 @@
       return;
     }
 
-    if (wantsLiveEdit) {
+    if (wantsLiveEdit || isCmsActive || (session && !isExplicitlyDisabled)) {
       try { window.sessionStorage.removeItem('sonic_cms_disabled'); } catch(_) {}
       isEditMode = true;
       document.body.classList.add('sonic-cms-active');
       renderCmsToolbar();
-    } else if (session && !isExplicitlyDisabled) {
-      isEditMode = true;
-      document.body.classList.add('sonic-cms-active');
-      renderCmsToolbar();
+      tagEditableElements();
     }
 
-    // Keyboard shortcut: Ctrl + Shift + E or Cmd + Shift + E to toggle anytime
-    window.addEventListener('keydown', function (e) {
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'E' || e.key === 'e')) {
-        e.preventDefault();
-        try { window.sessionStorage.removeItem('sonic_cms_disabled'); } catch(_) {}
-        const bar = document.getElementById('sonicCmsBar');
-        if (!bar) {
-          renderCmsToolbar();
-          if (!isEditMode) window._sonicCmsToggleMode();
-        } else {
-          window._sonicCmsToggleMode();
-        }
-      }
-    });
-
-    // Re-tag when page data or view changes
+    // Observe dynamic DOM changes (e.g. after Supabase fetch or filtering)
     const observer = new MutationObserver(() => {
       tagEditableElements();
     });

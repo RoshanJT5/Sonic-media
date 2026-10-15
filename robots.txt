@@ -1,6 +1,9 @@
 User-agent: *
-Disallow: /sonicmediaadmin
-Disallow: /sonicmediaadmin.html
 Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /wp-admin
+Disallow: /cms
+Disallow: /dashboard
 
 Sitemap: https://thesonicmedia.com/sitemap.xml
