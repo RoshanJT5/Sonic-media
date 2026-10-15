@@ -10,7 +10,14 @@
   const SUPABASE_URL = (window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.URL) || window.SUPABASE_URL || '';
   const SUPABASE_ANON = (window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.ANON_KEY) || window.SUPABASE_ANON || '';
   const ADMIN_STORAGE_KEY = 'sonicmedia_admin_session';
-  const EDITS_STORAGE_KEY = 'tsm_live_custom_edits';
+
+  function getPageId() {
+    const path = window.location.pathname.replace(/\/+$/, '') || '/';
+    return path === '/' ? 'home' : path.replace(/^\//, '').replace(/\.html$/, '').replace(/[^a-z0-9/_-]+/gi, '-').replace(/\//g, '__');
+  }
+
+  const EDITS_STORAGE_KEY = `tsm_live_custom_edits:${getPageId()}`;
+  const LIVE_EDITS_ROW_KEY = `live_cms:${getPageId()}`;
 
   let isEditMode = false;
   let activeEditTarget = null;
@@ -40,6 +47,18 @@
     return s && s.access_token
       ? { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + s.access_token, 'Content-Type': 'application/json' }
       : { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON, 'Content-Type': 'application/json' };
+  }
+
+  function notifyContentChanged() {
+    try {
+      localStorage.removeItem('tsm_supabase_cache');
+      localStorage.setItem('tsm_cache_invalidated_at', Date.now().toString());
+      if (typeof BroadcastChannel !== 'undefined') {
+        const channel = new BroadcastChannel('sonic_media_cms');
+        channel.postMessage({ type: 'cache_invalidated', at: Date.now() });
+        channel.close();
+      }
+    } catch (_) {}
   }
 
   // ── Element Key Generator ──
@@ -1030,6 +1049,7 @@
       // 2. Prepare Cloud Sync to Supabase
       const syncPromises = [];
       const siteContentEdits = {};
+      const pageEdits = {};
 
       pendingEdits.forEach((item, key) => {
         const el = item.el;
@@ -1038,6 +1058,16 @@
         const field = el.getAttribute('data-cms-field');
         const type = el.getAttribute('data-cms-type');
         const id = el.getAttribute('data-cms-id');
+
+        // Every visual edit is also stored in a page-scoped row. This is the
+        // canonical record used on refresh and displayed in the admin panel.
+        pageEdits[key] = {
+          key,
+          type: item.type,
+          val: item.val,
+          text: item.text || '',
+          updated_at: new Date().toISOString()
+        };
 
         if (schema && field) {
           if (!siteContentEdits[schema]) siteContentEdits[schema] = {};
@@ -1048,11 +1078,10 @@
           syncPromises.push(syncCaseStudyTitle(id, item.val));
         } else if (type === 'journal-item' && id) {
           syncPromises.push(syncJournalTitle(id, item.val));
-        } else {
-          if (!siteContentEdits['live_cms_custom_edits']) siteContentEdits['live_cms_custom_edits'] = {};
-          siteContentEdits['live_cms_custom_edits'][key] = item.val;
         }
       });
+
+      siteContentEdits[LIVE_EDITS_ROW_KEY] = { edits: pageEdits, page: getPageId() };
 
       // Upsert schema groups into Supabase site_content
       for (const [schKey, fieldsObj] of Object.entries(siteContentEdits)) {
@@ -1062,26 +1091,34 @@
             .then(rows => {
               const existing = rows[0]?.data || {};
               const merged = Object.assign({}, existing, fieldsObj);
+              if (fieldsObj.edits) {
+                merged.edits = Object.assign({}, existing.edits || {}, fieldsObj.edits);
+              }
               return fetch(`${SUPABASE_URL}/rest/v1/site_content`, {
                 method: 'POST',
                 headers: Object.assign({}, getAuthHeader(), { 'Prefer': 'resolution=merge-duplicates' }),
                 body: JSON.stringify({ key: schKey, data: merged, updated_at: new Date() })
+              }).then(writeRes => {
+                if (!writeRes.ok) throw new Error(`Supabase rejected ${schKey} (${writeRes.status})`);
+                return writeRes;
               });
             })
-            .catch(e => console.debug('Cloud sync notice for', schKey, e))
         );
       }
 
-      await Promise.allSettled(syncPromises);
+      const results = await Promise.allSettled(syncPromises);
+      const failed = results.filter(result => result.status === 'rejected');
+      if (failed.length) throw failed[0].reason || new Error('One or more cloud writes failed.');
 
       // 3. Mark all as saved in session
       pendingEdits.clear();
+      notifyContentChanged();
 
       updateToolbarState();
       showCmsToast('✓ All changes saved and published live!', true);
     } catch (err) {
       console.warn('Live save warning:', err);
-      showCmsToast('Saved locally! Cloud sync queued.', true);
+      showCmsToast('Saved in this browser, but cloud sync failed. Please retry.', false);
     } finally {
       if (saveBtn) {
         saveBtn.disabled = false;
@@ -1162,33 +1199,30 @@
 
   // Helper sync routines for structured tables
   async function syncPortfolioTitle(id, titleVal) {
-    try {
-      await fetch(`${SUPABASE_URL}/rest/v1/portfolio_items?id=eq.${id}`, {
-        method: 'PATCH',
-        headers: getAuthHeader(),
-        body: JSON.stringify({ name: titleVal, updated_at: new Date() })
-      });
-    } catch (_) {}
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/portfolio_items?id=eq.${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      headers: getAuthHeader(),
+      body: JSON.stringify({ name: titleVal, updated_at: new Date() })
+    });
+    if (!res.ok) throw new Error(`Portfolio update failed (${res.status})`);
   }
 
   async function syncCaseStudyTitle(id, titleVal) {
-    try {
-      await fetch(`${SUPABASE_URL}/rest/v1/case_studies?id=eq.${id}`, {
-        method: 'PATCH',
-        headers: getAuthHeader(),
-        body: JSON.stringify({ title: titleVal, updated_at: new Date() })
-      });
-    } catch (_) {}
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/case_studies?id=eq.${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      headers: getAuthHeader(),
+      body: JSON.stringify({ title: titleVal, updated_at: new Date() })
+    });
+    if (!res.ok) throw new Error(`Case study update failed (${res.status})`);
   }
 
   async function syncJournalTitle(id, titleVal) {
-    try {
-      await fetch(`${SUPABASE_URL}/rest/v1/journal_posts?id=eq.${id}`, {
-        method: 'PATCH',
-        headers: getAuthHeader(),
-        body: JSON.stringify({ title: titleVal, updated_at: new Date() })
-      });
-    } catch (_) {}
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/journal_posts?id=eq.${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      headers: getAuthHeader(),
+      body: JSON.stringify({ title: titleVal, updated_at: new Date() })
+    });
+    if (!res.ok) throw new Error(`Journal update failed (${res.status})`);
   }
 
   // ── Image Replacement Modal ──
@@ -1278,7 +1312,9 @@
         headers: {
           'apikey': SUPABASE_ANON,
           'Authorization': 'Bearer ' + SUPABASE_ANON,
-          'Content-Type': file.type || 'image/jpeg'
+          'Content-Type': file.type || 'image/jpeg',
+          'cache-control': 'max-age=31536000',
+          'x-upsert': 'false'
         },
         body: file
       });

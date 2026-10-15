@@ -1848,6 +1848,11 @@
           </svg>
           <span>Section Headers</span>
         </button>
+        <button class="tab-btn" onclick="switchTab('liveedits', this)">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5C21.27 7.61 17 4.5 12 4.5zm0 12.5a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>
+          <span>Live Page Edits</span>
+          <span class="tab-count" id="countLiveEdits">0</span>
+        </button>
       </nav>
 
       <!-- TAB 1: PORTFOLIO -->
@@ -1987,6 +1992,16 @@
             </div>
           </div>
         </div>
+      </section>
+
+      <section id="tab-liveedits" class="tab-panel">
+        <div class="panel-head">
+          <div>
+            <h2 class="panel-title">Live Page Edits</h2>
+            <p class="panel-desc">These are the latest changes saved directly on the website. Edit a value here and save it back to the same cloud record.</p>
+          </div>
+        </div>
+        <div class="items-list" id="liveEditsListContainer"></div>
       </section>
     </main>
   </div>
@@ -2938,6 +2953,37 @@
       headers: {}
     };
 
+    // Only the exact database value "published" is public. Every missing,
+    // legacy, or malformed value is treated as a draft throughout the admin.
+    function normalizePublicationStatus(value) {
+      return String(value || '').trim().toLowerCase() === 'published' ? 'published' : 'draft';
+    }
+
+    async function requireActiveAdminSession(client) {
+      const { data, error } = await client.auth.getSession();
+      if (error || !data || !data.session) {
+        throw new Error('row-level security: No active admin session found. Please sign in again.');
+      }
+      return data.session;
+    }
+
+    async function persistPublicationStatus(client, table, id, newStatus, extraFields = {}) {
+      const status = normalizePublicationStatus(newStatus);
+      await requireActiveAdminSession(client);
+      const payload = Object.assign({}, extraFields, { status, updated_at: new Date() });
+      const { data, error } = await client
+        .from(table)
+        .update(payload)
+        .eq('id', id)
+        .select('id,status')
+        .maybeSingle();
+      if (error) throw error;
+      if (!data || String(data.status || '').trim().toLowerCase() !== status) {
+        throw new Error('The publication status was not confirmed by Supabase. Please retry.');
+      }
+      return status;
+    }
+
     // ── Session Storage Utilities ──
     function saveSessionToStorage(session, user) {
       if (!session) return;
@@ -3524,6 +3570,7 @@
         renderCaseStudies();
         renderJournal();
         populateHeaders();
+        renderLiveEdits();
         checkUrlAutoOpen();
       } catch (err) {
         console.error('Failed to load dashboard data:', err);
@@ -3772,7 +3819,7 @@
 
       const total = state.portfolio.length;
       container.innerHTML = state.portfolio.map((item, idx) => {
-        const isDraft = item.status === 'draft';
+        const isDraft = normalizePublicationStatus(item.status) !== 'published';
         const isRecentlySaved = window.lastSavedItemId === item.id;
         const numDisplay = item.num || String(idx + 1).padStart(2, '0');
         return `
@@ -3815,7 +3862,6 @@
       </div>
       <div class="item-actions">
         <button class="btn btn-secondary btn-sm" onclick="editPortfolioItem('${escapeHtml(item.id)}', 'card')" title="Edit front card headline, category, hero image, and metrics"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>Edit Card</button>
-        <button class="btn btn-secondary btn-sm" onclick="editPortfolioItem('${escapeHtml(item.id)}', 'article')" title="Edit inside page: About, Challenge, Solution, Deliverables, and Gallery" style="color:var(--orange);border-color:rgba(255,92,0,0.4);font-weight:600;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>Edit Inside Page ↗</button>
         ${isDraft ? `
           <button class="btn btn-secondary btn-sm" onclick="togglePortfolioStatus('${escapeHtml(item.id)}', 'published', this)" title="Publish immediately live to website" style="color:#10B981;border-color:rgba(16,185,129,0.4);font-weight:700;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><polyline points="20 6 9 17 4 12"></polyline></svg>Publish Live</button>
         ` : `
@@ -3840,7 +3886,7 @@
 
       const total = state.casestudies.length;
       container.innerHTML = state.casestudies.map((item, idx) => {
-        const isDraft = item.status === 'draft';
+        const isDraft = normalizePublicationStatus(item.status) !== 'published';
         const isRecentlySaved = window.lastSavedItemId === item.id;
         const numDisplay = String(idx + 1).padStart(2, '0');
         return `
@@ -3908,7 +3954,7 @@
 
       const total = state.journal.length;
       container.innerHTML = state.journal.map((item, idx) => {
-        const isDraft = item.status === 'draft';
+        const isDraft = normalizePublicationStatus(item.status) !== 'published';
         const isRecentlySaved = window.lastSavedItemId === item.id;
         const numDisplay = item.num || String(idx + 1).padStart(2, '0');
         return `
@@ -3985,6 +4031,74 @@
       document.getElementById('headerJournalTitleSpan').value = j.titleSpan || 'Reads';
     }
 
+    function getLiveEditRows() {
+      return Object.keys(state.headers)
+        .filter(key => key === 'live_cms_custom_edits' || key.indexOf('live_cms:') === 0)
+        .sort()
+        .map(key => ({ key, data: state.headers[key] || {} }));
+    }
+
+    function renderLiveEdits() {
+      const container = document.getElementById('liveEditsListContainer');
+      if (!container) return;
+      const rows = getLiveEditRows();
+      const total = rows.reduce((sum, row) => sum + Object.keys(row.data.edits || row.data || {}).length, 0);
+      const count = document.getElementById('countLiveEdits');
+      if (count) count.textContent = total;
+      if (!total) {
+        container.innerHTML = '<div class="empty-state"><p>No live-page edits have been saved yet.</p></div>';
+        return;
+      }
+      container.innerHTML = rows.map(row => {
+        const edits = row.data.edits || row.data || {};
+        const fields = Object.keys(edits).sort().map(selector => {
+          const item = edits[selector] && typeof edits[selector] === 'object' ? edits[selector] : { val: edits[selector], type: 'text' };
+          return `<div class="form-group" style="margin-bottom:14px;">
+            <label class="form-label" title="${escapeHtml(selector)}">${escapeHtml(selector)}</label>
+            <textarea class="form-textarea live-edit-value" data-row-key="${escapeHtml(row.key)}" data-selector="${escapeHtml(selector)}" data-type="${escapeHtml(item.type || 'text')}" style="min-height:72px;">${escapeHtml(item.val || '')}</textarea>
+          </div>`;
+        }).join('');
+        return `<div style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:22px;margin-bottom:18px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;">
+            <div><h3 style="font-family:var(--font-heading);font-size:16px;color:var(--orange);">${escapeHtml(row.data.page || row.key.replace('live_cms:', ''))}</h3><div class="form-help">${escapeHtml(row.key)}</div></div>
+            <button class="btn btn-sm" onclick="saveLiveEditRow('${escapeHtml(row.key)}', this)">Save Page Edits</button>
+          </div>${fields}</div>`;
+      }).join('');
+    }
+
+    async function saveLiveEditRow(rowKey, btn) {
+      const current = state.headers[rowKey] || {};
+      const next = Object.assign({}, current, { edits: Object.assign({}, current.edits || {}) });
+      document.querySelectorAll('.live-edit-value').forEach(el => {
+        if (el.dataset.rowKey !== rowKey) return;
+        next.edits[el.dataset.selector] = Object.assign({}, next.edits[el.dataset.selector] || {}, {
+          key: el.dataset.selector,
+          type: el.dataset.type || 'text',
+          val: el.value,
+          text: el.value,
+          updated_at: new Date().toISOString()
+        });
+      });
+      const original = btn.innerHTML;
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+      try {
+        const client = getSupabase();
+        const { error } = await client.from('site_content').upsert({ key: rowKey, data: next, updated_at: new Date() });
+        if (error) throw error;
+        state.headers[rowKey] = next;
+        invalidateWebsiteCache();
+        showToast('Live page edits saved to the website.');
+        btn.textContent = 'Saved';
+      } catch (err) {
+        showToast(formatUserFriendlyError(err).badgeText);
+        btn.textContent = 'Save failed';
+      } finally {
+        setTimeout(() => { btn.disabled = false; btn.innerHTML = original; }, 1800);
+      }
+    }
+    window.saveLiveEditRow = saveLiveEditRow;
+
     function invalidateWebsiteCache() {
       try {
         localStorage.removeItem('tsm_supabase_cache');
@@ -4031,11 +4145,13 @@
           throw new Error('row-level security: No active admin session found. Please sign in to save changes.');
         }
 
-        await Promise.all([
+        const results = await Promise.all([
           client.from('site_content').upsert({ key: 'portfolio', data: pData, updated_at: new Date() }),
           client.from('site_content').upsert({ key: 'casestudies', data: cData, updated_at: new Date() }),
           client.from('site_content').upsert({ key: 'journal', data: jData, updated_at: new Date() })
         ]);
+        const failed = results.find(result => result && result.error);
+        if (failed) throw failed.error;
         invalidateWebsiteCache();
 
         if (btn) {
@@ -4315,6 +4431,7 @@
     window.dismissSaveSuccess = dismissSaveSuccess;
 
     async function savePortfolioItemWithMode(mode = 'published') {
+      mode = normalizePublicationStatus(mode);
       const originalId = document.getElementById('portIdOriginal').value.trim();
       const rawName = document.getElementById('portName').value.trim();
 
@@ -4425,14 +4542,12 @@
 
       try {
         const client = getSupabase();
-        // Verify verified admin session before attempting mutation
-        const { data: sessionData } = await client.auth.getSession();
-        if (!sessionData || !sessionData.session) {
-          throw new Error('row-level security: No active admin session found. Please sign in to save changes.');
-        }
-
-        const { error } = await client.from('portfolio_items').upsert(payload);
+        await requireActiveAdminSession(client);
+        const { data: savedRow, error } = await client.from('portfolio_items').upsert(payload).select('id,status').single();
         if (error) throw error;
+        if (!savedRow || String(savedRow.status || '').trim().toLowerCase() !== mode) {
+          throw new Error('Supabase did not confirm the requested project publication status. Please retry.');
+        }
         invalidateWebsiteCache();
 
         // 1. Success state right on the clicked button with checkmark
@@ -4512,6 +4627,7 @@
     async function togglePortfolioStatus(id, newStatus, btnEl) {
       const item = state.portfolio.find(p => p.id === id);
       if (!item) return;
+      newStatus = normalizePublicationStatus(newStatus);
 
       const btn = btnEl || (typeof event !== 'undefined' && event?.currentTarget ? event.currentTarget : null);
       if (btn) {
@@ -4527,12 +4643,9 @@
         const updatedDetails = Object.assign({}, item.details || {}, {
           status: newStatus === 'draft' ? 'Draft' : 'Completed'
         });
-        const { error } = await client.from('portfolio_items').update({
-          status: newStatus,
-          details: updatedDetails,
-          updated_at: new Date()
-        }).eq('id', id);
-        if (error) throw error;
+        newStatus = await persistPublicationStatus(client, 'portfolio_items', id, newStatus, {
+          details: updatedDetails
+        });
 
         invalidateWebsiteCache();
         item.status = newStatus;
@@ -5302,6 +5415,7 @@
     }
 
     async function saveCaseStudyWithMode(mode = 'published') {
+      mode = normalizePublicationStatus(mode);
       const originalId = document.getElementById('caseIdOriginal').value.trim();
       const rawTitle = document.getElementById('caseTitle').value.trim();
 
@@ -5393,14 +5507,12 @@
 
       try {
         const client = getSupabase();
-        // Verify verified admin session before attempting mutation
-        const { data: sessionData } = await client.auth.getSession();
-        if (!sessionData || !sessionData.session) {
-          throw new Error('row-level security: No active admin session found. Please sign in to save changes.');
-        }
-
-        const { error } = await client.from('case_studies').upsert(payload);
+        await requireActiveAdminSession(client);
+        const { data: savedRow, error } = await client.from('case_studies').upsert(payload).select('id,status').single();
         if (error) throw error;
+        if (!savedRow || String(savedRow.status || '').trim().toLowerCase() !== mode) {
+          throw new Error('Supabase did not confirm the requested case study publication status. Please retry.');
+        }
         invalidateWebsiteCache();
 
         // 1. Success state right on the clicked button with checkmark
@@ -5479,6 +5591,7 @@
     async function toggleCaseStudyStatus(id, newStatus, btnEl) {
       const item = state.casestudies.find(c => c.id === id);
       if (!item) return;
+      newStatus = normalizePublicationStatus(newStatus);
 
       const btn = btnEl || (typeof event !== 'undefined' && event?.currentTarget ? event.currentTarget : null);
       if (btn) {
@@ -5491,11 +5604,7 @@
 
       try {
         const client = getSupabase();
-        const { error } = await client.from('case_studies').update({
-          status: newStatus,
-          updated_at: new Date()
-        }).eq('id', id);
-        if (error) throw error;
+        newStatus = await persistPublicationStatus(client, 'case_studies', id, newStatus);
 
         invalidateWebsiteCache();
         item.status = newStatus;
@@ -5619,6 +5728,7 @@
     }
 
     async function saveJournalPostWithMode(mode = 'published') {
+      mode = normalizePublicationStatus(mode);
       const originalId = document.getElementById('journalIdOriginal').value.trim();
       const rawTitle = document.getElementById('journalTitle').value.trim();
 
@@ -5700,14 +5810,12 @@
 
       try {
         const client = getSupabase();
-        // Verify verified admin session before attempting mutation
-        const { data: sessionData } = await client.auth.getSession();
-        if (!sessionData || !sessionData.session) {
-          throw new Error('row-level security: No active admin session found. Please sign in to save changes.');
-        }
-
-        const { error } = await client.from('journal_posts').upsert(payload);
+        await requireActiveAdminSession(client);
+        const { data: savedRow, error } = await client.from('journal_posts').upsert(payload).select('id,status').single();
         if (error) throw error;
+        if (!savedRow || String(savedRow.status || '').trim().toLowerCase() !== mode) {
+          throw new Error('Supabase did not confirm the requested journal publication status. Please retry.');
+        }
         invalidateWebsiteCache();
 
         // 1. Success state right on the clicked button with checkmark
@@ -5786,6 +5894,7 @@
     async function toggleJournalStatus(id, newStatus, btnEl) {
       const item = state.journal.find(j => j.id === id);
       if (!item) return;
+      newStatus = normalizePublicationStatus(newStatus);
 
       const btn = btnEl || (typeof event !== 'undefined' && event?.currentTarget ? event.currentTarget : null);
       if (btn) {
@@ -5798,11 +5907,7 @@
 
       try {
         const client = getSupabase();
-        const { error } = await client.from('journal_posts').update({
-          status: newStatus,
-          updated_at: new Date()
-        }).eq('id', id);
-        if (error) throw error;
+        newStatus = await persistPublicationStatus(client, 'journal_posts', id, newStatus);
 
         invalidateWebsiteCache();
         item.status = newStatus;
@@ -6202,7 +6307,7 @@
       try {
         const { error } = await getSupabase().storage
           .from('sonicmedia-assets')
-          .upload(fileName, file, { cacheControl: '3600', upsert: true });
+          .upload(fileName, file, { cacheControl: '31536000', upsert: false });
 
         if (error) throw error;
 
@@ -6252,7 +6357,7 @@
       try {
         const { error } = await getSupabase().storage
           .from('sonicmedia-assets')
-          .upload(fileName, file, { cacheControl: '3600', upsert: true });
+          .upload(fileName, file, { cacheControl: '31536000', upsert: false });
 
         if (error) throw error;
 

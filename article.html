@@ -710,7 +710,7 @@
   <!-- DATA & SUPABASE HYDRATION -->
   <script src="assets/js/supabase-config.js"></script>
   <script src="assets/js/supabase-rest.js"></script>
-  <script src="assets/js/app.js"></script>
+  <script src="assets/js/app.js?v=5"></script>
   <script>
     function getArticleId() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -731,24 +731,18 @@
 
     const currentArticleId = getArticleId();
 
-    function renderArticle(data) {
+    function renderArticle(data, previewAuthorized = false) {
       if (!data) return;
 
-      const hasAdmin = !!(window.sessionStorage?.getItem('sonicmedia_admin_session') || window.localStorage?.getItem('sonicmedia_admin_session'));
-      const isPreview = window.location.search.includes('preview=true');
+      const isPreview = previewAuthorized && new URLSearchParams(window.location.search).get('preview') === 'true';
+      const publicationStatus = String(data.publication_status || data.status || '').trim().toLowerCase();
 
-      if (data.status === 'draft' && !hasAdmin && !isPreview) {
-        document.title = `Article Draft — The Sonic Media`;
-        const titleEl = document.getElementById('articleTitle');
-        if (titleEl) titleEl.textContent = 'Article Draft';
-        const subEl = document.getElementById('articleSubtitle');
-        if (subEl) subEl.textContent = 'This article is currently saved as a draft and has not yet been published live.';
-        const bodyBox = document.getElementById('articleContent');
-        if (bodyBox) bodyBox.innerHTML = '<p style="color:#888;text-align:center;padding:40px 0;">This journal post is currently being written and will be published soon.</p>';
+      if (publicationStatus === 'draft' && !isPreview) {
+        renderArticleError(true);
         return;
       }
 
-      if (data.status === 'draft' && (hasAdmin || isPreview)) {
+      if (publicationStatus === 'draft' && isPreview) {
         if (!document.getElementById('draftPreviewBanner')) {
           const banner = document.createElement('div');
           banner.id = 'draftPreviewBanner';
@@ -866,36 +860,63 @@
       }
     }
 
+    function renderArticlePreviewDenied() {
+      document.title = 'Admin Preview Required — The Sonic Media';
+      const titleEl = document.getElementById('articleTitle');
+      const subEl = document.getElementById('articleSubtitle');
+      const proseEl = document.getElementById('articleProse');
+      if (titleEl) titleEl.textContent = 'Admin Preview Required';
+      if (subEl) subEl.textContent = 'This draft preview is available only from an active administrator session.';
+      if (proseEl) proseEl.innerHTML = '<p>Sign in to the admin panel, then use the Preview button beside the draft article.</p><div style="margin-top:24px;"><a href="/sonicmediaadmin" class="btn-p" style="padding:10px 24px;font-size:12px;display:inline-block;">Open Admin Panel</a></div>';
+    }
+
     async function initArticle() {
       let hasRendered = false;
+      const requestedPreview = new URLSearchParams(window.location.search).get('preview') === 'true';
+      let adminAccessToken = '';
+      try {
+        const rawSession = window.sessionStorage?.getItem('sonicmedia_admin_session') || window.localStorage?.getItem('sonicmedia_admin_session');
+        const storedSession = rawSession ? JSON.parse(rawSession) : null;
+        const nowSec = Math.floor(Date.now() / 1000);
+        if (storedSession && storedSession.access_token && (!storedSession.expires_at || nowSec < storedSession.expires_at)) {
+          adminAccessToken = storedSession.access_token;
+        }
+      } catch (_) { }
+      const canPreviewDraft = requestedPreview && !!adminAccessToken;
 
-      // Step A: Local cache & instant fallback
+      if (requestedPreview && !canPreviewDraft) {
+        renderArticlePreviewDenied();
+        return;
+      }
+
+      // Public pages may use published cache/fallback data. Draft previews wait
+      // for an authenticated Supabase response and never trust local cache.
       try {
         const cachedRaw = localStorage.getItem('tsm_supabase_cache');
-        if (cachedRaw) {
+        if (!requestedPreview && cachedRaw) {
           const cached = JSON.parse(cachedRaw);
           if (cached.journal && Array.isArray(cached.journal)) {
             const row = cached.journal.find(p => (p.id || '').toLowerCase() === currentArticleId.toLowerCase());
-            if (row) {
+            if (row && String(row.status || '').toLowerCase() === 'published') {
               hasRendered = true;
-              renderArticle(Object.assign({}, row, row.details || {}));
+              renderArticle(Object.assign({}, row, row.details || {}), false);
             }
           }
         }
       } catch (_) { }
 
-      if (!hasRendered) {
+      if (!requestedPreview && !hasRendered) {
         if (typeof blogArticles !== 'undefined' && blogArticles[currentArticleId]) {
           hasRendered = true;
-          renderArticle(blogArticles[currentArticleId]);
+          renderArticle(blogArticles[currentArticleId], false);
         } else if (typeof caseStudies !== 'undefined' && caseStudies[currentArticleId]) {
           hasRendered = true;
-          renderArticle(caseStudies[currentArticleId]);
+          renderArticle(caseStudies[currentArticleId], false);
         } else if (typeof PAGE_DATA !== 'undefined' && PAGE_DATA.journal?.posts) {
           const found = PAGE_DATA.journal.posts.find(p => (p.id || '').toLowerCase() === currentArticleId.toLowerCase());
           if (found) {
             hasRendered = true;
-            renderArticle(found);
+            renderArticle(found, false);
           }
         }
       }
@@ -903,38 +924,54 @@
       // Step B: Live fetch from Supabase journal_posts
       try {
         const cleanId = encodeURIComponent(currentArticleId.toLowerCase());
-        const rows = typeof sbGet === 'function'
-          ? await sbGet(`journal_posts?id=eq.${cleanId}&select=*&limit=1`, { timeout: 8000, retries: 1 })
+        const rows = canPreviewDraft
+          ? await (async () => {
+            const h = { 'apikey': window.SUPABASE_ANON, 'Authorization': 'Bearer ' + adminAccessToken };
+            const r = await fetch(`${window.SUPABASE_URL}/rest/v1/journal_posts?id=eq.${cleanId}&select=*&limit=1`, { headers: h, cache: 'no-store' });
+            if (r.status === 401 || r.status === 403) throw new Error('PREVIEW_AUTH_REQUIRED');
+            return r.ok ? await r.json() : null;
+          })()
+          : typeof sbGet === 'function'
+          ? await sbGet(`journal_posts?id=eq.${cleanId}&status=eq.published&select=*&limit=1`, { timeout: 8000, retries: 1 })
           : await (async () => {
             const h = { 'apikey': window.SUPABASE_ANON, 'Authorization': 'Bearer ' + window.SUPABASE_ANON };
-            const r = await fetch(`${window.SUPABASE_URL}/rest/v1/journal_posts?id=eq.${cleanId}&select=*&limit=1`, { headers: h });
+            const r = await fetch(`${window.SUPABASE_URL}/rest/v1/journal_posts?id=eq.${cleanId}&status=eq.published&select=*&limit=1`, { headers: h });
             return r.ok ? await r.json() : null;
           })();
 
         if (rows && rows.length > 0) {
           hasRendered = true;
           const row = rows[0];
-          const merged = Object.assign({}, row, row.details || {});
-          renderArticle(merged);
+          const merged = Object.assign({}, row, row.details || {}, { publication_status: row.status });
+          renderArticle(merged, canPreviewDraft);
           return;
         }
 
         // If not in journal_posts, check case_studies table as friendly fallback
-        const cRows = typeof sbGet === 'function'
-          ? await sbGet(`case_studies?id=eq.${cleanId}&select=*&limit=1`, { timeout: 8000, retries: 1 })
+        const cRows = canPreviewDraft
+          ? await (async () => {
+            const h = { 'apikey': window.SUPABASE_ANON, 'Authorization': 'Bearer ' + adminAccessToken };
+            const r = await fetch(`${window.SUPABASE_URL}/rest/v1/case_studies?id=eq.${cleanId}&select=*&limit=1`, { headers: h, cache: 'no-store' });
+            if (r.status === 401 || r.status === 403) throw new Error('PREVIEW_AUTH_REQUIRED');
+            return r.ok ? await r.json() : null;
+          })()
+          : typeof sbGet === 'function'
+          ? await sbGet(`case_studies?id=eq.${cleanId}&status=eq.published&select=*&limit=1`, { timeout: 8000, retries: 1 })
           : null;
         if (cRows && cRows.length > 0) {
           hasRendered = true;
           const cRow = cRows[0];
-          const cMerged = Object.assign({}, cRow, cRow.details || {});
-          renderArticle(cMerged);
+          const cMerged = Object.assign({}, cRow, cRow.details || {}, { publication_status: cRow.status });
+          renderArticle(cMerged, canPreviewDraft);
           return;
         }
 
-        if (!hasRendered) {
-          renderArticleError(true);
-        }
+        renderArticleError(true);
       } catch (err) {
+        if (requestedPreview && err && err.message === 'PREVIEW_AUTH_REQUIRED') {
+          renderArticlePreviewDenied();
+          return;
+        }
         console.debug('Article Supabase fetch error, using local data:', err);
         if (!hasRendered) {
           renderArticleError(false);

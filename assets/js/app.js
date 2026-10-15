@@ -365,17 +365,6 @@ function initTimelineAnimations() {
     });
 
     const numCards = itemsToAnimate.length;
-    const cols = Math.max(3, Math.ceil(numCards / 2));
-
-    // Dynamic section height: tuned for each device tier so pacing is relaxed and luxurious
-    const targetVh = isSmallPhone
-      ? Math.max(340, 170 + cols * 48)
-      : (isMobile 
-          ? Math.max(360, 185 + cols * 52) 
-          : (isTablet 
-              ? Math.max(300, 160 + cols * 44) 
-              : Math.max(280, 150 + cols * 42)));
-    section.style.height = targetVh + 'vh';
 
     // Ensure .sonic-timeline-rail and .journey-line-glow-head are present
     const lineWrap = section.querySelector('.sonic-timeline-center-line-wrap');
@@ -417,8 +406,21 @@ function initTimelineAnimations() {
     // Dynamic horizontal scrub calculation tailored per device
     const getSlideDistance = function() {
       const extra = isSmallPhone ? 15 : (isMobile ? 25 : (isTablet ? 40 : 60));
-      return -(slider.scrollWidth - window.innerWidth + extra);
+      return -Math.max(0, slider.scrollWidth - section.clientWidth + extra);
     };
+
+    // Base the vertical scroll runway on the track's real rendered width. This
+    // guarantees every dynamically-created Supabase card and the final CTA can
+    // become fully visible before the sticky timeline releases, at any count.
+    const horizontalDistance = Math.abs(getSlideDistance());
+    const viewportHeight = Math.max(window.innerHeight, 1);
+    const scrollRatio = isSmallPhone ? 1.28 : (isMobile ? 1.2 : (isTablet ? 1.12 : 1.05));
+    const endHold = viewportHeight * (isMobile ? 0.85 : 0.72);
+    const minimumScroll = viewportHeight * (isMobile ? 2.6 : 1.8);
+    const travelScroll = Math.max(minimumScroll, horizontalDistance * scrollRatio);
+    const requiredScroll = travelScroll + endHold;
+    const movementEnd = travelScroll / requiredScroll;
+    section.style.height = Math.ceil(viewportHeight + requiredScroll) + 'px';
 
     // Responsive scrub stiffness: snappy on touch devices, buttery on desktop
     const scrubVal = isMobile ? 0.75 : (isTablet ? 0.95 : 1.2);
@@ -436,7 +438,7 @@ function initTimelineAnimations() {
             headDot.style.opacity = self.progress > 0.005 ? '1' : '0';
           }
           if (endDot) {
-            if (self.progress >= 0.88) {
+            if (self.progress >= movementEnd * 0.96) {
               endDot.classList.add('active');
             } else {
               endDot.classList.remove('active');
@@ -449,7 +451,7 @@ function initTimelineAnimations() {
     // 3a. Horizontal slider scrub across the entire 0 -> 1 timeline progress
     masterTl.fromTo(slider,
       { x: 0 },
-      { x: getSlideDistance, ease: 'none', duration: 1 },
+      { x: getSlideDistance, ease: 'none', duration: movementEnd },
       0
     );
 
@@ -457,7 +459,7 @@ function initTimelineAnimations() {
     if (line) {
       masterTl.fromTo(line,
         { width: '0%' },
-        { width: '100%', ease: 'none', duration: 0.88 },
+        { width: '100%', ease: 'none', duration: movementEnd * 0.96 },
         0
       );
     }
@@ -465,7 +467,7 @@ function initTimelineAnimations() {
     // 3c. Staggered stem, dot & card reveals along the scrub
     // Supports ANY number of cards: dynamically slots every card between startRange and endRange
     const startRange = isSmallPhone ? 0.025 : (isMobile ? 0.03 : 0.03);
-    const endRange = isMobile ? 0.85 : 0.82;
+    const endRange = movementEnd * (isMobile ? 0.92 : 0.90);
     const step = numCards > 1 ? ((endRange - startRange) / (numCards - 0.5)) : 0.4;
     const cardDuration = Math.min(0.20, Math.max(0.08, step * 1.3));
 
@@ -502,6 +504,10 @@ function initTimelineAnimations() {
         );
       }
     });
+
+    // Keep the completed timeline pinned briefly so the last project and CTA
+    // are clearly readable before normal vertical scrolling resumes.
+    masterTl.to({ hold: 0 }, { hold: 1, duration: 1 - movementEnd, ease: 'none' }, movementEnd);
 
     // 4. Touch swipe helper for mobile: horizontal finger swipe smoothly scrolls the timeline
     if (isMobile && !slider.__hasTouchListener) {
@@ -2415,7 +2421,8 @@ function renderPageData() {
   setEl('home-portfolio-list', homeWorks);
   setEl('page-portfolio-list', pageWorks);
 
-  setTimeout(initTimelineAnimations, 80);
+  clearTimeout(window.__sonicTimelineRenderTimer);
+  window.__sonicTimelineRenderTimer = setTimeout(initTimelineAnimations, 80);
 
   /* ── CASE STUDIES ── */
   const cs = D.casestudies;
@@ -2641,6 +2648,12 @@ function renderPageData() {
     const ctTagline = document.querySelector('#contact p, .contact-sub');
     if (ctTagline && ct.tagline) ctTagline.textContent = ct.tagline;
   }
+  /* ── LIVE CUSTOM EDITS OVERLAY ── */
+  try {
+    if (typeof applySonicLiveCustomEdits === 'function') {
+      applySonicLiveCustomEdits();
+    }
+  } catch (_) {}
 }
 
 function setEl(id, html) {
@@ -2658,21 +2671,35 @@ function setAttr(id, attr, val) {
    Fallback to instant embedded PAGE_DATA if offline.
 ═══════════════════════════════════════════════════ */
 async function syncSonicMediaSupabase() {
-  const SUPABASE_URL = (window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.URL) || window.SUPABASE_URL || '';
-  const SUPABASE_ANON = (window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.ANON_KEY) || window.SUPABASE_ANON || '';
-  const headers = { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON };
+  const DEFAULT_SUPABASE = {
+    URL: 'https://plytoawhcvzdjtrgtnrn.supabase.co',
+    ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBseXRvYXdoY3Z6ZGp0cmd0bnJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5NjkyNTYsImV4cCI6MjEwNzU0NTI1Nn0.AxpKzQf5LL-ePbmtsxELKQdip3bYp9hBp9xYugybelc'
+  };
+  const SUPABASE_URL = (window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.URL) || window.SUPABASE_URL || DEFAULT_SUPABASE.URL;
+  const SUPABASE_ANON = (window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.ANON_KEY) || window.SUPABASE_ANON || DEFAULT_SUPABASE.ANON_KEY;
+  let adminAccessToken = '';
+  try {
+    const rawSession = window.sessionStorage?.getItem('sonicmedia_admin_session') || window.localStorage?.getItem('sonicmedia_admin_session');
+    const storedSession = rawSession ? JSON.parse(rawSession) : null;
+    const nowSec = Math.floor(Date.now() / 1000);
+    if (storedSession && storedSession.access_token && (!storedSession.expires_at || nowSec < storedSession.expires_at)) {
+      adminAccessToken = storedSession.access_token;
+    }
+  } catch (_) {}
+  const requestedPreview = new URLSearchParams(window.location.search).get('preview') === 'true';
+  const isPreviewMode = !!adminAccessToken && requestedPreview;
+  const requestToken = isPreviewMode ? adminAccessToken : SUPABASE_ANON;
+  const headers = { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + requestToken };
 
-  const CACHE_VERSION = 'tsm_v2';
+  const CACHE_VERSION = 'tsm_v4';
   const CACHE_KEY = 'tsm_supabase_cache';
 
   // ── Helper Data Transformers ──
-  // Drafts/unpublished items must NEVER appear on the public site unless explicitly in ?preview=true or Live CMS mode
-  const isPreviewMode = window.location.search.includes('preview=true');
-  const isCmsActive = window.sessionStorage?.getItem('sonic_cms_active') === 'true';
-
+  // Drafts must never appear in normal public listings. Preview mode is only
+  // available when an admin session exists and the URL explicitly requests it.
   function isVisibleItem(item) {
-    if (isPreviewMode || isCmsActive) return true;
-    return !item.status || item.status === 'published';
+    if (isPreviewMode) return true;
+    return String(item?.status || '').trim().toLowerCase() === 'published';
   }
 
   // If preview mode is requested, show subtle preview indicator
@@ -2685,9 +2712,9 @@ async function syncSonicMediaSupabase() {
   }
 
   function applyPortfolioData(portfolioData) {
-    if (!Array.isArray(portfolioData) || portfolioData.length === 0) return false;
+    if (!Array.isArray(portfolioData)) return false;
     const filtered = portfolioData.filter(isVisibleItem);
-    PAGE_DATA.portfolio.works = filtered.map(item => {
+    PAGE_DATA.portfolio.works = filtered.map((item, idx) => {
       if (item.details && typeof item.details === 'object' && Object.keys(item.details).length > 0) {
         workDetails[item.id] = Object.assign({}, workDetails[item.id] || {}, item.details);
       } else if (!workDetails[item.id]) {
@@ -2711,7 +2738,12 @@ async function syncSonicMediaSupabase() {
       }
       return {
         id: item.id,
-        num: item.num,
+        // Public numbering follows the compacted published list. This lets the
+        // next published project fill an unpublished project's position while
+        // preserving the original number and order in the admin/preview view.
+        num: isPreviewMode
+          ? (item.num || String(idx + 1).padStart(2, '0'))
+          : String(idx + 1).padStart(2, '0'),
         cat: item.cat,
         name: item.name,
         tags: Array.isArray(item.tags) ? item.tags : [],
@@ -2724,7 +2756,7 @@ async function syncSonicMediaSupabase() {
   }
 
   function applyCaseData(caseData) {
-    if (!Array.isArray(caseData) || caseData.length === 0) return false;
+    if (!Array.isArray(caseData)) return false;
     const filtered = caseData.filter(isVisibleItem);
     PAGE_DATA.casestudies.items = filtered.map(item => {
       if (item.details && typeof item.details === 'object' && Object.keys(item.details).length > 0) {
@@ -2753,9 +2785,9 @@ async function syncSonicMediaSupabase() {
   }
 
   function applyJournalData(journalData) {
-    if (!Array.isArray(journalData) || journalData.length === 0) return false;
+    if (!Array.isArray(journalData)) return false;
     const filtered = journalData.filter(isVisibleItem);
-    PAGE_DATA.journal.posts = filtered.map(item => {
+    PAGE_DATA.journal.posts = filtered.map((item, idx) => {
       if (item.details && typeof item.details === 'object' && Object.keys(item.details).length > 0) {
         blogArticles[item.id] = Object.assign({}, blogArticles[item.id] || {}, item.details);
       } else {
@@ -2771,7 +2803,9 @@ async function syncSonicMediaSupabase() {
       }
       return {
         id: item.id,
-        num: item.num,
+        num: isPreviewMode
+          ? (item.num || String(idx + 1).padStart(2, '0'))
+          : String(idx + 1).padStart(2, '0'),
         title: item.title,
         cat: item.cat,
         time: item.read_time,
@@ -2784,8 +2818,17 @@ async function syncSonicMediaSupabase() {
 
   function applyContentData(siteContentData) {
     if (!Array.isArray(siteContentData) || siteContentData.length === 0) return false;
+    const currentPath = window.location.pathname.replace(/\/+$/, '') || '/';
+    const currentPage = currentPath === '/' ? 'home' : currentPath.replace(/^\//, '').replace(/\.html$/, '').replace(/[^a-z0-9/_-]+/gi, '-').replace(/\//g, '__');
     siteContentData.forEach(item => {
       if (item.key && item.data) {
+        if (item.key === 'live_cms_custom_edits' || item.key.indexOf('live_cms:') === 0) {
+          if (item.key.indexOf('live_cms:') === 0 && item.key !== `live_cms:${currentPage}`) return;
+          if (!window.SONIC_LIVE_CLOUD_EDITS) window.SONIC_LIVE_CLOUD_EDITS = {};
+          const edits = item.data.edits || item.data;
+          Object.assign(window.SONIC_LIVE_CLOUD_EDITS, edits);
+          return;
+        }
         if (PAGE_DATA[item.key]) {
           Object.assign(PAGE_DATA[item.key], item.data);
         } else {
@@ -2803,18 +2846,23 @@ async function syncSonicMediaSupabase() {
       const cached = JSON.parse(cachedRaw);
       const isFresh = cached && cached.version === CACHE_VERSION && (Date.now() - (cached.ts || 0) < 24 * 60 * 60 * 1000);
       if (isFresh) {
-        if (cached.portfolio && Array.isArray(cached.portfolio)) applyPortfolioData(cached.portfolio);
-        if (cached.cases && Array.isArray(cached.cases)) applyCaseData(cached.cases);
-        if (cached.journal && Array.isArray(cached.journal)) applyJournalData(cached.journal);
+        // Authenticated preview data is never hydrated from local cache. It is
+        // rendered only after Supabase accepts the current admin access token.
+        if (!isPreviewMode) {
+          if (cached.portfolio && Array.isArray(cached.portfolio)) applyPortfolioData(cached.portfolio);
+          if (cached.cases && Array.isArray(cached.cases)) applyCaseData(cached.cases);
+          if (cached.journal && Array.isArray(cached.journal)) applyJournalData(cached.journal);
+        }
         if (cached.content && Array.isArray(cached.content)) applyContentData(cached.content);
         renderPageData();
+        applySonicLiveCustomEdits();
       }
     }
   } catch (e) {
     console.debug('Cache hydration notice:', e);
   }
 
-  // ── Step 2: Resilient Fail-Safe Live Fetch from Supabase (Per-Page & Targeted Columns) ──
+  // ── Step 2: Resilient Fail-Safe Live Fetch from Supabase (Unconditional & Non-Blocking) ──
   try {
     const fetchSafe = async (url, { timeout = 8000, retries = 1 } = {}) => {
       const separator = url.includes('?') ? '&' : '?';
@@ -2854,61 +2902,42 @@ async function syncSonicMediaSupabase() {
       } catch (_) {}
     };
 
-    // Determine current page context so we only fetch what the page displays
-    const path = window.location.pathname.toLowerCase();
-    const isHome = path === '/' || path === '' || path.endsWith('/index.html') || path.endsWith('/index');
-    const isPortfolio = path.includes('portfolio') || path.includes('studio');
-    const isCases = path.includes('casestudies') || path.includes('case-studies');
-    const isJournal = path.includes('journal');
+    const publicStatusFilter = isPreviewMode ? '' : '&status=eq.published';
+    const fetches = [
+      // 1. Portfolio items (always fetch so timeline and cards are always in sync)
+      fetchSafe(`${SUPABASE_URL}/rest/v1/portfolio_items?select=id,num,cat,name,tags,img,metric_val,metric_lbl,display_order,status&order=display_order.asc${publicStatusFilter}`).then(data => {
+        if (data && applyPortfolioData(data)) {
+          updateCacheKey('portfolio', data);
+          renderPageData();
+          if (typeof ScrollTrigger !== 'undefined') ScrollTrigger.refresh();
+        }
+      }),
 
-    const fetches = [];
+      // 2. Case studies
+      fetchSafe(`${SUPABASE_URL}/rest/v1/case_studies?select=id,img,cat,cat_label,date,title,excerpt,tags,display_order,status&order=display_order.asc${publicStatusFilter}`).then(data => {
+        if (data && applyCaseData(data)) {
+          updateCacheKey('cases', data);
+          renderPageData();
+        }
+      }),
 
-    // 1. Portfolio list: only request card columns (cuts payload by 90%)
-    if (isHome || isPortfolio) {
-      fetches.push(
-        fetchSafe(`${SUPABASE_URL}/rest/v1/portfolio_items?select=id,num,cat,name,tags,img,metric_val,metric_lbl,display_order,status&order=display_order.asc`).then(data => {
-          if (data && applyPortfolioData(data)) {
-            updateCacheKey('portfolio', data);
-            renderPageData();
-            if (typeof ScrollTrigger !== 'undefined') ScrollTrigger.refresh();
-          }
-        })
-      );
-    }
+      // 3. Journal posts
+      fetchSafe(`${SUPABASE_URL}/rest/v1/journal_posts?select=id,num,title,cat,read_time,date,thumb_url,tags,display_order,status&order=display_order.asc${publicStatusFilter}`).then(data => {
+        if (data && applyJournalData(data)) {
+          updateCacheKey('journal', data);
+          renderPageData();
+        }
+      }),
 
-    // 2. Case studies list: only request card columns
-    if (isHome || isCases) {
-      fetches.push(
-        fetchSafe(`${SUPABASE_URL}/rest/v1/case_studies?select=id,img,cat,cat_label,date,title,excerpt,tags,display_order,status&order=display_order.asc`).then(data => {
-          if (data && applyCaseData(data)) {
-            updateCacheKey('cases', data);
-            renderPageData();
-          }
-        })
-      );
-    }
-
-    // 3. Journal list: only request card columns (cuts from ~69KB to ~2KB)
-    if (isHome || isJournal) {
-      fetches.push(
-        fetchSafe(`${SUPABASE_URL}/rest/v1/journal_posts?select=id,num,title,cat,read_time,date,thumb_url,tags,display_order,status&order=display_order.asc`).then(data => {
-          if (data && applyJournalData(data)) {
-            updateCacheKey('journal', data);
-            renderPageData();
-          }
-        })
-      );
-    }
-
-    // 4. Site Content (headers, eyebrows, taglines)
-    fetches.push(
+      // 4. Site Content (headers, eyebrows, taglines)
       fetchSafe(`${SUPABASE_URL}/rest/v1/site_content?select=*`).then(data => {
         if (data && applyContentData(data)) {
           updateCacheKey('content', data);
           renderPageData();
+          applySonicLiveCustomEdits();
         }
       })
-    );
+    ];
 
     await Promise.allSettled(fetches);
   } catch (err) {
@@ -2942,14 +2971,33 @@ if (typeof window !== 'undefined') {
 // Apply stored visual live customizations if present
 function applySonicLiveCustomEdits() {
   try {
-    const raw = localStorage.getItem('tsm_live_custom_edits');
-    if (!raw) return;
-    const edits = JSON.parse(raw);
+    let localEdits = {};
+    const localPath = window.location.pathname.replace(/\/+$/, '') || '/';
+    const localPage = localPath === '/' ? 'home' : localPath.replace(/^\//, '').replace(/\.html$/, '').replace(/[^a-z0-9/_-]+/gi, '-').replace(/\//g, '__');
+    const raw = localStorage.getItem(`tsm_live_custom_edits:${localPage}`) || localStorage.getItem('tsm_live_custom_edits');
+    if (raw) localEdits = JSON.parse(raw);
+    const cloudEdits = window.SONIC_LIVE_CLOUD_EDITS || {};
+    const edits = Object.assign({}, cloudEdits);
+    Object.keys(localEdits).forEach(key => {
+      const localItem = localEdits[key];
+      const cloudItem = cloudEdits[key];
+      const localTime = new Date(localItem?.updated_at || localItem?.timestamp || 0).getTime() || 0;
+      const cloudTime = new Date(cloudItem?.updated_at || cloudItem?.timestamp || 0).getTime() || 0;
+      if (!cloudItem || localTime >= cloudTime) edits[key] = localItem;
+    });
     Object.keys(edits).forEach(key => {
-      const item = edits[key];
+      const rawItem = edits[key];
+      const item = rawItem && typeof rawItem === 'object' ? rawItem : { type: 'text', val: rawItem };
       if (!item) return;
       try {
-        const el = document.querySelector(key);
+        let el = null;
+        try { el = document.querySelector(key); } catch (_) {}
+        if (!el) {
+          try { el = document.querySelector(`[data-cms-key="${CSS.escape(key)}"]`); } catch (_) {}
+        }
+        if (!el) {
+          try { el = document.querySelector(`[data-cms-key="${key}"]`); } catch (_) {}
+        }
         if (el) {
           if (item.type === 'image' && item.val) {
             el.src = item.val;
@@ -3013,6 +3061,7 @@ function bootSonicApp() {
   renderPageData();
   applySonicLiveCustomEdits();
   syncSonicMediaSupabase();
+  initSonicRealtimeSync();
   if (typeof buildFutureVisionSplit === 'function' && document.getElementById('futureSplitSection')) {
     buildFutureVisionSplit({
       sectionId:    'futureSplitSection',
@@ -3021,6 +3070,91 @@ function bootSonicApp() {
       imgSelector:  '#futureSplitSection .fv-img-wrapper'
     });
   }
+}
+
+// Browser-side image caching complements the Supabase Storage CDN. The worker
+// is origin-relative, so it continues to work when the website domain changes.
+function registerSonicImageCache() {
+  if (!('serviceWorker' in navigator)) return;
+  if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') return;
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js', { scope: '/' }).catch(err => {
+      console.debug('Image cache service worker unavailable:', err);
+    });
+  }, { once: true });
+}
+
+registerSonicImageCache();
+
+// Keep every open public page synchronized with admin changes. Realtime is the
+// primary path; focus and polling are fallbacks for networks that block sockets
+// or Supabase projects where Realtime publication has not yet been enabled.
+function initSonicRealtimeSync() {
+  if (window.__sonicRealtimeStarted) return;
+  window.__sonicRealtimeStarted = true;
+
+  let syncTimer = null;
+  let fallbackTimer = null;
+  const scheduleSync = () => {
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(() => syncSonicMediaSupabase(), 120);
+  };
+  const startFallback = () => {
+    if (fallbackTimer) return;
+    fallbackTimer = setInterval(() => {
+      if (!document.hidden) scheduleSync();
+    }, 15000);
+  };
+
+  window.addEventListener('focus', scheduleSync);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) scheduleSync();
+  });
+
+  const connect = () => {
+    if (!window.supabase || typeof window.supabase.createClient !== 'function') {
+      startFallback();
+      return;
+    }
+    try {
+      const cfg = window.SUPABASE_CONFIG || {};
+      if (!cfg.URL || !cfg.ANON_KEY) {
+        startFallback();
+        return;
+      }
+      const realtimeClient = window.supabase.createClient(cfg.URL, cfg.ANON_KEY, {
+        auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
+      });
+      let channel = realtimeClient.channel('sonic-media-public-content');
+      ['site_content', 'portfolio_items', 'case_studies', 'journal_posts'].forEach(table => {
+        channel = channel.on('postgres_changes', { event: '*', schema: 'public', table }, scheduleSync);
+      });
+      channel.subscribe(status => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') startFallback();
+      });
+      window.__sonicRealtimeClient = realtimeClient;
+      window.__sonicRealtimeChannel = channel;
+    } catch (_) {
+      startFallback();
+    }
+  };
+
+  if (window.supabase && typeof window.supabase.createClient === 'function') {
+    connect();
+    return;
+  }
+
+  let script = document.getElementById('sonic-supabase-realtime-sdk');
+  if (!script) {
+    script = document.createElement('script');
+    script.id = 'sonic-supabase-realtime-sdk';
+    script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js';
+    script.async = true;
+    document.head.appendChild(script);
+  }
+  script.addEventListener('load', connect, { once: true });
+  script.addEventListener('error', startFallback, { once: true });
+  startFallback();
 }
 
 if (document.readyState === 'loading') {

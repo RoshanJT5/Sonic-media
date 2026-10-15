@@ -1056,7 +1056,7 @@
   <!-- SUPABASE & DATA LOADER SCRIPT -->
   <script src="assets/js/supabase-config.js"></script>
   <script src="assets/js/supabase-rest.js"></script>
-  <script src="assets/js/app.js"></script>
+  <script src="assets/js/app.js?v=5"></script>
   <script>
     // 0. Standalone 6-Project Offline Fallback Matrix (0ms instant render guarantee)
     const PROJECTS_FALLBACK = {
@@ -1288,26 +1288,18 @@
     const currentProjectId = getActiveProjectId();
 
     // 2. Hydrate Project Page from data
-    function renderProjectDetail(data) {
+    function renderProjectDetail(data, previewAuthorized = false) {
       if (!data) return;
 
-      const hasAdmin = !!(window.sessionStorage?.getItem('sonicmedia_admin_session') || window.localStorage?.getItem('sonicmedia_admin_session'));
-      const isPreview = window.location.search.includes('preview=true');
+      const isPreview = previewAuthorized && new URLSearchParams(window.location.search).get('preview') === 'true';
+      const publicationStatus = String(data.publication_status || data.status || '').trim().toLowerCase();
 
-      if (data.status === 'draft' && !hasAdmin && !isPreview) {
-        document.title = `Project Draft — The Sonic Media`;
-        const titleEl = document.getElementById('projectTitle');
-        if (titleEl) titleEl.innerHTML = `<em>Project Draft</em>`;
-        const subEl = document.getElementById('projectSubtitle');
-        if (subEl) subEl.textContent = 'This project is currently saved as a draft and has not yet been published live.';
-        const aboutEl = document.getElementById('projectAbout');
-        if (aboutEl) aboutEl.textContent = 'Our team is curating the visuals and case study content for this project. Check back soon for the live release!';
-        const galleryGrid = document.getElementById('projectGalleryGrid');
-        if (galleryGrid) galleryGrid.innerHTML = '<div style="padding:60px 20px;color:#888;text-align:center;grid-column:1/-1;border:1px dashed rgba(255,255,255,0.1);border-radius:12px;">Deliverables and assets will appear here once published to the live site.</div>';
+      if (publicationStatus === 'draft' && !isPreview) {
+        renderProjectError(true);
         return;
       }
 
-      if (data.status === 'draft' && (hasAdmin || isPreview)) {
+      if (publicationStatus === 'draft' && isPreview) {
         if (!document.getElementById('draftPreviewBanner')) {
           const banner = document.createElement('div');
           banner.id = 'draftPreviewBanner';
@@ -1563,51 +1555,80 @@
       if (solEl) solEl.textContent = '—';
     }
 
+    function renderProjectPreviewDenied() {
+      document.title = 'Admin Preview Required — The Sonic Media';
+      const titleEl = document.getElementById('projectTitle');
+      const subEl = document.getElementById('projectSubtitle');
+      const aboutEl = document.getElementById('projectAbout');
+      const chalEl = document.getElementById('projectChallenge');
+      const solEl = document.getElementById('projectSolution');
+      if (titleEl) titleEl.innerHTML = 'ADMIN PREVIEW<br><em>REQUIRED</em>';
+      if (subEl) subEl.textContent = 'This draft preview is available only from an active administrator session.';
+      if (aboutEl) aboutEl.innerHTML = '<p>Sign in to the admin panel, then use the Preview button beside the draft project.</p><div style="margin-top:16px;"><a href="/sonicmediaadmin" class="btn-p" style="padding:10px 22px;font-size:12px;display:inline-block;">Open Admin Panel</a></div>';
+      if (chalEl) chalEl.textContent = '—';
+      if (solEl) solEl.textContent = '—';
+    }
+
     // 3. Load Project: Instant 0ms Local Render + Background Supabase Stream
     async function initProject() {
       let initialData = null;
       let hasRendered = false;
+      let adminAccessToken = '';
+      const requestedPreview = new URLSearchParams(window.location.search).get('preview') === 'true';
+      try {
+        const rawSession = window.sessionStorage?.getItem('sonicmedia_admin_session') || window.localStorage?.getItem('sonicmedia_admin_session');
+        const storedSession = rawSession ? JSON.parse(rawSession) : null;
+        const nowSec = Math.floor(Date.now() / 1000);
+        if (storedSession && storedSession.access_token && (!storedSession.expires_at || nowSec < storedSession.expires_at)) {
+          adminAccessToken = storedSession.access_token;
+        }
+      } catch (_) { }
+      const canPreviewDraft = requestedPreview && !!adminAccessToken;
 
-      // Tier 1: Check localStorage tsm_supabase_cache
+      if (requestedPreview && !canPreviewDraft) {
+        renderProjectPreviewDenied();
+        return;
+      }
+
+      // Public pages may hydrate published content from cache. Draft previews
+      // always wait for an authenticated Supabase response.
       try {
         const cachedRaw = localStorage.getItem('tsm_supabase_cache');
-        if (cachedRaw) {
+        if (!requestedPreview && cachedRaw) {
           const cached = JSON.parse(cachedRaw);
           if (cached.portfolio && Array.isArray(cached.portfolio)) {
             const row = cached.portfolio.find(p => (p.id || '').toLowerCase() === currentProjectId.toLowerCase());
-            if (row) {
+            if (row && String(row.status || '').toLowerCase() === 'published') {
               let d = row.details;
               if (typeof d === 'string') { try { d = JSON.parse(d); } catch (_) { d = {}; } }
-              initialData = Object.assign({}, row, d || {});
+              initialData = Object.assign({}, row, d || {}, { publication_status: row.status });
             }
           }
         }
       } catch (_) { }
 
-      // Tier 2: Check workDetails from assets/js/app.js
-      if (!initialData && typeof workDetails !== 'undefined' && workDetails[currentProjectId]) {
-        initialData = workDetails[currentProjectId];
-      }
-
-      // Tier 3: Check embedded PROJECTS_FALLBACK
-      if (!initialData && PROJECTS_FALLBACK[currentProjectId]) {
-        initialData = PROJECTS_FALLBACK[currentProjectId];
-      }
-
       // Render 0ms immediately
       if (initialData) {
         hasRendered = true;
-        renderProjectDetail(initialData);
+        renderProjectDetail(initialData, false);
       }
 
       // Tier 4: Fetch live from Supabase portfolio_items table using exact slug eq. and timeout
       try {
         const cleanId = encodeURIComponent(currentProjectId.toLowerCase());
-        const rows = typeof sbGet === 'function'
-          ? await sbGet(`portfolio_items?id=eq.${cleanId}&select=*&limit=1`, { timeout: 8000, retries: 1 })
+        const publicationFilter = canPreviewDraft ? '' : '&status=eq.published';
+        const rows = canPreviewDraft
+          ? await (async () => {
+            const h = { 'apikey': window.SUPABASE_ANON, 'Authorization': 'Bearer ' + adminAccessToken };
+            const r = await fetch(`${window.SUPABASE_URL}/rest/v1/portfolio_items?id=eq.${cleanId}&select=*&limit=1`, { headers: h, cache: 'no-store' });
+            if (r.status === 401 || r.status === 403) throw new Error('PREVIEW_AUTH_REQUIRED');
+            return r.ok ? await r.json() : null;
+          })()
+          : typeof sbGet === 'function'
+          ? await sbGet(`portfolio_items?id=eq.${cleanId}${publicationFilter}&select=*&limit=1`, { timeout: 8000, retries: 1 })
           : await (async () => {
             const h = { 'apikey': window.SUPABASE_ANON, 'Authorization': 'Bearer ' + window.SUPABASE_ANON };
-            const r = await fetch(`${window.SUPABASE_URL}/rest/v1/portfolio_items?id=eq.${cleanId}&select=*&limit=1`, { headers: h });
+            const r = await fetch(`${window.SUPABASE_URL}/rest/v1/portfolio_items?id=eq.${cleanId}${publicationFilter}&select=*&limit=1`, { headers: h });
             return r.ok ? await r.json() : null;
           })();
 
@@ -1616,8 +1637,8 @@
           const row = rows[0];
           let d = row.details;
           if (typeof d === 'string') { try { d = JSON.parse(d); } catch (_) { d = {}; } }
-          const merged = Object.assign({}, row, d || {});
-          renderProjectDetail(merged);
+          const merged = Object.assign({}, row, d || {}, { publication_status: row.status });
+          renderProjectDetail(merged, canPreviewDraft);
 
           // Update local cache
           try {
@@ -1629,10 +1650,14 @@
               localStorage.setItem('tsm_supabase_cache', JSON.stringify(cur));
             }
           } catch (_) { }
-        } else if (!hasRendered) {
+        } else {
           renderProjectError(true);
         }
       } catch (err) {
+        if (requestedPreview && err && err.message === 'PREVIEW_AUTH_REQUIRED') {
+          renderProjectPreviewDenied();
+          return;
+        }
         console.debug('Project Supabase fetch error, using local data:', err);
         if (!hasRendered) {
           renderProjectError(false);
