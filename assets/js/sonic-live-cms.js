@@ -1579,6 +1579,15 @@
         if (typeof renderPageData === 'function') renderPageData();
         showCmsToast(`Journal Article "${titleVal}" saved!`, true);
       }
+      try {
+        localStorage.removeItem('tsm_supabase_cache');
+        localStorage.setItem('tsm_cache_invalidated_at', Date.now().toString());
+        if (typeof BroadcastChannel !== 'undefined') {
+          const bc = new BroadcastChannel('sonic_media_cms');
+          bc.postMessage({ type: 'cache_invalidated', at: Date.now() });
+          bc.close();
+        }
+      } catch (_) {}
       window._sonicCmsCloseModal();
       tagEditableElements();
     } catch (err) {

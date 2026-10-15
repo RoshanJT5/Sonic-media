@@ -2666,12 +2666,22 @@ async function syncSonicMediaSupabase() {
   const CACHE_KEY = 'tsm_supabase_cache';
 
   // ── Helper Data Transformers ──
-  const hasAdminSession = !!(window.sessionStorage?.getItem('sonicmedia_admin_session') || window.localStorage?.getItem('sonicmedia_admin_session'));
+  // Drafts/unpublished items must NEVER appear on the public site unless explicitly in ?preview=true or Live CMS mode
   const isPreviewMode = window.location.search.includes('preview=true');
+  const isCmsActive = window.sessionStorage?.getItem('sonic_cms_active') === 'true';
 
   function isVisibleItem(item) {
-    if (hasAdminSession || isPreviewMode) return true;
+    if (isPreviewMode || isCmsActive) return true;
     return !item.status || item.status === 'published';
+  }
+
+  // If preview mode is requested, show subtle preview indicator
+  if (isPreviewMode && typeof document !== 'undefined' && !document.getElementById('sonicPreviewGridBanner')) {
+    const b = document.createElement('div');
+    b.id = 'sonicPreviewGridBanner';
+    b.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:99999;background:rgba(20,20,20,0.94);backdrop-filter:blur(10px);border:1px solid rgba(245,158,11,0.5);color:#F5F0EB;font-family:sans-serif;font-size:12px;font-weight:600;padding:10px 18px;border-radius:30px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 30px rgba(0,0,0,0.6);';
+    b.innerHTML = '<span style="color:#fbbf24;">👁️ Admin Preview Mode: Draft items visible</span><a href="' + window.location.pathname + '" style="color:#FF5C00;text-decoration:underline;margin-left:6px;font-size:11px;">Exit Preview</a>';
+    document.body.appendChild(b);
   }
 
   function applyPortfolioData(portfolioData) {
@@ -2807,11 +2817,21 @@ async function syncSonicMediaSupabase() {
   // ── Step 2: Resilient Fail-Safe Live Fetch from Supabase (Per-Page & Targeted Columns) ──
   try {
     const fetchSafe = async (url, { timeout = 8000, retries = 1 } = {}) => {
+      const separator = url.includes('?') ? '&' : '?';
+      const noCacheUrl = `${url}${separator}_t=${Date.now()}`;
       for (let attempt = 0; attempt <= retries; attempt++) {
         const ctrl = new AbortController();
         const timer = setTimeout(() => ctrl.abort(), timeout);
         try {
-          const res = await fetch(url, { headers, signal: ctrl.signal });
+          const res = await fetch(noCacheUrl, { 
+            headers: {
+              ...headers,
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache'
+            }, 
+            cache: 'no-cache',
+            signal: ctrl.signal 
+          });
           if (res.ok) return await res.json();
           if (res.status < 500 && res.status !== 429) return null;
         } catch (_) {
@@ -2893,6 +2913,29 @@ async function syncSonicMediaSupabase() {
     await Promise.allSettled(fetches);
   } catch (err) {
     console.debug('Sonic Media offline fallback:', err);
+  }
+}
+
+// ── Real-Time Multi-Tab Sync with Admin Panel ──
+// Immediately re-syncs public website when admin publishes, unpublishes, or modifies content in another tab
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', function (e) {
+    if (e.key === 'tsm_cache_invalidated_at' || e.key === 'tsm_supabase_cache') {
+      try { localStorage.removeItem('tsm_supabase_cache'); } catch (_) {}
+      syncSonicMediaSupabase();
+    }
+  });
+
+  if (typeof BroadcastChannel !== 'undefined') {
+    try {
+      const bc = new BroadcastChannel('sonic_media_cms');
+      bc.onmessage = function (msg) {
+        if (msg && msg.data && msg.data.type === 'cache_invalidated') {
+          try { localStorage.removeItem('tsm_supabase_cache'); } catch (_) {}
+          syncSonicMediaSupabase();
+        }
+      };
+    } catch (_) {}
   }
 }
 
