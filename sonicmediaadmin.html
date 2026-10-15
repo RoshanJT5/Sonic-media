@@ -230,6 +230,20 @@
       transform: none;
     }
 
+    .btn-view-live {
+      background: rgba(255, 92, 0, 0.06);
+      color: var(--orange);
+      border: 1px solid rgba(255, 92, 0, 0.55);
+    }
+
+    .btn-view-live:hover {
+      background: rgba(255, 92, 0, 0.14);
+      color: #ff7020;
+      border-color: var(--orange);
+      box-shadow: 0 4px 18px rgba(255, 92, 0, 0.16);
+      transform: translateY(-1px);
+    }
+
     .btn-danger {
       background: rgba(239, 68, 68, 0.15);
       color: var(--danger);
@@ -3867,7 +3881,7 @@
         ` : `
           <button class="btn btn-secondary btn-sm" onclick="togglePortfolioStatus('${escapeHtml(item.id)}', 'draft', this)" title="Move project to draft (hidden from public)" style="color:#fbbf24;border-color:rgba(245,158,11,0.4);"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>Unpublish</button>
         `}
-        <button class="btn btn-secondary btn-sm" onclick="window.open('/project?id=' + encodeURIComponent('${escapeHtml(item.id)}') + '${isDraft ? '&preview=true' : ''}', '_blank')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>${isDraft ? 'Preview ↗' : 'View Live ↗'}</button>
+        <button class="btn ${isDraft ? 'btn-secondary' : 'btn-view-live'} btn-sm" onclick="window.open('/project?id=' + encodeURIComponent('${escapeHtml(item.id)}') + '${isDraft ? '&preview=true' : ''}', '_blank')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>${isDraft ? 'Preview ↗' : 'View Live ↗'}</button>
         <button class="btn btn-danger btn-sm" onclick="deletePortfolioItem('${escapeHtml(item.id)}', this)"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>Delete</button>
       </div>
     </div>
@@ -3935,7 +3949,7 @@
         ` : `
           <button class="btn btn-secondary btn-sm" onclick="toggleCaseStudyStatus('${escapeHtml(item.id)}', 'draft', this)" title="Move to draft" style="color:#fbbf24;border-color:rgba(245,158,11,0.4);"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>Unpublish</button>
         `}
-        <button class="btn btn-secondary btn-sm" onclick="window.open('/case-study?id=' + encodeURIComponent('${escapeHtml(item.id)}') + '${isDraft ? '&preview=true' : ''}', '_blank')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>${isDraft ? 'Preview ↗' : 'View Live ↗'}</button>
+        <button class="btn ${isDraft ? 'btn-secondary' : 'btn-view-live'} btn-sm" onclick="window.open('/case-study?id=' + encodeURIComponent('${escapeHtml(item.id)}') + '${isDraft ? '&preview=true' : ''}', '_blank')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>${isDraft ? 'Preview ↗' : 'View Live ↗'}</button>
         <button class="btn btn-danger btn-sm" onclick="deleteCaseStudy('${escapeHtml(item.id)}', this)"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>Delete</button>
       </div>
     </div>
@@ -4003,7 +4017,7 @@
         ` : `
           <button class="btn btn-secondary btn-sm" onclick="toggleJournalStatus('${escapeHtml(item.id)}', 'draft', this)" title="Move to draft" style="color:#fbbf24;border-color:rgba(245,158,11,0.4);"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>Unpublish</button>
         `}
-        <button class="btn btn-secondary btn-sm" onclick="window.open('/article?id=' + encodeURIComponent('${escapeHtml(item.id)}') + '${isDraft ? '&preview=true' : ''}', '_blank')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>${isDraft ? 'Preview ↗' : 'View Live ↗'}</button>
+        <button class="btn ${isDraft ? 'btn-secondary' : 'btn-view-live'} btn-sm" onclick="window.open('/article?id=' + encodeURIComponent('${escapeHtml(item.id)}') + '${isDraft ? '&preview=true' : ''}', '_blank')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>${isDraft ? 'Preview ↗' : 'View Live ↗'}</button>
         <button class="btn btn-danger btn-sm" onclick="deleteJournalPost('${escapeHtml(item.id)}', this)"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>Delete</button>
       </div>
     </div>
