@@ -587,8 +587,8 @@
 
   <!-- DATA & SUPABASE HYDRATION -->
   <script src="assets/js/supabase-config.js"></script>
-  <script src="assets/js/supabase-rest.js"></script>
-  <script src="assets/js/app.js?v=5"></script>
+  <script src="assets/js/supabase-rest.js?v=2"></script>
+  <script src="assets/js/app.js?v=6"></script>
   <script>
     function getCaseStudyId() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -601,7 +601,8 @@
       }
       if (!id) {
         try {
-          id = sessionStorage.getItem('current_case_study_id') || localStorage.getItem('current_case_study_id');
+          id = sessionStorage.getItem('current_case_study_id') || localStorage.getItem('current_case_study_id') ||
+            sessionStorage.getItem('current_case_id') || localStorage.getItem('current_case_id');
         } catch (_) { }
       }
       return id || 'd2c-growth-playbook';

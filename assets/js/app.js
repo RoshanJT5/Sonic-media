@@ -1404,6 +1404,9 @@ window.caseStudies = caseStudies;
 function openCaseStudy(id) {
   if (!id) return;
   try {
+    sessionStorage.setItem('current_case_study_id', id);
+    localStorage.setItem('current_case_study_id', id);
+    // Retain the old key for existing sessions and older deployments.
     sessionStorage.setItem('current_case_id', id);
     localStorage.setItem('current_case_id', id);
   } catch (_) {}
@@ -2691,7 +2694,7 @@ async function syncSonicMediaSupabase() {
   const requestToken = isPreviewMode ? adminAccessToken : SUPABASE_ANON;
   const headers = { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + requestToken };
 
-  const CACHE_VERSION = 'tsm_v4';
+  const CACHE_VERSION = 'tsm_v5';
   const CACHE_KEY = 'tsm_supabase_cache';
 
   // ── Helper Data Transformers ──
@@ -2865,25 +2868,31 @@ async function syncSonicMediaSupabase() {
   // ── Step 2: Resilient Fail-Safe Live Fetch from Supabase (Unconditional & Non-Blocking) ──
   try {
     const fetchSafe = async (url, { timeout = 8000, retries = 1 } = {}) => {
-      const separator = url.includes('?') ? '&' : '?';
-      const noCacheUrl = `${url}${separator}_t=${Date.now()}`;
       for (let attempt = 0; attempt <= retries; attempt++) {
         const ctrl = new AbortController();
         const timer = setTimeout(() => ctrl.abort(), timeout);
         try {
-          const res = await fetch(noCacheUrl, { 
+          // Do not append arbitrary cache-busting query parameters here.
+          // PostgREST treats every unknown query parameter as a column filter,
+          // so the former `_t=<timestamp>` parameter made every request fail
+          // with HTTP 400 and left the embedded fallback cards on screen.
+          const res = await fetch(url, {
             headers: {
               ...headers,
               'Cache-Control': 'no-cache, no-store, must-revalidate',
               'Pragma': 'no-cache'
             }, 
-            cache: 'no-cache',
+            cache: 'no-store',
             signal: ctrl.signal 
           });
           if (res.ok) return await res.json();
-          if (res.status < 500 && res.status !== 429) return null;
-        } catch (_) {
+          if (res.status < 500 && res.status !== 429) {
+            console.warn(`[Sonic Sync] Supabase rejected ${url} (${res.status}).`);
+            return null;
+          }
+        } catch (error) {
           // Retry on network timeout or transient error
+          if (attempt === retries) console.warn('[Sonic Sync] Supabase request failed:', error);
         } finally {
           clearTimeout(timer);
         }
@@ -3103,7 +3112,7 @@ function initSonicRealtimeSync() {
     if (fallbackTimer) return;
     fallbackTimer = setInterval(() => {
       if (!document.hidden) scheduleSync();
-    }, 15000);
+    }, 5000);
   };
 
   window.addEventListener('focus', scheduleSync);

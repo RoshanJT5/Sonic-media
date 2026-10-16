@@ -14,23 +14,40 @@ window.REST_HEADERS = {
 
 async function sbGet(path, { timeout = 8000, retries = 1 } = {}) {
   const base = window.SUPABASE_URL;
-  const rawUrl = path.startsWith('http') ? path : `${base}/rest/v1/${path}`;
-  const separator = rawUrl.includes('?') ? '&' : '?';
-  const url = `${rawUrl}${separator}_t=${Date.now()}`;
+  const url = path.startsWith('http') ? path : `${base}/rest/v1/${path}`;
   for (let attempt = 0; attempt <= retries; attempt++) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), timeout);
     try {
-      const res = await fetch(url, { headers: window.REST_HEADERS, cache: 'no-cache', signal: ctrl.signal });
+      // PostgREST interprets arbitrary query parameters as column filters, so
+      // cache busting belongs in the Fetch API rather than in the REST URL.
+      const res = await fetch(url, { headers: window.REST_HEADERS, cache: 'no-store', signal: ctrl.signal });
       if (res.ok) return await res.json();
-      if (res.status < 500 && res.status !== 429) return null; // do not retry client 4xx
-    } catch (_) {
+      if (res.status < 500 && res.status !== 429) {
+        const error = new Error(`Supabase REST request rejected (${res.status})`);
+        error.status = res.status;
+        error.url = url;
+        console.warn(`[Supabase REST] Request rejected (${res.status}): ${url}`);
+        throw error; // a rejected request is not the same as an empty result
+      }
+      if (attempt === retries) {
+        const error = new Error(`Supabase REST request failed (${res.status})`);
+        error.status = res.status;
+        error.url = url;
+        throw error;
+      }
+    } catch (error) {
+      if (error && error.status) throw error;
       // network error or timeout: retry next attempt
+      if (attempt === retries) {
+        console.warn('[Supabase REST] Request failed:', error);
+        throw error;
+      }
     } finally {
       clearTimeout(timer);
     }
   }
-  return null;
+  throw new Error('Supabase REST request failed');
 }
 
 function sbSanitize(html) {
