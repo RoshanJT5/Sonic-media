@@ -33,6 +33,226 @@ body{
   overflow-x:hidden;
   cursor:none;
 }
+/* ── Admin Portal & Page Builder: standard system cursor — normal arrow for non-editable UI ── */
+body.builder-mode,
+body.builder-mode *,
+body.builder-mode *::before,
+body.builder-mode *::after,
+body.admin-page,
+body.admin-page *,
+body.admin-page *::before,
+body.admin-page *::after {
+  cursor: default !important;
+}
+body.builder-mode a,
+body.builder-mode a *,
+body.builder-mode button,
+body.builder-mode button *,
+body.builder-mode [role="button"],
+body.builder-mode [role="button"] *,
+body.builder-mode .btn,
+body.builder-mode .btn *,
+body.builder-mode .tab-btn,
+body.builder-mode .tab-btn *,
+body.builder-mode label,
+body.builder-mode select,
+body.builder-mode select *,
+body.builder-mode input[type="checkbox"],
+body.builder-mode input[type="radio"],
+body.builder-mode input[type="checkbox"] + label,
+body.builder-mode input[type="radio"] + label,
+body.builder-mode input[type="checkbox"] ~ label,
+body.builder-mode input[type="radio"] ~ label,
+body.builder-mode label:has(input[type="checkbox"]),
+body.builder-mode label:has(input[type="radio"]),
+body.builder-mode .element-action-reset,
+body.builder-mode .element-action-reset *,
+body.builder-mode .canvas-reposition-reset-btn,
+body.builder-mode .canvas-reposition-reset-btn *,
+body.builder-mode .btn-reset-pos,
+body.builder-mode .btn-reset-pos *,
+body.builder-mode .btn-reset,
+body.builder-mode .btn-reset *,
+body.builder-mode [data-action="reset"],
+body.builder-mode [data-action="reset"] *,
+body.builder-mode [data-action="reset-position"],
+body.builder-mode [data-action="reset-position"] *,
+body.builder-mode button[title*="Reset" i],
+body.builder-mode button[title*="Reset" i] *,
+body.builder-mode button[title*="reset" i],
+body.builder-mode button[title*="reset" i] *,
+body.admin-page a,
+body.admin-page a *,
+body.admin-page button,
+body.admin-page button *,
+body.admin-page [role="button"],
+body.admin-page [role="button"] *,
+body.admin-page .tab-btn,
+body.admin-page .tab-btn *,
+body.admin-page .btn,
+body.admin-page .btn *,
+body.admin-page .nav-link,
+body.admin-page .nav-link *,
+body.admin-page .action-btn,
+body.admin-page .action-btn *,
+body.admin-page .item-action-btn,
+body.admin-page .item-action-btn *,
+body.admin-page .seo-chip,
+body.admin-page .seo-chip *,
+body.admin-page label,
+body.admin-page select,
+body.admin-page select *,
+body.admin-page input[type="checkbox"],
+body.admin-page input[type="radio"],
+body.admin-page input[type="checkbox"] + label,
+body.admin-page input[type="radio"] + label,
+body.admin-page input[type="checkbox"] ~ label,
+body.admin-page input[type="radio"] ~ label,
+body.admin-page label:has(input[type="checkbox"]),
+body.admin-page label:has(input[type="radio"]),
+body.admin-page .order-step-btn,
+body.admin-page .order-step-btn *,
+body.admin-page .element-action-reset,
+body.admin-page .element-action-reset *,
+body.admin-page .canvas-reposition-reset-btn,
+body.admin-page .canvas-reposition-reset-btn *,
+body.admin-page .btn-reset-pos,
+body.admin-page .btn-reset-pos *,
+body.admin-page .btn-reset,
+body.admin-page .btn-reset *,
+body.admin-page [data-action="reset"],
+body.admin-page [data-action="reset"] *,
+body.admin-page [data-action="reset-position"],
+body.admin-page [data-action="reset-position"] *,
+body.admin-page button[title*="Reset" i],
+body.admin-page button[title*="Reset" i] *,
+body.admin-page button[title*="reset" i],
+body.admin-page button[title*="reset" i] * {
+  cursor: pointer !important;
+}
+
+body.admin-page .tab-btn,
+body.admin-page .tab-btn *,
+body.admin-page .btn,
+body.admin-page .btn *,
+body.admin-page .nav-link,
+body.admin-page .badge,
+body.admin-page .tab-count {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+/* Move Handles: Grabbing/Grab Cursor */
+body.builder-mode .canvas-reposition-handle,
+body.builder-mode .canvas-reposition-handle *,
+body.builder-mode .element-reposition-drag-handle,
+body.builder-mode .element-reposition-drag-handle *,
+body.builder-mode .element-reposition-handle,
+body.builder-mode .element-reposition-handle *,
+body.builder-mode .tree-drag-handle,
+body.builder-mode .tree-drag-handle *,
+body.builder-mode .item-drag-handle,
+body.builder-mode .item-drag-handle *,
+body.builder-mode .drag-handle,
+body.builder-mode .drag-handle *,
+body.builder-mode .reorder-handle,
+body.builder-mode .reorder-handle *,
+body.builder-mode [data-drag-handle],
+body.builder-mode [data-drag-handle] * {
+  cursor: grab !important;
+  user-select: none !important;
+}
+body.builder-mode .canvas-reposition-handle:hover,
+body.builder-mode .canvas-reposition-handle:hover *,
+body.builder-mode .element-reposition-drag-handle:hover,
+body.builder-mode .element-reposition-drag-handle:hover *,
+body.builder-mode .element-reposition-handle:hover,
+body.builder-mode .element-reposition-handle:hover * {
+  cursor: grab !important;
+}
+body.builder-mode .canvas-reposition-handle:active,
+body.builder-mode .canvas-reposition-handle.is-dragging,
+body.builder-mode .canvas-reposition-handle:active *,
+body.builder-mode .canvas-reposition-handle.is-dragging *,
+body.builder-mode .element-reposition-drag-handle:active,
+body.builder-mode .element-reposition-drag-handle.is-dragging,
+body.builder-mode .element-reposition-drag-handle:active *,
+body.builder-mode .element-reposition-drag-handle.is-dragging *,
+body.builder-mode .element-reposition-handle:active,
+body.builder-mode .element-reposition-handle.is-dragging,
+body.builder-mode .element-reposition-handle:active *,
+body.builder-mode .element-reposition-handle.is-dragging *,
+body.builder-mode.is-repositioning-canvas,
+body.builder-mode.is-repositioning-canvas * {
+  cursor: grabbing !important;
+}
+body.builder-mode input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="color"]):not([type="range"]):not([type="file"]):not([type="image"]),
+body.builder-mode textarea,
+body.builder-mode [contenteditable="true"],
+body.builder-mode [contenteditable="true"] *,
+body.builder-mode .canvas-live-editable,
+body.admin-page input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="color"]):not([type="range"]):not([type="file"]):not([type="image"]),
+body.admin-page textarea,
+body.admin-page [contenteditable="true"],
+body.admin-page [contenteditable="true"] *,
+body.admin-page .canvas-live-editable,
+body.admin-page .ql-editor,
+body.admin-page .ql-editor * {
+  cursor: text !important;
+}
+
+body.builder-mode input[readonly],
+body.builder-mode textarea[readonly],
+body.builder-mode input:read-only:not([type="checkbox"]):not([type="radio"]),
+body.builder-mode textarea:read-only,
+body.admin-page input[readonly],
+body.admin-page textarea[readonly],
+body.admin-page input:read-only:not([type="checkbox"]):not([type="radio"]),
+body.admin-page textarea:read-only {
+  cursor: default !important;
+}
+
+/* Absolute shield: Prevent contenteditable text cursor bleed onto action bars, reset buttons, and move handles */
+body.builder-mode [contenteditable="true"] .element-action-bar,
+body.builder-mode [contenteditable="true"] .element-action-bar *,
+body.builder-mode .canvas-live-editable .element-action-bar,
+body.builder-mode .canvas-live-editable .element-action-bar *,
+body.builder-mode .has-element-box .element-action-bar,
+body.builder-mode .has-element-box .element-action-bar * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+body.builder-mode [contenteditable="true"] .element-action-reset,
+body.builder-mode [contenteditable="true"] .element-action-reset *,
+body.builder-mode .canvas-live-editable .element-action-reset,
+body.builder-mode .canvas-live-editable .element-action-reset *,
+body.builder-mode .has-element-box .element-action-reset,
+body.builder-mode .has-element-box .element-action-reset * {
+  cursor: pointer !important;
+}
+
+body.builder-mode [contenteditable="true"] .element-reposition-drag-handle,
+body.builder-mode [contenteditable="true"] .element-reposition-drag-handle *,
+body.builder-mode .canvas-live-editable .element-reposition-drag-handle,
+body.builder-mode .canvas-live-editable .element-reposition-drag-handle *,
+body.builder-mode .has-element-box .element-reposition-drag-handle,
+body.builder-mode .has-element-box .element-reposition-drag-handle * {
+  cursor: grab !important;
+}
+body.builder-mode #cursor,
+body.builder-mode #cursor-follower,
+body.builder-mode #cursor-trail,
+body.builder-mode #mouse-glow,
+body.admin-page #cursor,
+body.admin-page #cursor-follower,
+body.admin-page #cursor-trail,
+body.admin-page #mouse-glow {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 /* ── Touch / Mobile: restore default cursor ── */
 @media (hover: none) and (pointer: coarse) {
   *,*::before,*::after { cursor: auto !important; }
@@ -6121,6 +6341,24 @@ a.social-icon:focus-visible {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Universal Inline Hyperlink & Clickable Word Styling */
+.wd-inline-link,
+a.wd-inline-link {
+  color: #FF5C00;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 700;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  position: relative;
+  display: inline;
+}
+.wd-inline-link:hover,
+a.wd-inline-link:hover {
+  filter: brightness(1.28);
+  text-shadow: 0 0 10px currentColor;
 }
 
 

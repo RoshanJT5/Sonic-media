@@ -2,6 +2,11 @@ User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /admin/
+Disallow: /sonicmediaadmin
+Disallow: /sonicmediaadmin.html
+Disallow: /admin-builder
+Disallow: /admin-builder.html
+Disallow: /admin/builder
 Disallow: /wp-admin
 Disallow: /cms
 Disallow: /dashboard

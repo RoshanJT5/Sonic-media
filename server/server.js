@@ -52,7 +52,25 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // 2. If someone accesses a .html file directly (e.g. /about.html or /sonicmediaadmin.html) -> redirect 301 to clean URL
+  // Direct route for sonicmediaadmin to prevent any redirect loop
+  if (pathname === '/sonicmediaadmin' || pathname === '/sonicmediaadmin.html' || pathname === '/sonicmediaadmin/') {
+    serveFile(path.join(ROOT_DIR, 'sonicmediaadmin.html'));
+    return;
+  }
+
+  // Direct route for admin builder to prevent directory redirect loop
+  if (pathname === '/admin-builder' || pathname === '/admin-builder.html' || pathname === '/admin-builder/' || pathname === '/admin/builder') {
+    serveFile(path.join(ROOT_DIR, 'admin-builder.html'));
+    return;
+  }
+
+  // Direct route for project to prevent directory redirect loop
+  if (pathname === '/project' || pathname === '/project.html' || pathname === '/project/') {
+    serveFile(path.join(ROOT_DIR, 'project.html'));
+    return;
+  }
+
+  // 2. If someone accesses a .html file directly (e.g. /about.html) -> redirect 301 to clean URL
   if (pathname.endsWith('.html')) {
     const cleanPath = pathname.slice(0, -5);
     const target = cleanPath + (parsedUrl.search || '');
@@ -173,6 +191,13 @@ const server = http.createServer((req, res) => {
         const csTarget = path.join(ROOT_DIR, 'case-study.html');
         if (fs.existsSync(csTarget)) {
           serveFile(csTarget);
+          return;
+        }
+      }
+      if (pathname === '/admin/builder' || pathname === '/admin-builder' || pathname.startsWith('/admin/portfolio/') || pathname.startsWith('/admin/builder/') || pathname.startsWith('/admin/case/') || pathname.startsWith('/admin/journal/')) {
+        const builderTarget = path.join(ROOT_DIR, 'admin-builder.html');
+        if (fs.existsSync(builderTarget)) {
+          serveFile(builderTarget);
           return;
         }
       }

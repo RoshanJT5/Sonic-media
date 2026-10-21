@@ -35,6 +35,33 @@
       ]
     },
     {
+      "source": "/admin-builder",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, private" },
+        { "key": "Pragma", "value": "no-cache" },
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive, nosnippet" },
+        { "key": "X-Frame-Options", "value": "DENY" }
+      ]
+    },
+    {
+      "source": "/admin-builder.html",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, private" },
+        { "key": "Pragma", "value": "no-cache" },
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive, nosnippet" },
+        { "key": "X-Frame-Options", "value": "DENY" }
+      ]
+    },
+    {
+      "source": "/admin/builder",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate, private" },
+        { "key": "Pragma", "value": "no-cache" },
+        { "key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive, nosnippet" },
+        { "key": "X-Frame-Options", "value": "DENY" }
+      ]
+    },
+    {
       "source": "/assets/js/(.*)",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
@@ -84,6 +111,8 @@
     { "source": "/contact",          "destination": "/contact.html" },
     { "source": "/linktree",         "destination": "/linktree.html" },
     { "source": "/sonicmediaadmin",  "destination": "/sonicmediaadmin.html" },
+    { "source": "/admin/builder",    "destination": "/admin-builder.html" },
+    { "source": "/admin-builder",    "destination": "/admin-builder.html" },
     { "source": "/services/web",     "destination": "/services/web.html" },
     { "source": "/services/app",     "destination": "/services/app.html" },
     { "source": "/services/seo",     "destination": "/services/seo.html" },

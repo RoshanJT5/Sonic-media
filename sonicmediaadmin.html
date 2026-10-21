@@ -70,6 +70,178 @@
       padding: 0;
     }
 
+    /* ══════════ STANDARD SYSTEM CURSOR — NORMAL ARROW FOR ALL NON-EDITABLE UI ══════════ */
+    html, body, *, *::before, *::after {
+      cursor: default !important;
+    }
+
+    /* ══════════ INTERACTIVE & CLICKABLE ELEMENTS: ONE-FINGER POINTER HAND ══════════ */
+    a, a *,
+    button, button *,
+    [role="button"], [role="button"] *,
+    select, select *,
+    label,
+    input[type="checkbox"],
+    input[type="radio"],
+    input[type="checkbox"] + label,
+    input[type="radio"] + label,
+    input[type="checkbox"] ~ label,
+    input[type="radio"] ~ label,
+    label:has(input[type="checkbox"]),
+    label:has(input[type="radio"]),
+    .btn, .btn *,
+    .tab-btn, .tab-btn *,
+    .modal-close, .modal-close *,
+    .order-step-btn, .order-step-btn *,
+    .nav-link, .nav-link *,
+    .action-btn, .action-btn *,
+    .item-action-btn, .item-action-btn *,
+    .seo-chip, .seo-chip *,
+    .filter-btn, .filter-btn *,
+    .badge-clickable, .badge-clickable *,
+    .pagination-btn, .pagination-btn *,
+    summary, summary *,
+    details > summary,
+    [onclick], [onclick] *,
+    [data-action], [data-action] *,
+    .element-action-reset,
+    .element-action-reset *,
+    .canvas-reposition-reset-btn,
+    .canvas-reposition-reset-btn *,
+    .btn-reset-pos,
+    .btn-reset-pos *,
+    .btn-reset,
+    .btn-reset *,
+    button[title*="Reset" i],
+    button[title*="Reset" i] *,
+    button[title*="reset" i],
+    button[title*="reset" i] * {
+      cursor: pointer !important;
+    }
+
+    /* Non-selectable UI Chrome for clean click feedback */
+    .tab-btn,
+    .tab-btn *,
+    .btn,
+    .btn *,
+    .nav-link,
+    .nav-link *,
+    .panel-head h2,
+    .badge,
+    .tab-count {
+      user-select: none !important;
+      -webkit-user-select: none !important;
+    }
+
+    /* Checkbox & Radio UX Enhancement */
+    input[type="checkbox"],
+    input[type="radio"] {
+      cursor: pointer !important;
+      accent-color: #FF5C00;
+    }
+
+    input[type="checkbox"]:hover,
+    input[type="radio"]:hover {
+      cursor: pointer !important;
+    }
+
+    /* ══════════ DRAG HANDLES & ACTIVE GRABBING CURSORS ══════════ */
+    .item-drag-handle,
+    .item-drag-handle *,
+    .tree-drag-handle,
+    .tree-drag-handle *,
+    .drag-handle,
+    .drag-handle *,
+    .reorder-handle,
+    .reorder-handle *,
+    [data-drag-handle],
+    [data-drag-handle] *,
+    [draggable="true"] .item-drag-handle,
+    [draggable="true"] .item-drag-handle * {
+      cursor: grab !important;
+      user-select: none !important;
+      -webkit-user-select: none !important;
+    }
+
+    .item-drag-handle:hover,
+    .item-drag-handle:hover *,
+    .tree-drag-handle:hover,
+    .tree-drag-handle:hover *,
+    .drag-handle:hover,
+    .drag-handle:hover *,
+    .reorder-handle:hover,
+    .reorder-handle:hover * {
+      cursor: grab !important;
+    }
+
+    .item-drag-handle:active,
+    .tree-drag-handle:active,
+    .drag-handle:active,
+    .reorder-handle:active,
+    .item-drag-handle:active *,
+    .tree-drag-handle:active *,
+    .drag-handle:active *,
+    .reorder-handle:active *,
+    .item-row.is-dragging,
+    .item-row.is-dragging *,
+    body.is-item-dragging,
+    body.is-item-dragging * {
+      cursor: grabbing !important;
+    }
+
+    /* Sliders */
+    input[type="range"] {
+      cursor: pointer !important;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      cursor: grab !important;
+    }
+    input[type="range"]:active::-webkit-slider-thumb {
+      cursor: grabbing !important;
+    }
+
+    /* ══════════ EDITABLE TEXT ONLY: I-BEAM TEXT CURSOR ══════════ */
+    input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="color"]):not([type="range"]):not([type="file"]):not([type="image"]),
+    textarea,
+    [contenteditable="true"],
+    [contenteditable="true"] *,
+    .canvas-live-editable,
+    .ql-editor,
+    .ql-editor * {
+      cursor: text !important;
+    }
+
+    /* Readonly inputs should show normal arrow, not text cursor */
+    input[readonly],
+    textarea[readonly],
+    input:read-only:not([type="checkbox"]):not([type="radio"]),
+    textarea:read-only {
+      cursor: default !important;
+    }
+
+    /* Disabled elements */
+    button:disabled,
+    input:disabled,
+    select:disabled,
+    textarea:disabled,
+    :disabled,
+    :disabled *,
+    .disabled,
+    .disabled * {
+      cursor: not-allowed !important;
+    }
+
+    #cursor,
+    #cursor-follower,
+    #cursor-trail,
+    #mouse-glow,
+    .custom-cursor {
+      display: none !important;
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+    }
+
     body {
       background-color: var(--bg-dark);
       color: var(--text-main);
@@ -210,6 +382,7 @@
       cursor: pointer;
       transition: all 0.2s ease;
       text-decoration: none;
+      white-space: nowrap;
     }
 
     .btn:hover {
@@ -291,51 +464,52 @@
       background: rgba(18, 18, 18, 0.85);
       backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border-subtle);
-      padding: 14px 28px;
+      padding: 12px 24px;
       position: sticky;
       top: 0;
       z-index: 100;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 16px;
+      flex-wrap: nowrap;
     }
 
     .brand-section {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
+      flex-shrink: 0;
     }
 
     .brand-logo {
-      width: 34px;
-      height: 34px;
+      width: 32px;
+      height: 32px;
       object-fit: contain;
+      flex-shrink: 0;
     }
 
     .brand-name {
       font-family: var(--font-heading);
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 800;
       letter-spacing: 0.04em;
-    }
-
-    .badge-secret {
-      background: var(--orange-subtle);
-      border: 1px solid rgba(255, 92, 0, 0.3);
-      color: var(--orange);
-      font-family: var(--font-heading);
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      padding: 3px 8px;
-      border-radius: 50px;
-      text-transform: uppercase;
+      white-space: nowrap;
     }
 
     .nav-actions {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 8px;
+      flex-wrap: nowrap;
+      flex-shrink: 0;
+    }
+
+    .nav-actions .btn,
+    .nav-actions .status-indicator,
+    .nav-actions .session-badge {
+      white-space: nowrap !important;
+      flex-shrink: 0;
     }
 
     .status-indicator {
@@ -344,7 +518,9 @@
       gap: 6px;
       font-size: 12px;
       color: var(--success);
-      margin-right: 8px;
+      margin-right: 6px;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .status-dot {
@@ -493,9 +669,10 @@
       align-items: center;
       justify-content: center;
       color: var(--text-dim);
-      cursor: grab;
+      cursor: grab !important;
       user-select: none;
-      padding: 6px 2px;
+      -webkit-user-select: none;
+      padding: 6px 4px;
       border-radius: 4px;
       transition: color 0.15s, background 0.15s, transform 0.15s;
     }
@@ -508,10 +685,12 @@
     .item-drag-handle:hover {
       color: var(--orange);
       background: rgba(255, 92, 0, 0.15);
+      cursor: grab !important;
     }
 
-    .item-drag-handle:active {
-      cursor: grabbing;
+    .item-drag-handle:active,
+    .item-drag-handle.is-grabbing {
+      cursor: grabbing !important;
       transform: scale(1.1);
     }
 
@@ -1680,15 +1859,13 @@
   </style>
 </head>
 
-<body>
+<body class="admin-page">
 
   <!-- Stealth Cloak & Session Gate Check -->
   <script>
     (function () {
       try {
         var params = new URLSearchParams(window.location.search);
-        var hasKeyParam = params.has('admin') || params.has('access') || params.has('key') || params.has('secret');
-        var wasUnlocked = window.sessionStorage.getItem('sonic_stealth_unlocked') === '1';
         var rawSession = window.sessionStorage.getItem('sonicmedia_admin_session');
         var hasValidSession = false;
 
@@ -1700,10 +1877,7 @@
           }
         }
 
-        if (hasKeyParam) {
-          window.sessionStorage.setItem('sonic_stealth_unlocked', '1');
-          wasUnlocked = true;
-          // Silently scrub secret query param from address bar to keep browser history clean
+        if (params.has('admin') || params.has('access') || params.has('key') || params.has('secret')) {
           if (window.history && window.history.replaceState) {
             var cleanUrl = window.location.pathname + window.location.hash;
             window.history.replaceState(null, '', cleanUrl);
@@ -1713,13 +1887,10 @@
         if (hasValidSession) {
           // Valid admin session active -> display app view immediately
           document.write('<style id="preAuthStyle">#loginShield, #stealth404 { display: none !important; } #appView { display: flex !important; }</style>');
-        } else if (wasUnlocked) {
-          // Unlocked with passkey -> display login shield
-          document.write('<style id="uncloakStyle">#stealth404 { display: none !important; } #loginShield { display: flex !important; }</style>');
         } else {
-          // Cloak: regular visitor or scanner without secret passkey -> display 404 page
-          document.title = "404 — Page Not Found | The Sonic Media";
-          document.write('<style id="stealthStyle">#loginShield, #appView { display: none !important; } #stealth404 { display: flex !important; }</style>');
+          // Display login shield so authorized admin can sign in
+          document.title = "Admin Dashboard — The Sonic Media";
+          document.write('<style id="uncloakStyle">#stealth404 { display: none !important; } #loginShield { display: flex !important; } #appView { display: none !important; }</style>');
         }
       } catch (e) { }
     })();
@@ -1778,50 +1949,52 @@
           alt="Sonic Media Logo" class="brand-logo" decoding="async" fetchpriority="high">
         <div>
           <div class="brand-name">THE SONIC MEDIA</div>
-          <div style="font-size: 11px; color: var(--text-muted); font-weight: 500;">Admin Management Portal</div>
+          <div style="font-size: 11px; color: var(--text-muted); font-weight: 500; white-space: nowrap;">Admin Management Portal</div>
         </div>
-        <span class="badge-secret">Hidden Portal</span>
       </div>
 
       <div class="nav-actions">
         <div class="status-indicator"
-          style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--success);margin-right:8px;">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="#3ECF8E"
-            style="vertical-align:middle;margin-right:4px;">
+          style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--success);margin-right:4px;white-space:nowrap;flex-shrink:0;">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="#3ECF8E"
+            style="vertical-align:middle;flex-shrink:0;">
             <path
               d="M21.362 9.354H12V.312a.312.312 0 0 0-.532-.22L.103 11.458a.313.313 0 0 0 .22.533H9.7v9.042c0 .278.337.417.533.22l11.365-11.366a.313.313 0 0 0-.236-.533z" />
           </svg>
-          <span>Connected to Supabase</span>
+          <span style="white-space:nowrap;">Connected to Supabase</span>
         </div>
         <div class="session-badge"
-          style="display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.04); border:1px solid var(--border-subtle); padding:6px 12px; border-radius:var(--radius-sm); font-size:12px; color:var(--text-muted);">
+          style="display:inline-flex; align-items:center; gap:6px; background:rgba(255,255,255,0.04); border:1px solid var(--border-subtle); padding:6px 12px; border-radius:var(--radius-sm); font-size:12px; color:var(--text-muted); white-space:nowrap; flex-shrink:0;">
           <svg viewBox="0 0 24 24" width="13" height="13" fill="var(--orange)" style="flex-shrink:0;">
             <path
               d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z" />
           </svg>
-          <span id="sessionUserDisplay">Admin</span>
+          <span id="sessionUserDisplay" style="white-space:nowrap;">Admin</span>
         </div>
         <a href="/?live_edit=true" target="_blank" class="btn btn-secondary btn-sm"
-          style="background:rgba(255,92,0,0.14);border-color:rgba(255,92,0,0.35);color:#FF5C00;font-weight:700;"><svg
+          style="background:rgba(255,92,0,0.14);border-color:rgba(255,92,0,0.35);color:#FF5C00;font-weight:700;white-space:nowrap;flex-shrink:0;"><svg
             viewBox="0 0 24 24" width="13" height="13" fill="currentColor"
-            style="vertical-align:middle;margin-right:4px;">
+            style="vertical-align:middle;margin-right:4px;flex-shrink:0;">
             <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
           </svg>Visual Live CMS</a>
         <a href="/?preview=true" target="_blank" class="btn btn-secondary btn-sm"
+          style="white-space:nowrap;flex-shrink:0;"
           title="Preview site cleanly as a visitor without any editing toolkit"><svg viewBox="0 0 24 24" width="13"
-            height="13" fill="currentColor" style="vertical-align:middle;margin-right:4px;">
+            height="13" fill="currentColor" style="vertical-align:middle;margin-right:4px;flex-shrink:0;">
             <path
               d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z" />
           </svg>Preview Site</a>
         <button type="button" onclick="openChangePasswordModal()" class="btn btn-secondary btn-sm"
+          style="white-space:nowrap;flex-shrink:0;"
           title="Change your admin password"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"
-            style="vertical-align:middle;margin-right:4px;">
+            style="vertical-align:middle;margin-right:4px;flex-shrink:0;">
             <path
               d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
           </svg>Password</button>
         <button type="button" id="btnAdminSignOut" onclick="window.handleLogout()" class="btn btn-secondary btn-sm"
+          style="white-space:nowrap;flex-shrink:0;"
           title="End admin session"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"
-            style="vertical-align:middle;margin-right:4px;">
+            style="vertical-align:middle;margin-right:4px;flex-shrink:0;">
             <path
               d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
           </svg>Sign Out</button>
@@ -1862,11 +2035,6 @@
           </svg>
           <span>Section Headers</span>
         </button>
-        <button class="tab-btn" onclick="switchTab('liveedits', this)">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5C21.27 7.61 17 4.5 12 4.5zm0 12.5a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-8a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>
-          <span>Live Page Edits</span>
-          <span class="tab-count" id="countLiveEdits">0</span>
-        </button>
       </nav>
 
       <!-- TAB 1: PORTFOLIO -->
@@ -1877,10 +2045,13 @@
             <p class="panel-desc">Manage client projects, metrics, gallery photos, and deliverables shown on the
               Portfolio & Home pages.</p>
           </div>
-          <button class="btn" onclick="openPortfolioModal()"><svg viewBox="0 0 24 24" width="15" height="15"
-              fill="currentColor" style="vertical-align:middle;margin-right:4px;">
-              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-            </svg>Add New Project</button>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <button type="button" class="btn btn-secondary" onclick="window.location.href=resolveAppUrl('/admin-builder.html?new=true')" style="color:var(--orange);border-color:rgba(255,92,0,0.45);font-weight:700;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:middle;margin-right:4px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg> Visual Page Builder</button>
+            <button type="button" class="btn" onclick="openPortfolioModal()"><svg viewBox="0 0 24 24" width="15" height="15"
+                fill="currentColor" style="vertical-align:middle;margin-right:4px;">
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+              </svg>Add Quick Project</button>
+          </div>
         </div>
         <div class="items-list" id="portfolioListContainer">
           <!-- Rendered via JS -->
@@ -1894,11 +2065,13 @@
             <h2 class="panel-title">Case Studies</h2>
             <p class="panel-desc">Customize tactical case study cards, filter categories, and excerpts shown on Case
               Studies & Home pages.</p>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <button type="button" class="btn btn-secondary" onclick="window.location.href=resolveAppUrl('/admin-builder.html?type=casestudies&new=true')" style="color:var(--orange);border-color:rgba(255,92,0,0.45);font-weight:700;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:middle;margin-right:4px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg> Visual Page Builder</button>
+            <button class="btn" onclick="openCaseStudyModal()"><svg viewBox="0 0 24 24" width="15" height="15"
+                fill="currentColor" style="vertical-align:middle;margin-right:4px;">
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+              </svg>Add Case Study</button>
           </div>
-          <button class="btn" onclick="openCaseStudyModal()"><svg viewBox="0 0 24 24" width="15" height="15"
-              fill="currentColor" style="vertical-align:middle;margin-right:4px;">
-              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-            </svg>Add Case Study</button>
         </div>
         <div class="items-list" id="caseStudiesListContainer">
           <!-- Rendered via JS -->
@@ -1912,10 +2085,13 @@
             <h2 class="panel-title">Journal / Fresh Reads</h2>
             <p class="panel-desc">Publish and update agency insights, marketing playbooks, and read-time details.</p>
           </div>
-          <button class="btn" onclick="openJournalModal()"><svg viewBox="0 0 24 24" width="15" height="15"
-              fill="currentColor" style="vertical-align:middle;margin-right:4px;">
-              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-            </svg>Add Journal Post</button>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <button type="button" class="btn btn-secondary" onclick="window.location.href=resolveAppUrl('/admin-builder.html?type=journal&new=true')" style="color:var(--orange);border-color:rgba(255,92,0,0.45);font-weight:700;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align:middle;margin-right:4px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg> Visual Page Builder</button>
+            <button class="btn" onclick="openJournalModal()"><svg viewBox="0 0 24 24" width="15" height="15"
+                fill="currentColor" style="vertical-align:middle;margin-right:4px;">
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+              </svg>Add Journal Post</button>
+          </div>
         </div>
         <div class="items-list" id="journalListContainer">
           <!-- Rendered via JS -->
@@ -2007,16 +2183,6 @@
           </div>
         </div>
       </section>
-
-      <section id="tab-liveedits" class="tab-panel">
-        <div class="panel-head">
-          <div>
-            <h2 class="panel-title">Live Page Edits</h2>
-            <p class="panel-desc">These are the latest changes saved directly on the website. Edit a value here and save it back to the same cloud record.</p>
-          </div>
-        </div>
-        <div class="items-list" id="liveEditsListContainer"></div>
-      </section>
     </main>
   </div>
 
@@ -2027,7 +2193,7 @@
         <h3 class="modal-title" id="portModalTitle">Edit Portfolio Item</h3>
         <div style="margin-left:auto;margin-right:12px;display:flex;gap:8px;align-items:center;">
           <button type="button" class="btn btn-secondary btn-sm"
-            onclick="const pid=document.getElementById('portIdOriginal').value||document.getElementById('portId').value; if(pid) window.open('/project?id=' + encodeURIComponent(pid) + '&preview=true', '_blank');"
+            onclick="const pid=document.getElementById('portIdOriginal').value||document.getElementById('portId').value; if(pid) window.open(resolveAppUrl('/project?id=' + encodeURIComponent(pid) + '&preview=true'), '_blank');"
             title="Open inside project page in new tab"><svg viewBox="0 0 24 24" width="12" height="12" fill="none"
               stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;">
               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
@@ -3193,6 +3359,23 @@
     }
     window.formatUserFriendlyError = formatUserFriendlyError;
 
+    function resolveAppUrl(pathWithQuery) {
+      if (!pathWithQuery) return '';
+      const isDirect = (window.location.protocol === 'file:') ||
+                       (window.location.port !== '' && window.location.port !== '80' && window.location.port !== '443') ||
+                       (window.location.pathname.endsWith('.html'));
+      if (!isDirect) {
+        return pathWithQuery.startsWith('/') ? pathWithQuery : `/${pathWithQuery}`;
+      }
+      let [path, query] = pathWithQuery.split('?');
+      path = path.replace(/^\/+/, '');
+      if (!path.endsWith('.html') && !path.includes('.')) {
+        path = path + '.html';
+      }
+      return path + (query ? '?' + query : '');
+    }
+    window.resolveAppUrl = resolveAppUrl;
+
     function showModalError(alertEl, err, context = {}) {
       if (!alertEl) return;
       const info = formatUserFriendlyError(err, context);
@@ -3281,6 +3464,14 @@
     }
 
     function checkLockout() {
+      if (new URLSearchParams(window.location.search).has('reset')) {
+        clearFailedLogins();
+        const alertEl = document.getElementById('loginAlert');
+        if (alertEl) alertEl.style.display = 'none';
+        const btn = document.getElementById('loginBtn');
+        if (btn) btn.disabled = false;
+        return 0;
+      }
       const lockoutUntil = _getLockoutUntil();
       const now = Date.now();
       if (lockoutUntil > now) {
@@ -3465,6 +3656,19 @@
         saveSessionToStorage(data.session, data.user);
         scheduleExpirationWatcher(data.session.expires_at);
         updateUserDisplay(data.user.email);
+        // Check if there was a redirect param (e.g. from Visual Page Builder)
+        // SECURITY: Only allow relative path redirects to prevent open redirect attacks
+        const redirectParam = new URLSearchParams(window.location.search).get('redirect');
+        if (redirectParam) {
+          const safeRedirect = redirectParam.trim();
+          // Only allow paths starting with / that don't start with // (protocol-relative) and don't contain ://
+          if (safeRedirect.startsWith('/') && !safeRedirect.startsWith('//') && !safeRedirect.includes('://') && !safeRedirect.toLowerCase().startsWith('/\\') && !safeRedirect.toLowerCase().includes('javascript:')) {
+            window.location.href = safeRedirect;
+            return;
+          } else {
+            console.warn('[SonicAdmin] Blocked unsafe redirect target:', safeRedirect);
+          }
+        }
 
         // Immediately transition to the dashboard panel
         showDashboard();
@@ -3575,6 +3779,54 @@
         state.casestudies = casesRes.data || [];
         state.journal = journalsRes.data || [];
 
+        // Sort items by display_order to ensure predictable sequential layout
+        state.portfolio.sort((a, b) => (Number(a.display_order) || 0) - (Number(b.display_order) || 0));
+        state.casestudies.sort((a, b) => (Number(a.display_order) || 0) - (Number(b.display_order) || 0));
+        state.journal.sort((a, b) => (Number(a.display_order) || 0) - (Number(b.display_order) || 0));
+
+        // Auto-heal portfolio numbering gaps (e.g. from previously deleted projects)
+        let portNeedsHealing = false;
+        state.portfolio.forEach((item, index) => {
+          const expectedOrder = index + 1;
+          const expectedNum = String(expectedOrder).padStart(2, '0');
+          if (item.display_order !== expectedOrder || item.num !== expectedNum) {
+            item.display_order = expectedOrder;
+            item.num = expectedNum;
+            portNeedsHealing = true;
+          }
+        });
+        if (portNeedsHealing) {
+          persistSectionOrder('portfolio');
+        }
+
+        // Auto-heal case studies ordering gaps
+        let caseNeedsHealing = false;
+        state.casestudies.forEach((item, index) => {
+          const expectedOrder = index + 1;
+          if (item.display_order !== expectedOrder) {
+            item.display_order = expectedOrder;
+            caseNeedsHealing = true;
+          }
+        });
+        if (caseNeedsHealing) {
+          persistSectionOrder('casestudies');
+        }
+
+        // Auto-heal journal numbering gaps
+        let journalNeedsHealing = false;
+        state.journal.forEach((item, index) => {
+          const expectedOrder = index + 1;
+          const expectedNum = String(expectedOrder).padStart(2, '0');
+          if (item.display_order !== expectedOrder || item.num !== expectedNum) {
+            item.display_order = expectedOrder;
+            item.num = expectedNum;
+            journalNeedsHealing = true;
+          }
+        });
+        if (journalNeedsHealing) {
+          persistSectionOrder('journal');
+        }
+
         // Map headers
         if (headersRes.data) {
           headersRes.data.forEach(h => { state.headers[h.key] = h.data; });
@@ -3584,7 +3836,6 @@
         renderCaseStudies();
         renderJournal();
         populateHeaders();
-        renderLiveEdits();
         checkUrlAutoOpen();
       } catch (err) {
         console.error('Failed to load dashboard data:', err);
@@ -3636,6 +3887,7 @@
         e.dataTransfer.effectAllowed = 'move';
         try { e.dataTransfer.setData('text/plain', id); } catch (_) { }
       }
+      document.body.classList.add('is-item-dragging');
       setTimeout(() => {
         const row = document.querySelector(`.item-row[data-id="${id}"]`);
         if (row) row.classList.add('is-dragging');
@@ -3673,6 +3925,7 @@
 
     function onItemDrop(e, section, targetIdx) {
       e.preventDefault();
+      document.body.classList.remove('is-item-dragging');
       const row = e.currentTarget;
       if (row) row.classList.remove('drag-over-top', 'drag-over-bottom');
       if (!draggedItemInfo || draggedItemInfo.section !== section) return;
@@ -3688,6 +3941,7 @@
     window.onItemDrop = onItemDrop;
 
     function onItemDragEnd(e) {
+      document.body.classList.remove('is-item-dragging');
       document.querySelectorAll('.item-row').forEach(r => {
         r.classList.remove('is-dragging', 'drag-over-top', 'drag-over-bottom');
       });
@@ -3835,7 +4089,10 @@
       container.innerHTML = state.portfolio.map((item, idx) => {
         const isDraft = normalizePublicationStatus(item.status) !== 'published';
         const isRecentlySaved = window.lastSavedItemId === item.id;
-        const numDisplay = item.num || String(idx + 1).padStart(2, '0');
+        const systematicNum = String(idx + 1).padStart(2, '0');
+        item.display_order = idx + 1;
+        item.num = systematicNum;
+        const numDisplay = systematicNum;
         return `
     <div class="item-row ${isRecentlySaved ? 'row-saved-highlight' : ''}" 
          data-id="${escapeHtml(item.id)}"
@@ -3875,13 +4132,14 @@
         <span class="item-badge" style="font-size:10px;padding:3px 8px;">#${idx + 1} • ${escapeHtml(item.metric_val || 'Completed')} ${escapeHtml(item.metric_lbl || '')}</span>
       </div>
       <div class="item-actions">
+        <button class="btn btn-secondary btn-sm" onclick="window.location.href=resolveAppUrl('/admin-builder.html?id=' + encodeURIComponent('${escapeHtml(item.id)}'))" style="color:var(--orange);border-color:rgba(255,92,0,0.45);font-weight:700;" title="Open in Visual Page Builder"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>Visual Builder</button>
         <button class="btn btn-secondary btn-sm" onclick="editPortfolioItem('${escapeHtml(item.id)}', 'card')" title="Edit front card headline, category, hero image, and metrics"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>Edit Card</button>
         ${isDraft ? `
           <button class="btn btn-secondary btn-sm" onclick="togglePortfolioStatus('${escapeHtml(item.id)}', 'published', this)" title="Publish immediately live to website" style="color:#10B981;border-color:rgba(16,185,129,0.4);font-weight:700;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><polyline points="20 6 9 17 4 12"></polyline></svg>Publish Live</button>
         ` : `
           <button class="btn btn-secondary btn-sm" onclick="togglePortfolioStatus('${escapeHtml(item.id)}', 'draft', this)" title="Move project to draft (hidden from public)" style="color:#fbbf24;border-color:rgba(245,158,11,0.4);"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>Unpublish</button>
         `}
-        <button class="btn ${isDraft ? 'btn-secondary' : 'btn-view-live'} btn-sm" onclick="window.open('/project?id=' + encodeURIComponent('${escapeHtml(item.id)}') + '${isDraft ? '&preview=true' : ''}', '_blank')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>${isDraft ? 'Preview ↗' : 'View Live ↗'}</button>
+        <button class="btn ${isDraft ? 'btn-secondary' : 'btn-view-live'} btn-sm" onclick="window.open(resolveAppUrl('/project?id=' + encodeURIComponent('${escapeHtml(item.id)}') + '${isDraft ? '&preview=true' : ''}'), '_blank')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>${isDraft ? 'Preview ↗' : 'View Live ↗'}</button>
         <button class="btn btn-danger btn-sm" onclick="deletePortfolioItem('${escapeHtml(item.id)}', this)"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>Delete</button>
       </div>
     </div>
@@ -3926,13 +4184,13 @@
         </div>
       </div>
       <div class="item-order">${escapeHtml(numDisplay)}</div>
-      <img src="${item.img}" alt="${escapeHtml(item.title)}" class="item-thumb" onerror="this.src='https://placehold.co/60x60/121212/FF5C00?text=IMG'" decoding="async" loading="lazy">
+      <img src="${escapeHtml(item.img || '')}" alt="${escapeHtml(item.title || '')}" class="item-thumb" onerror="this.src='https://placehold.co/60x60/121212/FF5C00?text=IMG'" decoding="async" loading="lazy">
       <div class="item-info">
-        <div class="item-name">${escapeHtml(item.title)}</div>
+        <div class="item-name">${escapeHtml(item.title || '')}</div>
         <div class="item-meta">
-          <span style="color:var(--orange);font-weight:600;">${escapeHtml(item.cat_label)}</span>
-          <span>${escapeHtml(item.date)}</span>
-          <span style="color:var(--text-dim);">${escapeHtml(item.excerpt.slice(0, 75))}...</span>
+          <span style="color:var(--orange);font-weight:600;">${escapeHtml(item.cat_label || '')}</span>
+          <span>${escapeHtml(item.date || '')}</span>
+          <span style="color:var(--text-dim);">${escapeHtml((item.excerpt || '').slice(0, 75))}...</span>
         </div>
       </div>
       <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-start;">
@@ -3943,13 +4201,14 @@
         <span class="item-badge" style="font-size:10px;padding:3px 8px;text-transform:capitalize;">#${idx + 1} • ${escapeHtml(item.cat)}</span>
       </div>
       <div class="item-actions">
+        <button class="btn btn-secondary btn-sm" onclick="window.location.href=resolveAppUrl('/admin-builder.html?type=casestudies&id=' + encodeURIComponent('${escapeHtml(item.id)}'))" style="color:var(--orange);border-color:rgba(255,92,0,0.45);font-weight:700;" title="Open in Visual Page Builder"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>Visual Builder</button>
         <button class="btn btn-secondary btn-sm" onclick="editCaseStudy('${escapeHtml(item.id)}')" title="Edit case study"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>Edit</button>
         ${isDraft ? `
           <button class="btn btn-secondary btn-sm" onclick="toggleCaseStudyStatus('${escapeHtml(item.id)}', 'published', this)" title="Publish live immediately" style="color:#10B981;border-color:rgba(16,185,129,0.4);font-weight:700;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><polyline points="20 6 9 17 4 12"></polyline></svg>Publish Live</button>
         ` : `
           <button class="btn btn-secondary btn-sm" onclick="toggleCaseStudyStatus('${escapeHtml(item.id)}', 'draft', this)" title="Move to draft" style="color:#fbbf24;border-color:rgba(245,158,11,0.4);"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>Unpublish</button>
         `}
-        <button class="btn ${isDraft ? 'btn-secondary' : 'btn-view-live'} btn-sm" onclick="window.open('/case-study?id=' + encodeURIComponent('${escapeHtml(item.id)}') + '${isDraft ? '&preview=true' : ''}', '_blank')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>${isDraft ? 'Preview ↗' : 'View Live ↗'}</button>
+        <button class="btn ${isDraft ? 'btn-secondary' : 'btn-view-live'} btn-sm" onclick="window.open(resolveAppUrl('/case-study?id=' + encodeURIComponent('${escapeHtml(item.id)}') + '${isDraft ? '&preview=true' : ''}'), '_blank')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>${isDraft ? 'Preview ↗' : 'View Live ↗'}</button>
         <button class="btn btn-danger btn-sm" onclick="deleteCaseStudy('${escapeHtml(item.id)}', this)"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>Delete</button>
       </div>
     </div>
@@ -3970,7 +4229,10 @@
       container.innerHTML = state.journal.map((item, idx) => {
         const isDraft = normalizePublicationStatus(item.status) !== 'published';
         const isRecentlySaved = window.lastSavedItemId === item.id;
-        const numDisplay = item.num || String(idx + 1).padStart(2, '0');
+        const systematicNum = String(idx + 1).padStart(2, '0');
+        item.display_order = idx + 1;
+        item.num = systematicNum;
+        const numDisplay = systematicNum;
         return `
     <div class="item-row ${isRecentlySaved ? 'row-saved-highlight' : ''}" 
          data-id="${escapeHtml(item.id)}"
@@ -3994,13 +4256,13 @@
         </div>
       </div>
       <div class="item-order">${escapeHtml(numDisplay)}</div>
-      <img src="${escapeHtml(item.thumb_url || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=80&q=80&auto=format')}" alt="${escapeHtml(item.title)}" class="item-thumb" onerror="this.src='https://placehold.co/60x60/121212/FF5C00?text=IMG'" decoding="async" loading="lazy">
+      <img src="${escapeHtml(item.thumb_url || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=80&q=80&auto=format')}" alt="${escapeHtml(item.title || '')}" class="item-thumb" onerror="this.src='https://placehold.co/60x60/121212/FF5C00?text=IMG'" decoding="async" loading="lazy">
       <div class="item-info">
-        <div class="item-name">${escapeHtml(item.title)}</div>
+        <div class="item-name">${escapeHtml(item.title || '')}</div>
         <div class="item-meta">
-          <span style="color:var(--orange);font-weight:600;">${escapeHtml(item.cat)}</span>
-          <span>${escapeHtml(item.read_time)}</span>
-          <span>${escapeHtml(item.date)}</span>
+          <span style="color:var(--orange);font-weight:600;">${escapeHtml(item.cat || '')}</span>
+          <span>${escapeHtml(item.read_time || '')}</span>
+          <span>${escapeHtml(item.date || '')}</span>
         </div>
       </div>
       <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-start;">
@@ -4011,13 +4273,14 @@
         <span class="item-badge" style="font-size:10px;padding:3px 8px;">#${idx + 1}</span>
       </div>
       <div class="item-actions">
+        <button class="btn btn-secondary btn-sm" onclick="window.location.href=resolveAppUrl('/admin-builder.html?type=journal&id=' + encodeURIComponent('${escapeHtml(item.id)}'))" style="color:var(--orange);border-color:rgba(255,92,0,0.45);font-weight:700;" title="Open in Visual Page Builder"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>Visual Builder</button>
         <button class="btn btn-secondary btn-sm" onclick="editJournalPost('${escapeHtml(item.id)}')" title="Edit journal article"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>Edit</button>
         ${isDraft ? `
           <button class="btn btn-secondary btn-sm" onclick="toggleJournalStatus('${escapeHtml(item.id)}', 'published', this)" title="Publish live immediately" style="color:#10B981;border-color:rgba(16,185,129,0.4);font-weight:700;"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><polyline points="20 6 9 17 4 12"></polyline></svg>Publish Live</button>
         ` : `
           <button class="btn btn-secondary btn-sm" onclick="toggleJournalStatus('${escapeHtml(item.id)}', 'draft', this)" title="Move to draft" style="color:#fbbf24;border-color:rgba(245,158,11,0.4);"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>Unpublish</button>
         `}
-        <button class="btn ${isDraft ? 'btn-secondary' : 'btn-view-live'} btn-sm" onclick="window.open('/article?id=' + encodeURIComponent('${escapeHtml(item.id)}') + '${isDraft ? '&preview=true' : ''}', '_blank')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>${isDraft ? 'Preview ↗' : 'View Live ↗'}</button>
+        <button class="btn ${isDraft ? 'btn-secondary' : 'btn-view-live'} btn-sm" onclick="window.open(resolveAppUrl('/article?id=' + encodeURIComponent('${escapeHtml(item.id)}') + '${isDraft ? '&preview=true' : ''}'), '_blank')"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>${isDraft ? 'Preview ↗' : 'View Live ↗'}</button>
         <button class="btn btn-danger btn-sm" onclick="deleteJournalPost('${escapeHtml(item.id)}', this)"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>Delete</button>
       </div>
     </div>
@@ -4044,74 +4307,6 @@
       document.getElementById('headerJournalTitleMain').value = j.titleMain || 'Fresh ';
       document.getElementById('headerJournalTitleSpan').value = j.titleSpan || 'Reads';
     }
-
-    function getLiveEditRows() {
-      return Object.keys(state.headers)
-        .filter(key => key === 'live_cms_custom_edits' || key.indexOf('live_cms:') === 0)
-        .sort()
-        .map(key => ({ key, data: state.headers[key] || {} }));
-    }
-
-    function renderLiveEdits() {
-      const container = document.getElementById('liveEditsListContainer');
-      if (!container) return;
-      const rows = getLiveEditRows();
-      const total = rows.reduce((sum, row) => sum + Object.keys(row.data.edits || row.data || {}).length, 0);
-      const count = document.getElementById('countLiveEdits');
-      if (count) count.textContent = total;
-      if (!total) {
-        container.innerHTML = '<div class="empty-state"><p>No live-page edits have been saved yet.</p></div>';
-        return;
-      }
-      container.innerHTML = rows.map(row => {
-        const edits = row.data.edits || row.data || {};
-        const fields = Object.keys(edits).sort().map(selector => {
-          const item = edits[selector] && typeof edits[selector] === 'object' ? edits[selector] : { val: edits[selector], type: 'text' };
-          return `<div class="form-group" style="margin-bottom:14px;">
-            <label class="form-label" title="${escapeHtml(selector)}">${escapeHtml(selector)}</label>
-            <textarea class="form-textarea live-edit-value" data-row-key="${escapeHtml(row.key)}" data-selector="${escapeHtml(selector)}" data-type="${escapeHtml(item.type || 'text')}" style="min-height:72px;">${escapeHtml(item.val || '')}</textarea>
-          </div>`;
-        }).join('');
-        return `<div style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:22px;margin-bottom:18px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;">
-            <div><h3 style="font-family:var(--font-heading);font-size:16px;color:var(--orange);">${escapeHtml(row.data.page || row.key.replace('live_cms:', ''))}</h3><div class="form-help">${escapeHtml(row.key)}</div></div>
-            <button class="btn btn-sm" onclick="saveLiveEditRow('${escapeHtml(row.key)}', this)">Save Page Edits</button>
-          </div>${fields}</div>`;
-      }).join('');
-    }
-
-    async function saveLiveEditRow(rowKey, btn) {
-      const current = state.headers[rowKey] || {};
-      const next = Object.assign({}, current, { edits: Object.assign({}, current.edits || {}) });
-      document.querySelectorAll('.live-edit-value').forEach(el => {
-        if (el.dataset.rowKey !== rowKey) return;
-        next.edits[el.dataset.selector] = Object.assign({}, next.edits[el.dataset.selector] || {}, {
-          key: el.dataset.selector,
-          type: el.dataset.type || 'text',
-          val: el.value,
-          text: el.value,
-          updated_at: new Date().toISOString()
-        });
-      });
-      const original = btn.innerHTML;
-      btn.disabled = true;
-      btn.textContent = 'Saving...';
-      try {
-        const client = getSupabase();
-        const { error } = await client.from('site_content').upsert({ key: rowKey, data: next, updated_at: new Date() });
-        if (error) throw error;
-        state.headers[rowKey] = next;
-        invalidateWebsiteCache();
-        showToast('Live page edits saved to the website.');
-        btn.textContent = 'Saved';
-      } catch (err) {
-        showToast(formatUserFriendlyError(err).badgeText);
-        btn.textContent = 'Save failed';
-      } finally {
-        setTimeout(() => { btn.disabled = false; btn.innerHTML = original; }, 1800);
-      }
-    }
-    window.saveLiveEditRow = saveLiveEditRow;
 
     function invalidateWebsiteCache() {
       try {
@@ -4286,9 +4481,11 @@
       document.getElementById('portModalTitle').textContent = 'Edit Portfolio Project';
       document.getElementById('portIdOriginal').value = item.id;
       document.getElementById('portId').value = item.id;
-      document.getElementById('portId').disabled = true;
-      document.getElementById('portNum').value = item.num || '';
-      document.getElementById('portOrder').value = item.display_order || 1;
+      const itemIdx = state.portfolio.findIndex(p => p.id === item.id);
+      const systematicOrder = itemIdx >= 0 ? (itemIdx + 1) : (item.display_order || 1);
+      const systematicNum = String(systematicOrder).padStart(2, '0');
+      document.getElementById('portNum').value = systematicNum;
+      document.getElementById('portOrder').value = systematicOrder;
       document.getElementById('portCat').value = item.cat || '';
       document.getElementById('portName').value = item.name || '';
       document.getElementById('portTags').value = (item.tags || []).join(', ');
@@ -4423,10 +4620,10 @@
         }
       }
 
-      const resolvedUrl = previewUrl || (
-        type === 'portfolio' ? `/project?id=${encodeURIComponent(id)}${isDraft ? '&preview=true' : ''}` :
-          type === 'casestudy' ? `/case-study?id=${encodeURIComponent(id)}${isDraft ? '&preview=true' : ''}` :
-            `/article?id=${encodeURIComponent(id)}${isDraft ? '&preview=true' : ''}`
+      const resolvedUrl = previewUrl ? resolveAppUrl(previewUrl) : (
+        type === 'portfolio' ? resolveAppUrl(`/project?id=${encodeURIComponent(id)}${isDraft ? '&preview=true' : ''}`) :
+          type === 'casestudy' ? resolveAppUrl(`/case-study?id=${encodeURIComponent(id)}${isDraft ? '&preview=true' : ''}`) :
+            resolveAppUrl(`/article?id=${encodeURIComponent(id)}${isDraft ? '&preview=true' : ''}`)
       );
       if (prevBtn) prevBtn.onclick = () => window.open(resolvedUrl, '_blank');
 
@@ -4462,12 +4659,12 @@
         return;
       }
 
-      // Derive Slug ID if empty
-      let id = originalId || document.getElementById('portId').value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-');
+      // Derive Slug ID (allow renaming if user edited the input)
+      let id = document.getElementById('portId').value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-') || originalId;
       if (!id) {
         id = rawName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || ('project-' + Date.now());
-        document.getElementById('portId').value = id;
       }
+      document.getElementById('portId').value = id;
 
       // Target footer buttons & alert container
       const draftBtn = document.getElementById('portFooterSaveDraftBtn');
@@ -4512,8 +4709,11 @@
       const fallbackImg = cleanGallery.length > 0 ? cleanGallery[0].url : 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80';
       const heroImg = document.getElementById('portImg').value.trim() || fallbackImg;
       const catVal = document.getElementById('portCat').value.trim() || 'Branding & Advertising Solutions';
-      const numVal = document.getElementById('portNum').value.trim() || String(state.portfolio.length + 1).padStart(2, '0');
-      const orderVal = parseInt(document.getElementById('portOrder').value) || (state.portfolio.length + 1);
+      const existingIdx = state.portfolio.findIndex(p => p.id === (originalId || id));
+      const calculatedOrder = existingIdx >= 0 ? (existingIdx + 1) : (state.portfolio.length + 1);
+      const calculatedNum = String(calculatedOrder).padStart(2, '0');
+      const numVal = document.getElementById('portNum').value.trim() || calculatedNum;
+      const orderVal = parseInt(document.getElementById('portOrder').value) || calculatedOrder;
 
       const details = {
         title: rawName,
@@ -4562,6 +4762,16 @@
         if (!savedRow || String(savedRow.status || '').trim().toLowerCase() !== mode) {
           throw new Error('Supabase did not confirm the requested project publication status. Please retry.');
         }
+
+        if (originalId && id !== originalId) {
+          try {
+            await client.from('portfolio_items').delete().eq('id', originalId);
+            await client.from('portfolio_drafts').delete().eq('id', originalId);
+          } catch (cleanErr) {
+            console.warn('Old slug cleanup notice:', cleanErr);
+          }
+        }
+
         invalidateWebsiteCache();
 
         // 1. Success state right on the clicked button with checkmark
@@ -4717,11 +4927,30 @@
         btn.innerHTML = '<span class="spin-icon">⏳</span> Deleting...';
       }
       try {
-        const { error } = await getSupabase().from('portfolio_items').delete().eq('id', id);
+        const client = getSupabase();
+        await requireActiveAdminSession(client);
+
+        // 1. Delete from Supabase portfolio_items and drafts
+        const { error } = await client.from('portfolio_items').delete().eq('id', id);
         if (error) throw error;
+        await client.from('portfolio_drafts').delete().eq('id', id).catch(() => {});
+
+        // 2. Remove item from local state and systematically re-sequence all remaining projects
+        state.portfolio = state.portfolio.filter(item => item.id !== id);
+        state.portfolio.forEach((item, index) => {
+          const orderNum = index + 1;
+          item.display_order = orderNum;
+          item.num = String(orderNum).padStart(2, '0');
+        });
+
+        // 3. Render immediately with updated systematic numbers (01, 02, 03...)
+        renderPortfolio();
+
+        // 4. Persist updated systematic sequence to Supabase
+        await persistSectionOrder('portfolio');
+
         invalidateWebsiteCache();
-        showToast('✓ Project deleted successfully.');
-        loadAllData();
+        showToast('✓ Project deleted. Remaining projects automatically re-sequenced in systematic order.');
       } catch (err) {
         if (btn) {
           btn.disabled = false;
@@ -5339,7 +5568,7 @@
       document.getElementById('caseModalTitle').textContent = 'Edit Case Study';
       document.getElementById('caseIdOriginal').value = item.id;
       document.getElementById('caseId').value = item.id;
-      document.getElementById('caseId').disabled = true;
+      document.getElementById('caseId').disabled = false;
       document.getElementById('caseOrder').value = item.display_order || 1;
       document.getElementById('caseCat').value = item.cat || 'strategy';
       document.getElementById('caseCatLabel').value = item.cat_label || 'Strategy';
@@ -5448,11 +5677,12 @@
       // Compile visual blocks to ensure latest content is serialized into #caseBody
       compileCaseBlocksToHtml();
 
-      let id = originalId || document.getElementById('caseId').value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-');
+      // Derive Slug ID (allow renaming if user edited the input)
+      let id = document.getElementById('caseId').value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-') || originalId;
       if (!id) {
         id = rawTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || ('case-' + Date.now());
-        document.getElementById('caseId').value = id;
       }
+      document.getElementById('caseId').value = id;
 
       // Target footer buttons & alert container
       const draftBtn = document.getElementById('caseFooterSaveDraftBtn');
@@ -5527,6 +5757,16 @@
         if (!savedRow || String(savedRow.status || '').trim().toLowerCase() !== mode) {
           throw new Error('Supabase did not confirm the requested case study publication status. Please retry.');
         }
+
+        if (originalId && id !== originalId) {
+          try {
+            await client.from('case_studies').delete().eq('id', originalId);
+            await client.from('portfolio_drafts').delete().eq('id', originalId);
+          } catch (cleanErr) {
+            console.warn('Old case slug cleanup notice:', cleanErr);
+          }
+        }
+
         invalidateWebsiteCache();
 
         // 1. Success state right on the clicked button with checkmark
@@ -5675,11 +5915,22 @@
         btn.innerHTML = '<span class="spin-icon">⏳</span> Deleting...';
       }
       try {
-        const { error } = await getSupabase().from('case_studies').delete().eq('id', id);
+        const client = getSupabase();
+        await requireActiveAdminSession(client);
+
+        const { error } = await client.from('case_studies').delete().eq('id', id);
         if (error) throw error;
+        await client.from('portfolio_drafts').delete().eq('id', id).catch(() => {});
+
+        state.casestudies = state.casestudies.filter(item => item.id !== id);
+        state.casestudies.forEach((item, index) => {
+          item.display_order = index + 1;
+        });
+
+        renderCaseStudies();
+        await persistSectionOrder('casestudies');
         invalidateWebsiteCache();
-        showToast('✓ Case study deleted successfully.');
-        loadAllData();
+        showToast('✓ Case study deleted. Remaining case studies automatically re-sequenced.');
       } catch (err) {
         if (btn) {
           btn.disabled = false;
@@ -5722,9 +5973,11 @@
       document.getElementById('journalModalTitle').textContent = 'Edit Journal Article';
       document.getElementById('journalIdOriginal').value = item.id;
       document.getElementById('journalId').value = item.id;
-      document.getElementById('journalId').disabled = true;
-      document.getElementById('journalNum').value = item.num || '';
-      document.getElementById('journalOrder').value = item.display_order || 1;
+      const itemIdx = state.journal.findIndex(j => j.id === item.id);
+      const systematicOrder = itemIdx >= 0 ? (itemIdx + 1) : (item.display_order || 1);
+      const systematicNum = String(systematicOrder).padStart(2, '0');
+      document.getElementById('journalNum').value = systematicNum;
+      document.getElementById('journalOrder').value = systematicOrder;
       document.getElementById('journalCat').value = item.cat || '';
       document.getElementById('journalReadTime').value = item.read_time || '';
       document.getElementById('journalDate').value = item.date || '';
@@ -5758,11 +6011,12 @@
         return;
       }
 
-      let id = originalId || document.getElementById('journalId').value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-');
+      // Derive Slug ID (allow renaming if user edited the input)
+      let id = document.getElementById('journalId').value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-') || originalId;
       if (!id) {
         id = rawTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || ('article-' + Date.now());
-        document.getElementById('journalId').value = id;
       }
+      document.getElementById('journalId').value = id;
 
       // Target footer buttons & alert container
       const draftBtn = document.getElementById('journalFooterSaveDraftBtn');
@@ -5791,8 +6045,11 @@
       const contentVal = document.getElementById('journalContent').value.trim();
       const heroThumb = document.getElementById('journalThumb').value.trim() || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80&auto=format';
       const catVal = document.getElementById('journalCat').value.trim() || 'SEO';
-      const numVal = document.getElementById('journalNum').value.trim() || String(state.journal.length + 1).padStart(2, '0');
-      const orderVal = parseInt(document.getElementById('journalOrder').value) || (state.journal.length + 1);
+      const existingIdx = state.journal.findIndex(j => j.id === (originalId || id));
+      const calculatedOrder = existingIdx >= 0 ? (existingIdx + 1) : (state.journal.length + 1);
+      const calculatedNum = String(calculatedOrder).padStart(2, '0');
+      const numVal = document.getElementById('journalNum').value.trim() || calculatedNum;
+      const orderVal = parseInt(document.getElementById('journalOrder').value) || calculatedOrder;
 
       const details = {
         title: rawTitle,
@@ -5830,6 +6087,16 @@
         if (!savedRow || String(savedRow.status || '').trim().toLowerCase() !== mode) {
           throw new Error('Supabase did not confirm the requested journal publication status. Please retry.');
         }
+
+        if (originalId && id !== originalId) {
+          try {
+            await client.from('journal_posts').delete().eq('id', originalId);
+            await client.from('portfolio_drafts').delete().eq('id', originalId);
+          } catch (cleanErr) {
+            console.warn('Old journal slug cleanup notice:', cleanErr);
+          }
+        }
+
         invalidateWebsiteCache();
 
         // 1. Success state right on the clicked button with checkmark
@@ -5978,11 +6245,24 @@
         btn.innerHTML = '<span class="spin-icon">⏳</span> Deleting...';
       }
       try {
-        const { error } = await getSupabase().from('journal_posts').delete().eq('id', id);
+        const client = getSupabase();
+        await requireActiveAdminSession(client);
+
+        const { error } = await client.from('journal_posts').delete().eq('id', id);
         if (error) throw error;
+        await client.from('portfolio_drafts').delete().eq('id', id).catch(() => {});
+
+        state.journal = state.journal.filter(item => item.id !== id);
+        state.journal.forEach((item, index) => {
+          const orderNum = index + 1;
+          item.display_order = orderNum;
+          item.num = String(orderNum).padStart(2, '0');
+        });
+
+        renderJournal();
+        await persistSectionOrder('journal');
         invalidateWebsiteCache();
-        showToast('✓ Journal article deleted successfully.');
-        loadAllData();
+        showToast('✓ Journal article deleted. Remaining articles automatically re-sequenced in systematic order.');
       } catch (err) {
         if (btn) {
           btn.disabled = false;
@@ -6345,6 +6625,8 @@
         const friendly = formatUserFriendlyError(err);
         showToast(`${friendly.badgeIcon} ${friendly.badgeText}`);
         alert(`${friendly.badgeText}\n\nWhy this occurred: ${friendly.cause}\n\nWhat to do: ${friendly.action}`);
+      } finally {
+        try { input.value = ''; } catch (_) { }
       }
     }
 
@@ -6356,10 +6638,12 @@
       const ALLOWED = ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif'];
       if (!ALLOWED.includes(file.type)) {
         alert('Invalid file type. Only JPG, PNG, WebP, AVIF, or GIF images are allowed.');
+        try { input.value = ''; } catch (_) { }
         return;
       }
       if (file.size > 5 * 1024 * 1024) {
         alert('File is too large. Maximum file size is 5 MB.');
+        try { input.value = ''; } catch (_) { }
         return;
       }
 
@@ -6385,6 +6669,8 @@
         const friendly = formatUserFriendlyError(err);
         showToast(`${friendly.badgeIcon} ${friendly.badgeText}`);
         alert(`${friendly.badgeText}\n\nWhy this occurred: ${friendly.cause}\n\nWhat to do: ${friendly.action}`);
+      } finally {
+        try { input.value = ''; } catch (_) { }
       }
     }
 
@@ -6461,11 +6747,14 @@
         alertEl.textContent = '✓ Password updated successfully! Use your new password for your next login.';
 
         showToast('✓ Password updated successfully!');
+        document.getElementById('newPassword').value = '';
+        document.getElementById('confirmNewPassword').value = '';
 
         setTimeout(() => {
           closeModal('changePasswordModal');
           btn.disabled = false;
           btn.textContent = 'Update Password';
+          alertEl.style.display = 'none';
         }, 1800);
       } catch (err) {
         alertEl.className = 'alert-box alert-danger';

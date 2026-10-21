@@ -34,6 +34,8 @@
     href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="stylesheet" href="assets/css/section-builder.css">
+  <script src="assets/js/section-registry.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" defer
     integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a"
     crossorigin="anonymous"></script>
@@ -631,8 +633,11 @@
     </div>
   </nav>
 
-  <!-- ARTICLE HERO -->
-  <div class="art-hero">
+  <!-- DYNAMIC VISUAL BUILDER SECTIONS CONTAINER -->
+  <div id="articleDynamicSectionsContainer" style="display:none;"></div>
+
+  <!-- ARTICLE HERO (LEGACY TEMPLATE) -->
+  <div class="art-hero" id="legacyHeroSection">
     <div class="art-hero-inner">
       <div class="art-eyebrow" id="articleCategory">JOURNAL • DIGITAL MARKETING</div>
       <h1 class="art-h1" id="articleTitle">Loading Article...</h1>
@@ -661,8 +666,8 @@
     </div>
   </div>
 
-  <!-- ARTICLE BODY -->
-  <article class="art-container">
+  <!-- ARTICLE BODY (LEGACY TEMPLATE) -->
+  <article class="art-container" id="legacyBodySection">
 
     <!-- Featured Image -->
     <div class="art-featured-media" id="artMediaWrap">
@@ -773,6 +778,30 @@
       if (ogDesc) ogDesc.content = subtitle || title;
       const ogImage = document.getElementById('ogImage');
       if (ogImage) ogImage.content = img;
+
+      // Check for Dynamic Visual Builder Sections
+      const dynContainer = document.getElementById('articleDynamicSectionsContainer');
+      const legHero = document.getElementById('legacyHeroSection');
+      const legBody = document.getElementById('legacyBodySection');
+
+      if (dynContainer && window.SectionRegistry && Array.isArray(data.sections) && data.sections.length > 0) {
+        dynContainer.innerHTML = data.sections
+          .map((sec, secIdx) => window.SectionRegistry.renderSection(sec, { isPublic: !isPreview, index: secIdx }))
+          .join('');
+        dynContainer.style.display = 'block';
+
+        if (typeof window.SectionRegistry.initInteractive === 'function') {
+          window.SectionRegistry.initInteractive(dynContainer);
+        }
+
+        if (legHero) legHero.style.display = 'none';
+        if (legBody) legBody.style.display = 'none';
+        return;
+      } else {
+        if (dynContainer) dynContainer.style.display = 'none';
+        if (legHero) legHero.style.display = 'block';
+        if (legBody) legBody.style.display = 'block';
+      }
 
       // Hero Elements
       const catEl = document.getElementById('articleCategory');
@@ -927,6 +956,23 @@
         const rows = canPreviewDraft
           ? await (async () => {
             const h = { 'apikey': window.SUPABASE_ANON, 'Authorization': 'Bearer ' + adminAccessToken };
+            // First check if an uncommitted visual draft exists in portfolio_drafts
+            try {
+              const rDraft = await fetch(`${window.SUPABASE_URL}/rest/v1/portfolio_drafts?id=eq.${cleanId}&select=*&limit=1`, { headers: h, cache: 'no-store' });
+              if (rDraft.ok) {
+                const dData = await rDraft.json();
+                if (dData && dData.length > 0) {
+                  const draft = dData[0];
+                  return [{
+                    id: draft.id,
+                    title: draft.name,
+                    sections: draft.sections,
+                    status: 'draft',
+                    ...(draft.listing_data || {})
+                  }];
+                }
+              }
+            } catch (_) { }
             const r = await fetch(`${window.SUPABASE_URL}/rest/v1/journal_posts?id=eq.${cleanId}&select=*&limit=1`, { headers: h, cache: 'no-store' });
             if (r.status === 401 || r.status === 403) throw new Error('PREVIEW_AUTH_REQUIRED');
             return r.ok ? await r.json() : null;

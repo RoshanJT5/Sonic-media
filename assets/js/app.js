@@ -2744,9 +2744,7 @@ async function syncSonicMediaSupabase() {
         // Public numbering follows the compacted published list. This lets the
         // next published project fill an unpublished project's position while
         // preserving the original number and order in the admin/preview view.
-        num: isPreviewMode
-          ? (item.num || String(idx + 1).padStart(2, '0'))
-          : String(idx + 1).padStart(2, '0'),
+        num: String(idx + 1).padStart(2, '0'),
         cat: item.cat,
         name: item.name,
         tags: Array.isArray(item.tags) ? item.tags : [],
@@ -2806,9 +2804,7 @@ async function syncSonicMediaSupabase() {
       }
       return {
         id: item.id,
-        num: isPreviewMode
-          ? (item.num || String(idx + 1).padStart(2, '0'))
-          : String(idx + 1).padStart(2, '0'),
+        num: String(idx + 1).padStart(2, '0'),
         title: item.title,
         cat: item.cat,
         time: item.read_time,

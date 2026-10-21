@@ -33,6 +33,8 @@
     href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="stylesheet" href="assets/css/section-builder.css">
+  <script src="assets/js/section-registry.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" defer
     integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a"
     crossorigin="anonymous"></script>
@@ -538,8 +540,11 @@
     </div>
   </nav>
 
-  <!-- HERO -->
-  <div class="cs-hero">
+  <!-- DYNAMIC VISUAL BUILDER SECTIONS CONTAINER -->
+  <div id="caseDynamicSectionsContainer" style="display:none;"></div>
+
+  <!-- HERO (LEGACY TEMPLATE) -->
+  <div class="cs-hero" id="legacyHeroSection">
     <div class="cs-hero-inner">
       <div class="cs-eyebrow" id="caseCategory">CASE STUDIES • STRATEGY</div>
       <h1 class="cs-h1" id="caseTitle">Loading Case Study...</h1>
@@ -554,8 +559,8 @@
     </div>
   </div>
 
-  <!-- CONTAINER -->
-  <div class="cs-container">
+  <!-- CONTAINER (LEGACY TEMPLATE) -->
+  <div class="cs-container" id="legacyBodySection">
 
     <!-- Gallery / Deliverables Images -->
     <div class="cs-media-grid" id="caseMediaGrid">
@@ -569,8 +574,8 @@
 
   </div>
 
-  <!-- CTA BAND -->
-  <div class="cs-cta-band">
+  <!-- CTA BAND (LEGACY TEMPLATE) -->
+  <div class="cs-cta-band" id="legacyCtaBand">
     <div class="cs-cta-h">Ready To <em>Scale Your Brand?</em></div>
     <p class="cs-cta-p">Let's build your brand's next growth chapter together — strategy, content, performance, and
       technology under one roof.</p>
@@ -652,6 +657,33 @@
       if (ogDesc) ogDesc.content = subtitle || title;
       const ogImage = document.getElementById('ogImage');
       if (ogImage && images[0]?.url) ogImage.content = images[0].url;
+
+      // Check for Dynamic Visual Builder Sections
+      const dynContainer = document.getElementById('caseDynamicSectionsContainer');
+      const legHero = document.getElementById('legacyHeroSection');
+      const legBody = document.getElementById('legacyBodySection');
+      const legCta = document.getElementById('legacyCtaBand');
+
+      if (dynContainer && window.SectionRegistry && Array.isArray(data.sections) && data.sections.length > 0) {
+        dynContainer.innerHTML = data.sections
+          .map((sec, secIdx) => window.SectionRegistry.renderSection(sec, { isPublic: !isPreview, index: secIdx }))
+          .join('');
+        dynContainer.style.display = 'block';
+
+        if (typeof window.SectionRegistry.initInteractive === 'function') {
+          window.SectionRegistry.initInteractive(dynContainer);
+        }
+
+        if (legHero) legHero.style.display = 'none';
+        if (legBody) legBody.style.display = 'none';
+        if (legCta) legCta.style.display = 'none';
+        return;
+      } else {
+        if (dynContainer) dynContainer.style.display = 'none';
+        if (legHero) legHero.style.display = 'block';
+        if (legBody) legBody.style.display = 'block';
+        if (legCta) legCta.style.display = 'block';
+      }
 
       // Hero Elements
       const catEl = document.getElementById('caseCategory');
@@ -799,6 +831,23 @@
         const rows = canPreviewDraft
           ? await (async () => {
             const h = { 'apikey': window.SUPABASE_ANON, 'Authorization': 'Bearer ' + adminAccessToken };
+            // First check if an uncommitted visual draft exists in portfolio_drafts
+            try {
+              const rDraft = await fetch(`${window.SUPABASE_URL}/rest/v1/portfolio_drafts?id=eq.${cleanId}&select=*&limit=1`, { headers: h, cache: 'no-store' });
+              if (rDraft.ok) {
+                const dData = await rDraft.json();
+                if (dData && dData.length > 0) {
+                  const draft = dData[0];
+                  return [{
+                    id: draft.id,
+                    title: draft.name,
+                    sections: draft.sections,
+                    status: 'draft',
+                    ...(draft.listing_data || {})
+                  }];
+                }
+              }
+            } catch (_) { }
             const r = await fetch(`${window.SUPABASE_URL}/rest/v1/case_studies?id=eq.${cleanId}&select=*&limit=1`, { headers: h, cache: 'no-store' });
             if (r.status === 401 || r.status === 403) throw new Error('PREVIEW_AUTH_REQUIRED');
             return r.ok ? await r.json() : null;

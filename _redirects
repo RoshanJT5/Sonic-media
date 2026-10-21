@@ -42,6 +42,8 @@
 /contact               /contact.html       200
 /linktree              /linktree.html      200
 /sonicmediaadmin       /sonicmediaadmin.html 200
+/admin/builder         /admin-builder.html 200
+/admin-builder         /admin-builder.html 200
 /services/:splat       /services/:splat.html 200
 /samples/:splat        /samples/:splat.html 200
 
