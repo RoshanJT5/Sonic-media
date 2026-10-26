@@ -29,7 +29,7 @@ sanjukhatwani99-ux-sonic-media-website-main/
 │   │   └── styles.css              # Main Design System & Responsive Tokens
 │   ├── js/                         # Client Scripts & Dynamic Modules
 │   │   ├── app.js                  # Primary Interactive Behaviors & Navigation
-│   │   ├── sonic-live-cms.js       # Live Supabase CMS Fetching & Dynamic Rendering
+│   │   ├── section-registry.js     # Visual Section Templates & Rendering Engine
 │   │   ├── supabase-rest.js        # Supabase Direct REST API Helper
 │   │   └── service-page-optimizations.js # Scroll, animations & service optimizations
 │   ├── images/                     # Local Brand Images & Fallbacks
@@ -99,7 +99,7 @@ The visual and behavioral foundation of the website:
 - **`assets/css/styles.css`**: Design tokens, color system (Sonic Orange `#FF5C00`, Dark `#080808`), typography, responsive media queries, and global UI components.
 - **`assets/js/`**:
   - `app.js`: Main client interactions, mobile drawer, smooth scroll, form validation.
-  - `sonic-live-cms.js`: Real-time Supabase CMS fetch and DOM hydration for dynamic projects, articles, and reviews.
+  - `section-registry.js`: Visual Builder section templates, responsive layout scaling, and dynamic surface mounting.
   - `supabase-rest.js`: Direct HTTP REST helpers for Supabase communication.
   - `service-page-optimizations.js`: Performance enhancements and scroll observers for service pages.
 - **`assets/images/` & `assets/icons/`**: Local repository asset home for brand marks, favicons, and vector icons.

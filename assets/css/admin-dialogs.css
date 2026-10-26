@@ -18,11 +18,22 @@
   padding: 24px;
   background: rgba(0, 0, 0, 0.76);
   opacity: 0;
-  transition: opacity 160ms ease-out;
+  pointer-events: none;
+  visibility: hidden;
+  transition: opacity 160ms ease-out, visibility 160ms ease-out;
 }
 
 .admin-dialog-overlay.is-open {
   opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+}
+
+.admin-dialog-overlay[hidden],
+.admin-dialog-overlay:not(.is-open) {
+  display: none !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
 }
 
 .admin-dialog {

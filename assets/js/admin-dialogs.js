@@ -30,6 +30,8 @@
     overlay.id = 'adminDialogOverlay';
     overlay.className = 'admin-dialog-overlay';
     overlay.hidden = true;
+    overlay.style.display = 'none';
+    overlay.style.pointerEvents = 'none';
     document.body.appendChild(overlay);
     return overlay;
   }
@@ -40,8 +42,10 @@
     active = null;
     const overlay = ensureHost();
     overlay.classList.remove('is-open');
+    overlay.style.pointerEvents = 'none';
     window.setTimeout(() => {
       overlay.hidden = true;
+      overlay.style.display = 'none';
       overlay.innerHTML = '';
       if (previousFocus && typeof previousFocus.focus === 'function') previousFocus.focus();
       current.resolve(value);
@@ -102,6 +106,8 @@
     confirm.textContent = options.confirmLabel || (isConfirm ? 'Continue' : isPrompt ? 'Apply' : 'Close');
 
     overlay.hidden = false;
+    overlay.style.display = 'grid';
+    overlay.style.pointerEvents = 'auto';
     requestAnimationFrame(() => overlay.classList.add('is-open'));
 
     overlay.querySelectorAll('[data-dialog-action]').forEach(button => {

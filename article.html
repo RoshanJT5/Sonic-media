@@ -34,8 +34,8 @@
     href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="assets/css/styles.css">
-  <link rel="stylesheet" href="assets/css/section-builder.css?v=3.0">
-  <script src="assets/js/section-registry.js?v=3.0"></script>
+  <link rel="stylesheet" href="assets/css/section-builder.css?v=3.3">
+<script src="assets/js/section-registry.js?v=4.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" defer
     integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a"
     crossorigin="anonymous"></script>
@@ -800,28 +800,16 @@
       const catEl = document.getElementById('articleCategory');
       if (catEl) {
         catEl.textContent = `Journal • ${cat}`;
-        catEl.setAttribute('data-cms-editable', 'true');
-        catEl.setAttribute('data-cms-type', 'journal-item');
-        catEl.setAttribute('data-cms-id', currentArticleId);
-        catEl.setAttribute('data-cms-label', '✏️ Edit Article Category');
       }
 
       const titleEl = document.getElementById('articleTitle');
       if (titleEl) {
         titleEl.textContent = title;
-        titleEl.setAttribute('data-cms-editable', 'true');
-        titleEl.setAttribute('data-cms-type', 'journal-item');
-        titleEl.setAttribute('data-cms-id', currentArticleId);
-        titleEl.setAttribute('data-cms-label', '✏️ Edit Article Title');
       }
 
       const subEl = document.getElementById('articleSubtitle');
       if (subEl) {
         subEl.textContent = subtitle;
-        subEl.setAttribute('data-cms-editable', 'true');
-        subEl.setAttribute('data-cms-type', 'journal-item');
-        subEl.setAttribute('data-cms-id', currentArticleId);
-        subEl.setAttribute('data-cms-label', '✏️ Edit Article Subtitle');
       }
 
       const readTimeEl = document.getElementById('articleReadTime');
@@ -835,10 +823,6 @@
       if (imgEl) {
         imgEl.src = img;
         imgEl.alt = title;
-        imgEl.setAttribute('data-cms-editable', 'true');
-        imgEl.setAttribute('data-cms-type', 'journal-item');
-        imgEl.setAttribute('data-cms-id', currentArticleId);
-        imgEl.setAttribute('data-cms-label', '🖼️ Change Article Cover');
       }
 
       const capEl = document.getElementById('articleCaption');
@@ -848,10 +832,6 @@
       const proseEl = document.getElementById('articleProse');
       if (proseEl) {
         proseEl.innerHTML = bodyHtml;
-        proseEl.setAttribute('data-cms-editable', 'true');
-        proseEl.setAttribute('data-cms-type', 'journal-item');
-        proseEl.setAttribute('data-cms-id', currentArticleId);
-        proseEl.setAttribute('data-cms-label', '✏️ Edit Article Body');
       }
 
       // Share URLs

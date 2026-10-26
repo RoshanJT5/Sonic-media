@@ -3,7 +3,7 @@
  * Single Source of Truth for Supabase Connection.
  * 
  * To switch to your live client Supabase account, simply update the
- * URL and ANON_KEY below. All website scripts, the Live CMS, and the
+ * URL and ANON_KEY below. All website scripts, the Visual Builder, and the
  * admin panel will instantly connect to the new project.
  */
 window.SUPABASE_CONFIG = {

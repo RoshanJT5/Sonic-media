@@ -175,6 +175,24 @@ body.builder-mode #mouse-glow {
   padding-right: var(--sec-pr, 24px);
 }
 
+/* True edge-to-edge mode. The runtime already renders every page on the same
+   fixed design surface as the builder, so 100% here means the actual page
+   canvas width (and remains pixel-identical in preview and published output). */
+.sec-block.sec-full-bleed > .sec-inner {
+  width: 100% !important;
+  max-width: none !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Explicit per-section padding remains usable after enabling full bleed. */
+.sec-block.sec-full-bleed[style*="--sec-pl"] > .sec-inner {
+  padding-left: var(--sec-pl) !important;
+}
+.sec-block.sec-full-bleed[style*="--sec-pr"] > .sec-inner {
+  padding-right: var(--sec-pr) !important;
+}
+
 /* Spacing tokens */
 .sec-block.sp-compact { padding: 32px 0; }
 .sec-block.sp-standard { padding: 64px 0; }
@@ -216,6 +234,17 @@ body.builder-mode #mouse-glow {
   margin-bottom: var(--sec-h-mb, revert) !important;
   padding-left: var(--sec-h-pl, 0px) !important;
   padding-right: var(--sec-h-pr, 0px) !important;
+}
+
+.sec-block .wd-h1[style*="font-style:italic"],
+.sec-block .wd-h1[style*="font-style: italic"],
+.sec-block .wd-h1[style*="font-style:italic"] em,
+.sec-block .wd-h1[style*="font-style: italic"] em,
+.sec-block .wd-h1 em[style*="font-style:italic"],
+.sec-block .wd-h1 em[style*="font-style: italic"],
+.sec-block .wd-h1 em [style*="font-style:italic"],
+.sec-block .wd-h1 em [style*="font-style: italic"] {
+  font-style: italic !important;
 }
 
 .sec-block .wd-narrative-card-title,
@@ -418,13 +447,15 @@ body.builder-mode {
 
 /* 1. TOP CONTROL TOOLBAR */
 .builder-topbar {
-  height: 60px;
+  min-height: 68px;
+  height: 68px;
   background: #0D0D0D;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  padding: 0 14px;
+  gap: 16px;
   flex-shrink: 0;
   z-index: 100;
 }
@@ -432,15 +463,18 @@ body.builder-mode {
 .topbar-left {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+  min-width: 0;
+  flex: 0 1 340px;
 }
 
 .topbar-back-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 14px;
-  border-radius: 8px;
+  min-height: 38px;
+  padding: 7px 12px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: rgba(245, 240, 235, 0.8);
@@ -459,6 +493,7 @@ body.builder-mode {
 .topbar-title-wrap {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 .topbar-project-title {
   font-family: 'Syne', sans-serif;
@@ -468,6 +503,13 @@ body.builder-mode {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
+  white-space: nowrap;
+}
+.topbar-project-title > span:first-child {
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .topbar-slug-pill {
   font-family: monospace;
@@ -481,7 +523,8 @@ body.builder-mode {
 .topbar-center {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  flex: 0 0 auto;
 }
 
 /* History Undo/Redo */
@@ -489,14 +532,16 @@ body.builder-mode {
   display: flex;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
+  border-radius: 10px;
   overflow: hidden;
 }
 .history-btn {
   background: transparent;
   border: none;
   color: rgba(245, 240, 235, 0.7);
-  padding: 6px 12px;
+  width: 34px;
+  min-height: 34px;
+  padding: 0;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -517,7 +562,7 @@ body.builder-mode {
   display: flex;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
+  border-radius: 11px;
   padding: 3px;
   gap: 3px;
 }
@@ -525,8 +570,9 @@ body.builder-mode {
   background: transparent;
   border: none;
   color: rgba(245, 240, 235, 0.6);
-  padding: 5px 12px;
-  border-radius: 6px;
+  min-height: 34px;
+  padding: 5px 10px;
+  border-radius: 8px;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -538,13 +584,49 @@ body.builder-mode {
 .device-btn.active {
   background: #FF5C00;
   color: #fff;
-  box-shadow: 0 0 12px rgba(255, 92, 0, 0.4);
+  box-shadow: 0 6px 16px rgba(255, 92, 0, 0.24);
+}
+.device-label {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  white-space: nowrap;
+}
+.device-label small {
+  color: currentColor;
+  font-size: 9px;
+  font-weight: 700;
+  opacity: 0.62;
 }
 
 .topbar-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+.topbar-action-cluster {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+}
+.builder-topbar .topbar-right .btn {
+  min-height: 36px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  white-space: nowrap;
+  box-shadow: none;
+}
+.builder-topbar .topbar-right > .btn:last-child {
+  min-width: 112px;
+  padding-inline: 15px;
+  border-radius: 10px;
+  box-shadow: 0 7px 20px rgba(255, 92, 0, 0.25) !important;
 }
 
 .save-status-badge {
@@ -553,6 +635,9 @@ body.builder-mode {
   display: flex;
   align-items: center;
   gap: 6px;
+  max-width: 112px;
+  padding: 0 7px;
+  line-height: 1.25;
 }
 .save-dot {
   width: 7px;
@@ -562,6 +647,33 @@ body.builder-mode {
 }
 .save-dot.unsaved { background: #F59E0B; }
 .save-dot.saving { background: #3B82F6; animation: pulse 1s infinite; }
+
+@media (max-width: 1660px) {
+  .builder-topbar { gap: 10px; padding-inline: 10px; }
+  .topbar-left { flex-basis: 285px; }
+  .topbar-project-title > span:first-child { max-width: 112px; }
+  .topbar-slug-pill { display: none; }
+  .device-btn { padding-inline: 8px; }
+  .save-status-badge { max-width: 82px; font-size: 10.5px; }
+}
+
+@media (max-width: 1420px) {
+  .topbar-action-label,
+  .save-status-badge > span:last-child,
+  .device-label small { display: none; }
+  .save-status-badge { width: 28px; padding: 0; justify-content: center; }
+  .builder-topbar .topbar-right .btn { width: 36px; padding: 0; justify-content: center; }
+  .builder-topbar .topbar-right .btn svg { margin-right: 0 !important; }
+  .builder-topbar .topbar-right > .btn:last-child { width: auto; min-width: 102px; padding-inline: 13px; }
+}
+
+@media (max-width: 1120px) {
+  .builder-topbar { overflow-x: auto; overflow-y: hidden; }
+  .topbar-left { flex: 0 0 245px; }
+  .topbar-center,
+  .topbar-right { flex-shrink: 0; }
+  .builder-topbar::-webkit-scrollbar { height: 0; }
+}
 
 /* 2. THREE-PANE MAIN WORKSPACE */
 .builder-workspace {
@@ -3357,7 +3469,7 @@ body.builder-mode .canvas-section .sec-cta-btn:hover {
 .sec-block h4:not(.sec-text-col *):not(.sec-content-col *),
 .sec-block h5:not(.sec-text-col *):not(.sec-content-col *),
 .sec-block h6:not(.sec-text-col *):not(.sec-content-col *) {
-  transform: translate3d(var(--sec-h-ox, 0px), var(--sec-h-oy, 0px), 0) !important;
+  transform: translate3d(var(--sec-h-ox, 0px), var(--sec-h-oy, 0px), 0);
 }
 
 .sec-block .sec-text-col,

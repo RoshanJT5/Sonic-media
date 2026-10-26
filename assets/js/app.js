@@ -2724,12 +2724,6 @@ function renderPageData() {
     const ctTagline = document.querySelector('#contact p, .contact-sub');
     if (ctTagline && ct.tagline) ctTagline.textContent = ct.tagline;
   }
-  /* ── LIVE CUSTOM EDITS OVERLAY ── */
-  try {
-    if (typeof applySonicLiveCustomEdits === 'function') {
-      applySonicLiveCustomEdits();
-    }
-  } catch (_) {}
 }
 
 function setEl(id, html) {
@@ -2890,17 +2884,8 @@ async function syncSonicMediaSupabase() {
 
   function applyContentData(siteContentData) {
     if (!Array.isArray(siteContentData) || siteContentData.length === 0) return false;
-    const currentPath = window.location.pathname.replace(/\/+$/, '') || '/';
-    const currentPage = currentPath === '/' ? 'home' : currentPath.replace(/^\//, '').replace(/\.html$/, '').replace(/[^a-z0-9/_-]+/gi, '-').replace(/\//g, '__');
     siteContentData.forEach(item => {
       if (item.key && item.data) {
-        if (item.key === 'live_cms_custom_edits' || item.key.indexOf('live_cms:') === 0) {
-          if (item.key.indexOf('live_cms:') === 0 && item.key !== `live_cms:${currentPage}`) return;
-          if (!window.SONIC_LIVE_CLOUD_EDITS) window.SONIC_LIVE_CLOUD_EDITS = {};
-          const edits = item.data.edits || item.data;
-          Object.assign(window.SONIC_LIVE_CLOUD_EDITS, edits);
-          return;
-        }
         if (PAGE_DATA[item.key]) {
           Object.assign(PAGE_DATA[item.key], item.data);
         } else {
@@ -2927,7 +2912,6 @@ async function syncSonicMediaSupabase() {
         }
         if (cached.content && Array.isArray(cached.content)) applyContentData(cached.content);
         renderPageData();
-        applySonicLiveCustomEdits();
       }
     }
   } catch (e) {
@@ -3012,7 +2996,6 @@ async function syncSonicMediaSupabase() {
         if (data && applyContentData(data)) {
           updateCacheKey('content', data);
           renderPageData();
-          applySonicLiveCustomEdits();
         }
       })
     ];
@@ -3046,124 +3029,10 @@ if (typeof window !== 'undefined') {
   }
 }
 
-// Apply stored visual live customizations if present
-function applySonicLiveCustomEdits() {
-  try {
-    let localEdits = {};
-    const localPath = window.location.pathname.replace(/\/+$/, '') || '/';
-    const localPage = localPath === '/' ? 'home' : localPath.replace(/^\//, '').replace(/\.html$/, '').replace(/[^a-z0-9/_-]+/gi, '-').replace(/\//g, '__');
-    const raw = localStorage.getItem(`tsm_live_custom_edits:${localPage}`) || localStorage.getItem('tsm_live_custom_edits');
-    if (raw) localEdits = JSON.parse(raw);
-    const cloudEdits = window.SONIC_LIVE_CLOUD_EDITS || {};
-    const edits = Object.assign({}, cloudEdits);
-    Object.keys(localEdits).forEach(key => {
-      const localItem = localEdits[key];
-      const cloudItem = cloudEdits[key];
-      const localTime = new Date(localItem?.updated_at || localItem?.timestamp || 0).getTime() || 0;
-      const cloudTime = new Date(cloudItem?.updated_at || cloudItem?.timestamp || 0).getTime() || 0;
-      if (!cloudItem || localTime >= cloudTime) edits[key] = localItem;
-    });
-    Object.keys(edits).forEach(key => {
-      const rawItem = edits[key];
-      const item = rawItem && typeof rawItem === 'object' ? rawItem : { type: 'text', val: rawItem };
-      if (!item) return;
-      try {
-        let el = null;
-        try { el = document.querySelector(key); } catch (_) {}
-        if (!el) {
-          try { el = document.querySelector(`[data-cms-key="${CSS.escape(key)}"]`); } catch (_) {}
-        }
-        if (!el) {
-          try { el = document.querySelector(`[data-cms-key="${key}"]`); } catch (_) {}
-        }
-        if (el) {
-          if (item.type === 'image' && item.val) {
-            el.src = item.val;
-          } else if (item.val) {
-            el.innerHTML = item.val;
-          }
-        }
-      } catch (_) {}
-    });
-  } catch (_) {}
-}
-
-// Automatically load Sonic Live CMS engine for admins or on edit request / Ctrl+Shift+E shortcut
-(function loadSonicLiveCms() {
-  function injectCmsScript(autoOpen = false) {
-    if (document.getElementById('sonic-cms-script')) {
-      if (autoOpen && window._sonicCmsToggleMode && !document.body.classList.contains('sonic-cms-active')) {
-        window._sonicCmsToggleMode();
-      }
-      return;
-    }
-    const isServices = window.location.pathname.includes('/services/');
-    const assetBase = isServices ? '../' : '';
-
-    if (!document.getElementById('admin-dialog-styles')) {
-      const dialogStyles = document.createElement('link');
-      dialogStyles.id = 'admin-dialog-styles';
-      dialogStyles.rel = 'stylesheet';
-      dialogStyles.href = assetBase + 'assets/css/admin-dialogs.css?v=1';
-      document.head.appendChild(dialogStyles);
-    }
-
-    const loadCmsEngine = () => {
-      if (document.getElementById('sonic-cms-script')) return;
-      const script = document.createElement('script');
-      script.id = 'sonic-cms-script';
-      script.src = assetBase + 'assets/js/sonic-live-cms.js';
-      script.defer = true;
-      if (autoOpen) script.onload = () => {
-        if (window._sonicCmsToggleMode && !document.body.classList.contains('sonic-cms-active')) {
-          window._sonicCmsToggleMode();
-        }
-      };
-      document.body.appendChild(script);
-    };
-
-    if (window.AdminDialog) {
-      loadCmsEngine();
-      return;
-    }
-
-    let dialogScript = document.getElementById('admin-dialog-script');
-    if (!dialogScript) {
-      dialogScript = document.createElement('script');
-      dialogScript.id = 'admin-dialog-script';
-      dialogScript.src = assetBase + 'assets/js/admin-dialogs.js?v=1';
-      dialogScript.defer = true;
-      document.body.appendChild(dialogScript);
-    }
-    dialogScript.addEventListener('load', loadCmsEngine, { once: true });
-  }
-
-  const hasAdminSession = !!(window.sessionStorage?.getItem('sonicmedia_admin_session') || window.localStorage?.getItem('sonicmedia_admin_session'));
-  const wantsEdit = window.location.search.includes('live_edit') || window.location.search.includes('edit=') || window.location.search.includes('cms=');
-  const isCmsActive = window.sessionStorage?.getItem('sonic_cms_active') === 'true';
-
-  if (hasAdminSession || wantsEdit || isCmsActive) {
-    injectCmsScript();
-  }
-
-  // Global activation shortcut: Ctrl+Shift+E or Cmd+Shift+E
-  window.addEventListener('keydown', function (e) {
-    if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'E' || e.key === 'e')) {
-      e.preventDefault();
-      try {
-        window.sessionStorage.setItem('sonic_cms_active', 'true');
-        window.sessionStorage.removeItem('sonic_cms_disabled');
-      } catch (_) {}
-      injectCmsScript(true);
-    }
-  });
-})();
-
 // ── Resilient Application Bootstrapper ──
 // Runs immediately if DOM is already ready, or listens for DOMContentLoaded
 function bootSonicApp() {
   renderPageData();
-  applySonicLiveCustomEdits();
   syncSonicMediaSupabase();
   initSonicRealtimeSync();
   if (typeof buildFutureVisionSplit === 'function' && document.getElementById('futureSplitSection')) {

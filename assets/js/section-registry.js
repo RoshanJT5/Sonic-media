@@ -54,9 +54,61 @@
     return s;
   }
 
+  const BUILDER_CHROME_SELECTOR = [
+    '.element-action-bar', '.element-resize-handle', '.canvas-resize-handle',
+    '.canvas-img-resize-handle', '.canvas-section-header-bar', '.canvas-section-badge',
+    '.canvas-reposition-handle', '.canvas-reposition-reset-btn',
+    '.element-reposition-drag-handle', '.element-reposition-handle',
+    '[data-builder-ui="true"]'
+  ].join(',');
+
+  function stripBuilderChromeFromHtml(html) {
+    if (!html || typeof html !== 'string') return html || '';
+    let source = html.replace(/style="font-family:\s*"([^"]+)"\s*;?([^"]*)"/gi, function (_m, family, rest) {
+      return `style="font-family:${family};${rest || ''}"`;
+    });
+
+    if (!((source.includes('<') && source.includes('>')) || (source.includes('&lt;') && source.includes('&gt;')))) {
+      return source;
+    }
+
+    if (global.document && typeof global.document.createElement === 'function') {
+      const template = global.document.createElement('template');
+      template.innerHTML = source;
+      template.content.querySelectorAll(BUILDER_CHROME_SELECTOR).forEach(node => node.remove());
+      template.content.querySelectorAll('*').forEach(node => {
+        node.removeAttribute('contenteditable');
+        node.removeAttribute('spellcheck');
+        node.removeAttribute('data-sec-id');
+        node.removeAttribute('data-el-key');
+        node.removeAttribute('data-el-label');
+        node.classList.remove('canvas-live-editable', 'element-active-selected', 'has-element-box', 'has-reposition-handle', 'element-has-active-child');
+        if (!node.getAttribute('class')) node.removeAttribute('class');
+      });
+      return template.innerHTML;
+    }
+
+    return source
+      .replace(/<(?:div|span|button)[^>]*class=["'][^"']*(?:element-action-bar|element-resize-handle|canvas-resize-handle|canvas-img-resize-handle|canvas-section-header-bar|canvas-section-badge|canvas-reposition-handle|element-reposition-(?:drag-)?handle)[^"']*["'][^>]*>[\s\S]*?<\/(?:div|span|button)>/gi, '')
+      .replace(/\s(?:contenteditable|spellcheck|data-sec-id|data-el-key|data-el-label)=["'][^"']*["']/gi, '');
+  }
+
+  function cleanPersistedContentValue(value) {
+    if (typeof value === 'string') return stripBuilderChromeFromHtml(value);
+    if (Array.isArray(value)) return value.map(cleanPersistedContentValue);
+    if (value && typeof value === 'object') {
+      Object.keys(value).forEach(key => {
+        value[key] = cleanPersistedContentValue(value[key]);
+      });
+    }
+    return value;
+  }
+
   function sanitizeRichText(html) {
     if (!html) return '';
-    var processed = repairEscapedFormatting(decodePreEscapedEntities(html));
+    const quoteToken = '__SONIC_HTML_QUOTE__';
+    const protectedHtml = stripBuilderChromeFromHtml(String(html)).replace(/&amp;quot;|&quot;/gi, quoteToken);
+    var processed = repairEscapedFormatting(decodePreEscapedEntities(protectedHtml)).replace(new RegExp(quoteToken, 'g'), '&quot;');
     if (typeof global.DOMPurify !== 'undefined') {
       return global.DOMPurify.sanitize(processed, {
         ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'b', 'strong', 'i', 'em', 'u', 'a', 'ul', 'ol', 'li', 'blockquote', 'span', 'br', 'hr', 'code', 'mark', 'small', 'sub', 'sup', 'font'],
@@ -74,11 +126,31 @@
   function renderFormattedText(text) {
     if (!text) return '';
     if (typeof text !== 'string') return String(text);
-    var processed = decodePreEscapedEntities(repairEscapedFormatting(text));
-    if (processed.includes('<') && processed.includes('>')) {
-      return sanitizeRichText(processed);
+    if ((text.includes('<') && text.includes('>')) || (text.includes('&lt;') && text.includes('&gt;'))) {
+      return sanitizeRichText(text);
     }
+    var processed = decodePreEscapedEntities(repairEscapedFormatting(text));
     return escapeHtml(processed);
+  }
+
+  function resolveFontFamily(val, defaultFallback = "'Syne', sans-serif") {
+    if (!val || val === 'inherit' || val === 'default') return defaultFallback;
+    const clean = String(val).replace(/["']/g, '').trim();
+    const lower = clean.toLowerCase();
+    if (lower.includes('bebas')) return "'Bebas Neue', sans-serif";
+    if (lower.includes('dm sans')) return "'DM Sans', sans-serif";
+    if (lower.includes('plus jakarta')) return "'Plus Jakarta Sans', sans-serif";
+    if (lower.includes('outfit')) return "'Outfit', sans-serif";
+    if (lower.includes('space grotesk')) return "'Space Grotesk', sans-serif";
+    if (lower.includes('playfair')) return "'Playfair Display', serif";
+    if (lower.includes('garamond')) return "'Cormorant Garamond', serif";
+    if (lower.includes('cinzel')) return "'Cinzel', serif";
+    if (lower.includes('inter')) return "'Inter', sans-serif";
+    if (lower.includes('monospace')) return "monospace";
+    if (lower.includes('system-ui')) return "system-ui, -apple-system, sans-serif";
+    if (lower.includes('syne')) return "'Syne', sans-serif";
+    if (val.includes(',') || val.includes("'")) return val;
+    return `'${clean}', sans-serif`;
   }
 
   function generateId(prefix) {
@@ -102,7 +174,7 @@
     return match[1] + (match[2] || fallbackUnit);
   }
 
-  const BUILDER_SCHEMA_VERSION = 3;
+  const BUILDER_SCHEMA_VERSION = 4;
 
   function normalizeBuilderNode(node, sectionId, index) {
     const source = node && typeof node === 'object' ? node : {};
@@ -120,6 +192,7 @@
   function attachLegacyNodeAlias(section) {
     if (!section || typeof section !== 'object') return section;
     section.settings = section.settings && typeof section.settings === 'object' ? section.settings : {};
+    section.content = cleanPersistedContentValue(section.content && typeof section.content === 'object' ? section.content : {});
     section.nodes = Array.isArray(section.nodes) ? section.nodes : [];
     try {
       Object.defineProperty(section.settings, 'customContainers', {
@@ -148,7 +221,11 @@
     const legacyNodes = Array.isArray(section.nodes)
       ? section.nodes
       : (Array.isArray(section.settings.customContainers) ? section.settings.customContainers : []);
-    section.nodes = legacyNodes.map((node, index) => normalizeBuilderNode(node, section.id, index));
+    section.nodes = legacyNodes.map((node, index) => {
+      const normalized = normalizeBuilderNode(node, section.id, index);
+      if (normalized.content) normalized.content = cleanPersistedContentValue(normalized.content);
+      return normalized;
+    });
 
     const hasFreeformGeometry = section.nodes.some(node =>
       parseFloat(node.offsetX || 0) !== 0 || parseFloat(node.offsetY || 0) !== 0
@@ -600,9 +677,9 @@
       const overlay = showOverlay ? (s.bgOverlay !== undefined && s.bgOverlay !== '' ? parseFloat(s.bgOverlay) : 0.75) : 0;
       
       if (overlay > 0) {
-        styleParts.push(`background-image:linear-gradient(rgba(8,8,8,${overlay}), rgba(8,8,8,${overlay})), url('${escapeHtml(s.bgImage)}');background-size:cover;background-position:center`);
+        styleParts.push(`background-image:linear-gradient(rgba(8,8,8,${overlay}), rgba(8,8,8,${overlay})), url('${escapeHtml(s.bgImage)}');background-size:cover;background-position:${escapeHtml(s.bgPosition || 'center center')}`);
       } else {
-        styleParts.push(`background-image:url('${escapeHtml(s.bgImage)}');background-size:cover;background-position:center`);
+        styleParts.push(`background-image:url('${escapeHtml(s.bgImage)}');background-size:cover;background-position:${escapeHtml(s.bgPosition || 'center center')}`);
       }
     }
 
@@ -732,10 +809,12 @@
     // Custom Width (supports canvas drag resize handle & sidebar inputs)
     const normalizedCustomWidth = normalizeCssDimension(s.customWidth);
     const customWVal = normalizedCustomWidth ? parseFloat(normalizedCustomWidth) : null;
-    const maxW = customWVal ? normalizedCustomWidth :
-                 (s.containerWidth === 'full' ? '100%' : 
-                 (s.containerWidth === 'wide' ? '1400px' : 
-                 (s.containerWidth === 'narrow' ? '800px' : '1200px')));
+    const isFullBleed = s.containerWidth === 'bleed';
+    const maxW = isFullBleed ? '100%' :
+                 (customWVal ? normalizedCustomWidth :
+                 (s.containerWidth === 'full' ? '100%' :
+                 (s.containerWidth === 'wide' ? '1400px' :
+                 (s.containerWidth === 'narrow' ? '800px' : '1200px'))));
 
     // Container Horizontal Alignment (inside section)
     const containerAlign = s.containerAlign || 'center';
@@ -744,7 +823,7 @@
     else if (containerAlign === 'right') containerMargin = 'margin:0 0 0 auto';
 
     const innerStyleParts = [`max-width:${maxW}`, containerMargin, 'width:100%'];
-    if (s.containerWidth === 'full') {
+    if (s.containerWidth === 'full' || isFullBleed) {
       if (s.paddingLeft === undefined || s.paddingLeft === '') innerStyleParts.push('padding-left:0 !important');
       if (s.paddingRight === undefined || s.paddingRight === '') innerStyleParts.push('padding-right:0 !important');
     }
@@ -780,7 +859,7 @@
     // Responsive Hybrid Row Flow & Side-by-Side Sizing
     const hasCustomWidth = !!normalizedCustomWidth && normalizedCustomWidth !== '100%' &&
                            (normalizedCustomWidth.endsWith('%') || (customWVal > 0 && customWVal < 1400));
-    const isRowFlow = s.rowFlow === true || hasCustomWidth;
+    const isRowFlow = !isFullBleed && (s.rowFlow === true || hasCustomWidth);
     const rowFlowClass = isRowFlow ? 'has-row-flow' : '';
 
     if (isRowFlow) {
@@ -795,7 +874,7 @@
     const customStyleStr = styleParts.length ? `style="${styleParts.join(';')}"` : '';
 
     return `
-      <section class="sec-block ${spacingClass} ${extraClasses} ${containersOnlyClass} ${rowFlowClass} ${visibilityClass}" ${animAttr} ${customStyleStr} data-section-id="${section.id}">
+      <section class="sec-block ${isFullBleed ? 'sec-full-bleed' : ''} ${spacingClass} ${extraClasses} ${containersOnlyClass} ${rowFlowClass} ${visibilityClass}" ${animAttr} ${customStyleStr} data-section-id="${section.id}">
         ${responsiveStyleBlock}
         <div class="sec-inner" style="${innerStyleParts.join(';')}">
           ${actualInnerHtml}
@@ -826,6 +905,24 @@
       const oy = parseInt(c.offsetY || 0);
       const rot = parseInt(c.rotation || 0);
 
+      // Typography edited on a custom container must reach its real text
+      // children. The children carry template defaults inline, so relying on
+      // CSS inheritance would make the edit appear in the builder and then
+      // disappear in Live Preview/New Tab.
+      const customTextStyle = [
+        c.fontFamily ? `font-family:${escapeHtml(String(c.fontFamily).replace(/["']/g, ''))}` : '',
+        c.fontSize ? `font-size:${escapeHtml(c.fontSize)}` : '',
+        c.fontWeight ? `font-weight:${escapeHtml(c.fontWeight)}` : '',
+        c.fontStyle ? `font-style:${escapeHtml(c.fontStyle)}` : '',
+        c.textDecoration ? `text-decoration:${escapeHtml(c.textDecoration)}` : '',
+        c.textAlign ? `text-align:${escapeHtml(c.textAlign)}` : '',
+        c.textTransform ? `text-transform:${escapeHtml(c.textTransform)}` : '',
+        c.letterSpacing ? `letter-spacing:${escapeHtml(c.letterSpacing)}` : '',
+        c.lineHeight ? `line-height:${escapeHtml(c.lineHeight)}` : '',
+        c.color ? `color:${escapeHtml(c.color)}` : ''
+      ].filter(Boolean).join(';');
+      const customTextSuffix = customTextStyle ? `;${customTextStyle}` : '';
+
       const transformParts = [];
       if (ox !== 0 || oy !== 0) transformParts.push(`translate3d(${ox}px, ${oy}px, 0)`);
       const transformStyle = transformParts.length > 0 ? `transform:${transformParts.join(' ')};` : '';
@@ -835,7 +932,7 @@
         if (c.imageUrl) {
           innerContent = `
             <div class="custom-image-wrapper" style="width:100%;height:100%;overflow:hidden;border-radius:inherit;display:flex;align-items:center;justify-content:center;position:relative;">
-              <img src="${escapeHtml(c.imageUrl)}" alt="${escapeHtml(c.alt || 'Custom Image')}" style="width:100%;height:100%;object-fit:${escapeHtml(c.objectFit || 'cover')};transform:rotate(${rot}deg);display:block;border-radius:inherit;pointer-events:none;transition:transform 0.25s cubic-bezier(0.16,1,0.3,1);">
+              <img src="${escapeHtml(c.imageUrl)}" alt="${escapeHtml(c.alt || 'Custom Image')}" style="width:100%;height:100%;object-fit:${escapeHtml(c.objectFit || 'cover')};object-position:${escapeHtml(c.objectPosition || '50% 50%')};transform:rotate(${rot}deg);display:block;border-radius:inherit;pointer-events:none;transition:transform 0.25s cubic-bezier(0.16,1,0.3,1);">
               <div class="custom-image-drop-overlay" style="position:absolute;inset:0;background:rgba(255,92,0,0.25);display:none;align-items:center;justify-content:center;border-radius:inherit;border:2px dashed #FF5C00;z-index:2;pointer-events:none;">
                 <span style="background:#111;color:#FF5C00;font-weight:700;font-size:13px;padding:6px 16px;border-radius:20px;border:1px solid #FF5C00;box-shadow:0 4px 15px rgba(0,0,0,0.5);">Drop to Replace Photo</span>
               </div>
@@ -866,8 +963,8 @@
         const p = (c.content && c.content.text !== undefined) ? c.content.text : 'Click here to write custom description...';
         innerContent = `
           <div class="custom-text-wrapper" style="padding:28px 24px;width:100%;box-sizing:border-box;">
-            <h3 class="canvas-live-editable" contenteditable="true" data-ccont-id="${cId}" data-field="heading" style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#F5F0EB;margin:0 0 10px;line-height:1.2;">${renderFormattedText(h)}</h3>
-            <p class="canvas-live-editable" contenteditable="true" data-ccont-id="${cId}" data-field="text" style="font-size:15px;line-height:1.6;color:rgba(245,240,235,0.7);margin:0;">${renderFormattedText(p)}</p>
+            <h3 class="canvas-live-editable" contenteditable="true" data-ccont-id="${cId}" data-field="heading" style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#F5F0EB;margin:0 0 10px;line-height:1.2${customTextSuffix};">${renderFormattedText(h)}</h3>
+            <p class="canvas-live-editable" contenteditable="true" data-ccont-id="${cId}" data-field="text" style="font-size:15px;line-height:1.6;color:rgba(245,240,235,0.7);margin:0${customTextSuffix};">${renderFormattedText(p)}</p>
           </div>
         `;
       } else if (cType === 'button') {
@@ -875,15 +972,15 @@
         const bUrl = (c.content && c.content.buttonUrl) ? c.content.buttonUrl : '#';
         innerContent = `
           <div style="display:flex;align-items:center;justify-content:center;padding:16px 20px;width:100%;box-sizing:border-box;">
-            <a href="${escapeHtml(bUrl)}" class="custom-sec-btn btn-hover-lift" style="background:#FF5C00;color:#FFFFFF;padding:12px 28px;border-radius:50px;font-weight:700;display:inline-block;text-decoration:none;box-shadow:0 4px 18px rgba(255,92,0,0.35);">${escapeHtml(bText)}</a>
+            <a href="${escapeHtml(bUrl)}" class="custom-sec-btn btn-hover-lift" style="background:#FF5C00;color:#FFFFFF;padding:12px 28px;border-radius:50px;font-weight:700;display:inline-block;text-decoration:none;box-shadow:0 4px 18px rgba(255,92,0,0.35)${customTextSuffix};">${escapeHtml(bText)}</a>
           </div>
         `;
       } else {
         // card / box
         innerContent = `
           <div style="padding:28px;width:100%;box-sizing:border-box;">
-            <h4 class="canvas-live-editable" contenteditable="true" data-ccont-id="${cId}" data-field="heading" style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:#F5F0EB;margin:0 0 8px;">Custom Card Box</h4>
-            <p class="canvas-live-editable" contenteditable="true" data-ccont-id="${cId}" data-field="text" style="font-size:14px;line-height:1.6;color:rgba(245,240,235,0.65);margin:0;">Customize this card with your own text or media elements.</p>
+            <h4 class="canvas-live-editable" contenteditable="true" data-ccont-id="${cId}" data-field="heading" style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:#F5F0EB;margin:0 0 8px${customTextSuffix};">${renderFormattedText(c.content && c.content.heading !== undefined ? c.content.heading : 'Custom Card Box')}</h4>
+            <p class="canvas-live-editable" contenteditable="true" data-ccont-id="${cId}" data-field="text" style="font-size:14px;line-height:1.6;color:rgba(245,240,235,0.65);margin:0${customTextSuffix};">${renderFormattedText(c.content && c.content.text !== undefined ? c.content.text : 'Customize this card with your own text or media elements.')}</p>
           </div>
         `;
       }
@@ -1102,17 +1199,34 @@
     render(section, opts) {
       const c = section.content || {};
       const s = section.settings || {};
+      const elSt = (s.elementStyles && (s.elementStyles.heading || s.elementStyles['heading-0'])) || {};
       const tag = ['h1', 'h2', 'h3', 'h4', 'h5'].includes(c.tag) ? c.tag : 'h2';
-      const align = s.alignment || 'left';
-      const font = s.fontFamily === 'Bebas Neue' ? "'Bebas Neue', sans-serif" : (s.fontFamily === 'DM Sans' ? "'DM Sans', sans-serif" : "'Syne', sans-serif");
-      const fSize = s.fontSize ? `${parseInt(s.fontSize)}px` : '36px';
-      const color = s.color || '#F5F0EB';
-      const ls = s.letterSpacing ? `${s.letterSpacing}px` : '-0.5px';
-      const lh = s.lineHeight || '1.2';
+      const align = elSt.textAlign || s.alignment || 'left';
+      const rawFont = elSt.fontFamily || s.fontFamily || 'Syne';
+      const font = resolveFontFamily(rawFont, "'Syne', sans-serif");
+      const fontStyle = elSt.fontStyle || s.fontStyle || 'normal';
+      const fontWeight = elSt.fontWeight || s.fontWeight || '';
+      const fSize = elSt.fontSize ? elSt.fontSize : (s.fontSize ? `${parseInt(s.fontSize)}px` : '36px');
+      const color = elSt.color || s.color || '#F5F0EB';
+      const ls = elSt.letterSpacing ? elSt.letterSpacing : (s.letterSpacing ? `${s.letterSpacing}px` : '-0.5px');
+      const lh = elSt.lineHeight || s.lineHeight || '1.2';
+      const textDeco = elSt.textDecoration || '';
+
+      const headingStyles = [
+        `font-family:${font} !important`,
+        `font-size:${fSize}`,
+        `color:${color}`,
+        `letter-spacing:${ls}`,
+        `line-height:${lh}`,
+        `font-style:${fontStyle} !important`,
+        fontWeight ? `font-weight:${fontWeight} !important` : '',
+        textDeco ? `text-decoration:${textDeco}` : '',
+        'margin:0'
+      ].filter(Boolean).join(';');
 
       const inner = `
         <div style="text-align:${align};">
-          <${tag} class="sec-heading-custom" style="font-family:${font};font-size:${fSize};color:${color};letter-spacing:${ls};line-height:${lh};margin:0;">
+          <${tag} class="sec-heading-custom" style="${headingStyles}">
             ${renderFormattedText(c.text || '')}
           </${tag}>
           ${c.subtitle ? `<div style="font-size:15px;color:rgba(245,240,235,0.6);margin-top:10px;">${renderFormattedText(c.subtitle)}</div>` : ''}
@@ -1185,12 +1299,17 @@
     render(section, opts) {
       const c = section.content || {};
       const s = section.settings || {};
-      const fSize = s.fontSize ? `${parseInt(s.fontSize)}px` : '22px';
+      const elSt = (s.elementStyles && (s.elementStyles.heading || s.elementStyles.text || s.elementStyles['heading-0'])) || {};
+      const rawFont = elSt.fontFamily || s.fontFamily || '';
+      const quoteFont = resolveFontFamily(rawFont, "'Syne', sans-serif");
+      const quoteFontStyle = elSt.fontStyle || s.fontStyle || 'normal';
+      const quoteFontWeight = elSt.fontWeight || s.fontWeight || '600';
+      const fSize = elSt.fontSize || (s.fontSize ? `${parseInt(s.fontSize)}px` : '22px');
 
       const inner = `
         <div style="max-width:880px;margin:0 auto;">
           <div class="sec-quote-box ${s.cardStyle ? 'wd-full-card' : ''}" style="border-left:4px solid #FF5C00;padding:32px 36px;${s.cardStyle ? '' : 'background:transparent;'}">
-            <blockquote style="font-family:'Syne',sans-serif;font-size:${fSize};font-weight:600;line-height:1.45;color:#F5F0EB;margin:0 0 16px;">
+            <blockquote style="font-family:${quoteFont};font-style:${quoteFontStyle};font-size:${fSize};font-weight:${quoteFontWeight};line-height:1.45;color:#F5F0EB;margin:0 0 16px;">
               ${renderFormattedText(c.quote || '')}
             </blockquote>
             <div style="display:flex;align-items:center;gap:12px;">
@@ -1328,7 +1447,8 @@
     render(section, opts) {
       const c = section.content || {};
       const s = section.settings || {};
-      const align = s.alignment || 'center';
+      const elSt = (s.elementStyles && (s.elementStyles.heading || s.elementStyles['heading-0'])) || {};
+      const align = elSt.textAlign || s.alignment || 'center';
       const textAnim = s.textAnimation || c.textAnimation || 'slide-up';
       const animAttr = (textAnim && textAnim !== 'none') ? `data-text-anim="${escapeHtml(textAnim)}"` : '';
       
@@ -1347,11 +1467,28 @@
         }
       }
 
+      const rawFont = elSt.fontFamily || s.fontFamily || '';
+      const h1Font = rawFont ? resolveFontFamily(rawFont, "'Bebas Neue', sans-serif") : '';
+      const h1FontStyle = elSt.fontStyle || s.fontStyle || '';
+      const h1FontWeight = elSt.fontWeight || s.fontWeight || '';
+      const h1FontSize = elSt.fontSize || s.fontSize || '';
+      const h1Color = elSt.color || s.color || '';
+      const h1TextDeco = elSt.textDecoration || '';
+
+      const h1StyleParts = ['--anim-delay: 0.22s;'];
+      if (h1Font) h1StyleParts.push(`font-family:${h1Font} !important;`);
+      if (h1FontStyle) h1StyleParts.push(`font-style:${h1FontStyle} !important;`);
+      if (h1FontWeight) h1StyleParts.push(`font-weight:${h1FontWeight} !important;`);
+      if (h1FontSize) h1StyleParts.push(`font-size:${h1FontSize} !important;`);
+      if (h1Color) h1StyleParts.push(`color:${h1Color} !important;`);
+      if (h1TextDeco) h1StyleParts.push(`text-decoration:${h1TextDeco} !important;`);
+      const h1StyleAttr = h1StyleParts.join('');
+
       const heroBtnHtml = renderSectionButtonGroup(section, s.buttonAlign || align || 'center');
 
       const inner = `
         ${c.eyebrow ? `<div class="wd-eyebrow" ${animAttr} style="--anim-delay: 0.08s;">${renderFormattedText(c.eyebrow)}</div>` : ''}
-        <h1 class="wd-h1" ${animAttr} style="--anim-delay: 0.22s;">${titleHtml}</h1>
+        <h1 class="wd-h1" ${animAttr} style="${h1StyleAttr}">${titleHtml}</h1>
         ${c.subtitle ? `<p class="wd-sub" ${animAttr} style="--anim-delay: 0.38s;">${renderFormattedText(c.subtitle)}</p>` : ''}
         ${heroBtnHtml}
       `;
@@ -1718,7 +1855,7 @@
 
       let slideFlex = '0 0 100%';
       let slideMaxW = '100%';
-      let slideRadius = (s.containerWidth === 'full' && (s.imageBorderRadius === undefined || s.imageBorderRadius === '')) ? '0px' : (s.imageBorderRadius ? parseInt(s.imageBorderRadius) + 'px' : '14px');
+      let slideRadius = ((s.containerWidth === 'full' || s.containerWidth === 'bleed') && (s.imageBorderRadius === undefined || s.imageBorderRadius === '')) ? '0px' : (s.imageBorderRadius ? parseInt(s.imageBorderRadius) + 'px' : '14px');
 
       if (isTwoSlide) {
         slideFlex = '0 0 calc(50% - 10px)';
@@ -1814,6 +1951,7 @@
         <div class="sec-carousel-container" data-builder-layer="internal"
              data-carousel="true" 
              data-autoplay="${runtimeAutoplay ? 'true' : 'false'}"
+             data-continuous-loop="true"
              data-interval="${Math.round(speedSec * 1000)}" 
              data-pause-hover="${pauseOnHover ? 'true' : 'false'}">
           ${c.heading ? `<h3 class="sec-heading" style="margin-bottom:20px;text-align:center;">${renderFormattedText(c.heading)}</h3>` : ''}
@@ -1876,13 +2014,15 @@
           ${c.heading ? `<h3 class="sec-heading" style="margin-bottom:20px;text-align:center;">${renderFormattedText(c.heading)}</h3>` : ''}
           <div class="sec-ba-container" style="position:relative;width:100%;${hasCustomH ? `height:${customH}px;padding-top:0;` : 'padding-top:56.25%;'}border-radius:16px;overflow:hidden;background:#121212;box-shadow:0 12px 40px rgba(0,0,0,0.8);--pos:50%;">
             <!-- After Image (Background) -->
-            <img src="${escapeHtml(c.afterUrl || '')}" alt="${escapeHtml(c.afterLabel || 'After')}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" loading="lazy">
+            <div class="sec-ba-image-frame" data-el-key="after-image" style="position:absolute;inset:0;width:100%;height:100%;overflow:hidden;">
+              <img src="${escapeHtml(c.afterUrl || '')}" alt="${escapeHtml(c.afterLabel || 'After')}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">
+            </div>
             <span class="sec-ba-badge badge-after" style="position:absolute;bottom:14px;right:14px;background:rgba(0,0,0,0.7);color:#10B981;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;border:1px solid rgba(16,185,129,0.4);pointer-events:none;">
               ${escapeHtml(c.afterLabel || 'AFTER')}
             </span>
 
             <!-- Before Image (Clipped Overlay) -->
-            <div style="position:absolute;inset:0;width:100%;height:100%;overflow:hidden;clip-path:polygon(0 0, var(--pos, 50%) 0, var(--pos, 50%) 100%, 0 100%);">
+            <div class="sec-ba-image-frame" data-el-key="before-image" style="position:absolute;inset:0;width:100%;height:100%;overflow:hidden;clip-path:polygon(0 0, var(--pos, 50%) 0, var(--pos, 50%) 100%, 0 100%);">
               <img src="${escapeHtml(c.beforeUrl || '')}" alt="${escapeHtml(c.beforeLabel || 'Before')}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">
               <span class="sec-ba-badge badge-before" style="position:absolute;bottom:14px;left:14px;background:rgba(0,0,0,0.7);color:#FF5C00;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,92,0,0.4);pointer-events:none;">
                 ${escapeHtml(c.beforeLabel || 'BEFORE')}
@@ -2252,9 +2392,9 @@
         <div class="wd-narrative-card" data-el-key="card-${idx}" style="transform:translate3d(var(--el-card-${idx}-ox, 0px), var(--el-card-${idx}-oy, 0px), 0);min-width:0;">
           <div class="wd-narrative-card-header">
             <span class="wd-narrative-card-icon">${iconSvgs[card.icon] || iconSvgs.building}</span>
-            <span class="wd-narrative-card-title">${escapeHtml(card.title || '')}</span>
+            <span class="wd-narrative-card-title">${renderFormattedText(card.title || '')}</span>
           </div>
-          <p class="wd-narrative-card-body">${escapeHtml(card.body || '')}</p>
+          <p class="wd-narrative-card-body">${renderFormattedText(card.body || '')}</p>
         </div>
       `).join('');
 
@@ -2374,8 +2514,8 @@
 
       const cardsHtml = cards.map(cd => `
         <div class="wd-full-card sec-hover-card" style="padding:32px;display:flex;flex-direction:column;min-width:0;">
-          <h4 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:#F5F0EB;margin:0 0 10px;">${escapeHtml(cd.title || '')}</h4>
-          <p style="font-size:13.5px;line-height:1.6;color:rgba(245,240,235,0.7);margin:0 0 16px;flex:1;">${escapeHtml(cd.desc || '')}</p>
+          <h4 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:#F5F0EB;margin:0 0 10px;">${renderFormattedText(cd.title || '')}</h4>
+          <p style="font-size:13.5px;line-height:1.6;color:rgba(245,240,235,0.7);margin:0 0 16px;flex:1;">${renderFormattedText(cd.desc || '')}</p>
           ${cd.link ? `<a href="${escapeHtml(cd.link)}" style="color:#FF5C00;font-size:12px;font-weight:700;text-decoration:none;">Learn More →</a>` : ''}
         </div>
       `).join('');
@@ -2420,7 +2560,7 @@
               “${escapeHtml(c.quote || '')}”
             </p>
             <div style="display:flex;align-items:center;gap:14px;">
-              ${c.avatar ? `<img src="${escapeHtml(c.avatar)}" alt="${escapeHtml(c.author || '')}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid #FF5C00;" loading="lazy">` : ''}
+              ${c.avatar ? `<span data-el-key="testimonial-avatar" style="display:inline-flex;width:48px;height:48px;border-radius:50%;overflow:hidden;flex:0 0 auto;"><img src="${escapeHtml(c.avatar)}" alt="${escapeHtml(c.author || '')}" style="width:100%;height:100%;border-radius:inherit;object-fit:cover;border:2px solid #FF5C00;box-sizing:border-box;" loading="lazy"></span>` : ''}
               <div>
                 <strong style="color:#F5F0EB;font-size:14px;font-family:'Syne',sans-serif;">${escapeHtml(c.author || '')}</strong>
                 <div style="font-size:12px;color:rgba(245,240,235,0.6);margin-top:2px;">${escapeHtml(c.title || '')}</div>
@@ -2460,7 +2600,7 @@
       const gap = s.gap !== undefined && s.gap !== '' ? parseInt(s.gap) : 36;
 
       const logosHtml = logos.map((l, i) => `
-        <div data-el="logo-item-${i}" class="sec-logo-item client-logo-item" style="display:flex;align-items:center;justify-content:center;padding:12px;filter:grayscale(100%) brightness(1.2);opacity:0.75;transition:all 0.2s;">
+        <div data-el="logo-item-${i}" data-el-key="logo-${i}" class="sec-logo-item client-logo-item" style="display:flex;align-items:center;justify-content:center;padding:12px;filter:grayscale(100%) brightness(1.2);opacity:0.75;transition:all 0.2s;">
           ${l.url ? `<img src="${escapeHtml(l.url)}" alt="${escapeHtml(l.name || 'Client Logo')}" style="max-height:42px;max-width:140px;object-fit:contain;" loading="lazy">` : `<div style="font-size:12px;color:rgba(255,255,255,0.4);border:1px dashed rgba(255,255,255,0.2);padding:8px 14px;border-radius:4px;">${escapeHtml(l.name || 'Empty Logo')}</div>`}
         </div>
       `).join('');
@@ -2527,10 +2667,16 @@
         ? `transform:translate3d(${parseInt(cardPos.x || 0)}px, ${parseInt(cardPos.y || 0)}px, 0);`
         : '';
 
+      const elSt = (s.elementStyles && (s.elementStyles.heading || s.elementStyles['heading-0'])) || {};
+      const ctaFont = resolveFontFamily(elSt.fontFamily || s.fontFamily || 'Syne');
+      const ctaFontStyle = elSt.fontStyle || s.fontStyle || '';
+      const ctaFontWeight = elSt.fontWeight || s.fontWeight || '800';
+      const ctaFontStyleAttr = ctaFontStyle ? `font-style:${ctaFontStyle} !important;` : '';
+
       const inner = `
         <div class="sec-cta-card has-element-box has-reposition-handle" data-el-key="cta-card" data-el-label="CTA Card" data-sec-id="${section.id}" style="position:relative;${cardWidthStyle}${cardHeightStyle}margin:0 auto;box-sizing:border-box;padding:clamp(40px, 6vw, 64px) clamp(24px, 4vw, 40px);text-align:center;${cardBg}${cardBorder}${cardRadius}${cardShadow}${cardOpacity}${cardTransform}word-break:break-word;overflow-wrap:break-word;">
           ${c.eyebrow ? `<div class="wd-eyebrow" data-el-key="eyebrow" style="margin-bottom:12px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#FF5C00;text-align:center;justify-content:center;word-break:break-word;overflow-wrap:break-word;">${renderFormattedText(c.eyebrow)}</div>` : ''}
-          <h2 class="wd-cta-heading" data-el-key="heading" style="font-size:clamp(28px, 4.5vw, 48px);font-family:'Syne',sans-serif;font-weight:800;color:#F5F0EB;margin:0 0 16px;line-height:1.15;text-align:center;word-break:break-word;overflow-wrap:break-word;">
+          <h2 class="wd-cta-heading" data-el-key="heading" style="font-size:clamp(28px, 4.5vw, 48px);font-family:${ctaFont} !important;${ctaFontStyleAttr}font-weight:${ctaFontWeight};color:#F5F0EB;margin:0 0 16px;line-height:1.15;text-align:center;word-break:break-word;overflow-wrap:break-word;">
             ${renderFormattedText(c.heading || '')}
           </h2>
           <p class="wd-cta-desc" data-el-key="description" style="max-width:560px;width:100%;box-sizing:border-box;margin:0 auto 32px;font-size:15px;line-height:1.6;color:rgba(245,240,235,0.7);text-align:center;word-break:break-word;overflow-wrap:break-word;">
@@ -2681,7 +2827,7 @@
       const track = car.querySelector('.sec-carousel-track');
       if (!track) return;
 
-      const slides = Array.from(track.querySelectorAll('.sec-carousel-slide'));
+      const slides = Array.from(track.querySelectorAll('.sec-carousel-slide:not([data-carousel-clone])'));
       if (slides.length <= 1) return;
 
       const prevBtn = car.querySelector('.sec-carousel-nav-btn.prev-btn');
@@ -2691,9 +2837,35 @@
       const isAutoplay = car.getAttribute('data-autoplay') === 'true';
       const intervalMs = parseInt(car.getAttribute('data-interval'), 10) || 4000;
       const pauseOnHover = car.getAttribute('data-pause-hover') === 'true';
+      const continuousLoop = car.getAttribute('data-continuous-loop') === 'true';
 
       let currentIndex = 0;
       let isPaused = false;
+      let isProgrammaticScroll = false;
+      let settleTimer = null;
+      let leadingClone = null;
+      let trailingClone = null;
+
+      function prepareClone(source, edge) {
+        const clone = source.cloneNode(true);
+        clone.classList.add('sec-carousel-slide-clone');
+        clone.setAttribute('data-carousel-clone', edge);
+        clone.setAttribute('data-builder-layer', 'internal');
+        clone.setAttribute('aria-hidden', 'true');
+        clone.style.pointerEvents = 'none';
+        clone.removeAttribute('data-el-key');
+        clone.querySelectorAll('[data-el-key]').forEach(node => node.removeAttribute('data-el-key'));
+        clone.querySelectorAll('[id]').forEach(node => node.removeAttribute('id'));
+        clone.querySelectorAll('a, button, input, textarea, select, [tabindex]').forEach(node => node.setAttribute('tabindex', '-1'));
+        return clone;
+      }
+
+      if (continuousLoop) {
+        leadingClone = prepareClone(slides[slides.length - 1], 'leading');
+        trailingClone = prepareClone(slides[0], 'trailing');
+        track.insertBefore(leadingClone, slides[0]);
+        track.appendChild(trailingClone);
+      }
 
       function updateActiveDot(idx) {
         dots.forEach((d, i) => {
@@ -2702,22 +2874,78 @@
         });
       }
 
+      function targetScrollLeft(targetSlide) {
+        if (!targetSlide) return 0;
+        // offsetLeft is expressed in the track's unscaled layout coordinate
+        // system. getBoundingClientRect() is visually scaled by the builder /
+        // public page surface, which previously left part of the leading loop
+        // clone visible and created a large gap beside slide 1.
+        return Math.max(0, targetSlide.offsetLeft - track.offsetLeft);
+      }
+
+      function moveTrackTo(targetSlide, behavior = 'smooth') {
+        if (!targetSlide) return;
+        const left = targetScrollLeft(targetSlide);
+        if (behavior === 'auto') {
+          // CSS sets scroll-behavior:smooth on the track. Passing "auto" to
+          // scrollTo would still inherit that CSS and visibly animate backward
+          // from the trailing clone to slide 1. Temporarily disable both smooth
+          // scrolling and snap while performing the invisible loop reset.
+          const previousBehavior = track.style.scrollBehavior;
+          const previousSnap = track.style.scrollSnapType;
+          track.style.setProperty('scroll-behavior', 'auto', 'important');
+          track.style.setProperty('scroll-snap-type', 'none', 'important');
+          track.scrollLeft = left;
+          void track.offsetWidth;
+          if (previousBehavior) track.style.scrollBehavior = previousBehavior;
+          else track.style.removeProperty('scroll-behavior');
+          if (previousSnap) track.style.scrollSnapType = previousSnap;
+          else track.style.removeProperty('scroll-snap-type');
+          return;
+        }
+        track.scrollTo({ left, behavior });
+      }
+
+      function finishLoopAt(targetSlide) {
+        clearTimeout(settleTimer);
+        let finished = false;
+        const finish = () => {
+          if (finished) return;
+          finished = true;
+          clearTimeout(settleTimer);
+          track.removeEventListener('scrollend', finish);
+          moveTrackTo(targetSlide, 'auto');
+          requestAnimationFrame(() => { isProgrammaticScroll = false; });
+        };
+
+        // Reset only after the visible forward movement reaches its cloned
+        // destination. The timeout is a compatibility fallback for browsers
+        // without the scrollend event.
+        if ('onscrollend' in track) {
+          track.addEventListener('scrollend', finish, { once: true });
+          settleTimer = setTimeout(finish, 1000);
+        } else {
+          settleTimer = setTimeout(finish, 520);
+        }
+      }
+
       function scrollToSlide(idx, behavior = 'smooth') {
-        if (idx < 0) idx = slides.length - 1;
-        if (idx >= slides.length) idx = 0;
-        currentIndex = idx;
+        const isBeforeFirst = idx < 0;
+        const isAfterLast = idx >= slides.length;
+        const wrappedIndex = ((idx % slides.length) + slides.length) % slides.length;
+        currentIndex = wrappedIndex;
+        isProgrammaticScroll = true;
 
-        const targetSlide = slides[currentIndex];
-        if (targetSlide) {
-          const trackLeft = track.getBoundingClientRect().left;
-          const slideLeft = targetSlide.getBoundingClientRect().left;
-          const currentScroll = track.scrollLeft;
-          const targetScroll = currentScroll + (slideLeft - trackLeft);
-
-          track.scrollTo({
-            left: targetScroll,
-            behavior: behavior
-          });
+        if (continuousLoop && isAfterLast && trailingClone) {
+          moveTrackTo(trailingClone, behavior);
+          finishLoopAt(slides[0]);
+        } else if (continuousLoop && isBeforeFirst && leadingClone) {
+          moveTrackTo(leadingClone, behavior);
+          finishLoopAt(slides[slides.length - 1]);
+        } else {
+          moveTrackTo(slides[currentIndex], behavior);
+          clearTimeout(settleTimer);
+          settleTimer = setTimeout(() => { isProgrammaticScroll = false; }, behavior === 'smooth' ? 480 : 0);
         }
         updateActiveDot(currentIndex);
       }
@@ -2760,26 +2988,48 @@
       track.onscroll = () => {
         clearTimeout(scrollDebounce);
         scrollDebounce = setTimeout(() => {
-          const trackRect = track.getBoundingClientRect();
-          const trackCenter = trackRect.left + trackRect.width / 2;
+          if (isProgrammaticScroll) return;
+          const physicalSlides = continuousLoop
+            ? [leadingClone, ...slides, trailingClone].filter(Boolean)
+            : slides;
 
-          let closestIdx = 0;
+          let closestSlide = slides[0];
           let minDistance = Infinity;
 
-          slides.forEach((sl, idx) => {
-            const slRect = sl.getBoundingClientRect();
-            const slCenter = slRect.left + slRect.width / 2;
-            const dist = Math.abs(slCenter - trackCenter);
+          physicalSlides.forEach(sl => {
+            const dist = Math.abs(targetScrollLeft(sl) - track.scrollLeft);
             if (dist < minDistance) {
               minDistance = dist;
-              closestIdx = idx;
+              closestSlide = sl;
             }
           });
 
-          currentIndex = closestIdx;
-          updateActiveDot(closestIdx);
+          if (closestSlide === leadingClone) {
+            currentIndex = slides.length - 1;
+            isProgrammaticScroll = true;
+            moveTrackTo(slides[currentIndex], 'auto');
+            requestAnimationFrame(() => { isProgrammaticScroll = false; });
+          } else if (closestSlide === trailingClone) {
+            currentIndex = 0;
+            isProgrammaticScroll = true;
+            moveTrackTo(slides[0], 'auto');
+            requestAnimationFrame(() => { isProgrammaticScroll = false; });
+          } else {
+            currentIndex = Math.max(0, slides.indexOf(closestSlide));
+          }
+          updateActiveDot(currentIndex);
         }, 120);
       };
+
+      // A leading clone shifts the physical scroll origin. Start on the first
+      // real slide without animation so slide 1 remains the logical default.
+      if (continuousLoop) {
+        requestAnimationFrame(() => {
+          isProgrammaticScroll = true;
+          moveTrackTo(slides[0], 'auto');
+          requestAnimationFrame(() => { isProgrammaticScroll = false; });
+        });
+      }
 
       // Autoplay Timer handling
       function startAutoplay() {
@@ -2876,6 +3126,205 @@
   SectionRegistry.serializeSections = serializeSections;
   SectionRegistry.getSectionNodes = getSectionNodes;
 
+  function resolveSavedElement(secEl, key) {
+    if (!secEl || !key) return null;
+    let direct = secEl.querySelector(`[data-el-key="${key}"]`);
+    if (direct && direct.closest && direct.closest('[data-carousel-clone]')) {
+      direct = Array.from(secEl.querySelectorAll(`[data-el-key="${key}"]`))
+        .find(node => !(node.closest && node.closest('[data-carousel-clone]')));
+    }
+    if (direct) return direct;
+
+    const selectorGroups = {
+      heading: '.sec-heading, .sec-heading-custom, .hero-title, h1, h2, h3, h4, h5, h6, .wd-cta-heading, .wd-h1, .wd-gallery-title, .wd-narrative-card-header, .wd-narrative-card-title, .sec-carousel-title, .sec-title, .sec-feature-title',
+      eyebrow: '.wd-eyebrow, .project-eyebrow, .wd-sub, .sec-subheading, .hero-eyebrow, .wd-meta-label, .wd-meta-val, .sec-eyebrow, .sec-subtitle',
+      text: '.sec-desc, .wd-article-body, blockquote, .sec-quote-box, .hero-desc, .sec-content-col > p, .sec-block p, .wd-cta-sub, .wd-cta-desc, .project-deliverable-desc, .wd-gallery-desc, .wd-deliverable-text, .sec-list-text, .sec-img-caption, .sec-feature-desc, p',
+      button: '.custom-btn-wrapper, .custom-btn-group, .btn-primary, .btn-secondary, .custom-sec-btn, .custom-btn-action, .wd-cta-btn, .sec-cta-btn, .custom-btn'
+    };
+
+    const firstFor = group => secEl.querySelector(selectorGroups[group]);
+    if (key === 'heading') return firstFor('heading');
+    if (key === 'eyebrow') return firstFor('eyebrow');
+    if (key === 'text' || key === 'description') return firstFor('text');
+    if (key === 'button') return firstFor('button');
+    if (key === 'image') return secEl.querySelector('.sec-img-col, .sec-img-wrap, .sec-img-holder, img');
+
+    const indexedPatterns = [
+      [/^heading-(\d+)$/, 'heading'], [/^card-h-(\d+)$/, 'heading'],
+      [/^eyebrow-(\d+)$/, 'eyebrow'], [/^card-ey-(\d+)$/, 'eyebrow'],
+      [/^text-(\d+)$/, 'text'], [/^card-desc-(\d+)$/, 'text'],
+      [/^button-(\d+)$/, 'button']
+    ];
+    for (const [pattern, group] of indexedPatterns) {
+      const match = key.match(pattern);
+      if (!match) continue;
+      return secEl.querySelectorAll(selectorGroups[group])[parseInt(match[1], 10)] || null;
+    }
+
+    const indexedLayerSelectors = [
+      [/^image-(\d+)$/, '.sec-img-col, .sec-img-wrap, .sec-img-holder, .media-container, .portfolio-hero-img, .sec-block-img, .sec-image-frame, .wd-gallery-img-wrap, .sec-ba-image-frame, .video-embed-container'],
+      [/^card-img-(\d+)$/, '.sec-img-col, .sec-img-wrap, .sec-img-holder, .media-container, .portfolio-hero-img, .sec-block-img, .sec-image-frame, .wd-gallery-img-wrap, .sec-ba-image-frame, .video-embed-container'],
+      [/^card-(\d+)$/, '.wd-narrative-card, .wd-deliverable-item, .cards-grid-item, .sec-col, .sec-feature-card, .client-logo-item, .testimonial-card, .sec-metric-card, .wd-meta-cell, .wd-gallery-card, .sec-cta-card, .sec-grid-item, .sec-list-item, .sec-hover-card, .sec-col-card, .sec-card'],
+      [/^metric-(\d+)$/, '.sec-metric-card, .metric-item, .wd-meta-cell'],
+      [/^list-item-(\d+)$/, '.sec-list-item'],
+      [/^deliv-(\d+)$/, '.wd-deliverable-item'],
+      [/^col-card-(\d+)$/, '.sec-col-card'],
+      [/^col-(\d+)$/, '.sec-col'],
+      [/^logo-(\d+)$/, '.client-logo-item, .sec-logo-item']
+    ];
+    for (const [pattern, selector] of indexedLayerSelectors) {
+      const match = key.match(pattern);
+      if (!match) continue;
+      const rawIndex = parseInt(match[1], 10);
+      const index = key.startsWith('col-') && !key.startsWith('col-card-') ? Math.max(0, rawIndex - 1) : rawIndex;
+      return secEl.querySelectorAll(selector)[index] || null;
+    }
+
+    const fixedLayerSelectors = {
+      'img-col': '.sec-img-col',
+      'split-image': '.sec-img-col, [data-el-key="split-image"]',
+      'before-after': '.sec-ba-container',
+      'cta-card': '.sec-cta-card',
+      'quote-box': '.sec-quote-box',
+      'custom-html-wrap': '.sec-custom-html-wrap',
+      'testimonial': '.testimonial-card',
+      'testimonial-avatar': '[data-el-key="testimonial-avatar"]',
+      'columns-grid': '.sec-columns-grid'
+    };
+    if (fixedLayerSelectors[key]) return secEl.querySelector(fixedLayerSelectors[key]);
+    return null;
+  }
+
+  function applySavedSectionElementStyles(secEl, section, viewport) {
+    if (!secEl || !section) return;
+    const effectiveSettings = SectionRegistry.resolveSettings(section, viewport);
+    const stylesMap = effectiveSettings.elementStyles;
+    const offsetsMap = effectiveSettings.elementOffsets;
+
+    if (stylesMap && typeof stylesMap === 'object') {
+      Object.entries(stylesMap).forEach(([key, st]) => {
+        if (!st || typeof st !== 'object') return;
+        const el = resolveSavedElement(secEl, key);
+        if (!el) return;
+
+        const setStyleProp = (targetNode, propName, cssProp, value, priority = 'important') => {
+          if (!targetNode || !targetNode.style || value === undefined || value === '') return;
+          if (typeof targetNode.style.setProperty === 'function') {
+            targetNode.style.setProperty(cssProp, value, priority);
+          }
+          targetNode.style[propName] = value;
+        };
+
+        if (st.fontSize) setStyleProp(el, 'fontSize', 'font-size', st.fontSize);
+        if (st.color) setStyleProp(el, 'color', 'color', st.color);
+        if (st.fontFamily) {
+          setStyleProp(el, 'fontFamily', 'font-family', resolveFontFamily(st.fontFamily));
+          el.style.fontFamily = st.fontFamily;
+        }
+        if (st.fontWeight) setStyleProp(el, 'fontWeight', 'font-weight', st.fontWeight);
+        if (st.fontStyle) setStyleProp(el, 'fontStyle', 'font-style', st.fontStyle);
+        if (st.textDecoration) setStyleProp(el, 'textDecoration', 'text-decoration', st.textDecoration);
+        if (st.letterSpacing) setStyleProp(el, 'letterSpacing', 'letter-spacing', st.letterSpacing);
+        if (st.lineHeight) setStyleProp(el, 'lineHeight', 'line-height', st.lineHeight);
+        if (st.textAlign) setStyleProp(el, 'textAlign', 'text-align', st.textAlign);
+        if (st.textTransform) setStyleProp(el, 'textTransform', 'text-transform', st.textTransform);
+        if (st.zIndex !== undefined && st.zIndex !== '') setStyleProp(el, 'zIndex', 'z-index', st.zIndex);
+        if (st.background) setStyleProp(el, 'background', 'background', st.background);
+        if (st.backgroundColor) setStyleProp(el, 'backgroundColor', 'background-color', st.backgroundColor);
+        if (st.border) setStyleProp(el, 'border', 'border', st.border);
+        if (st.borderRadius) setStyleProp(el, 'borderRadius', 'border-radius', st.borderRadius);
+        if (st.boxShadow) setStyleProp(el, 'boxShadow', 'box-shadow', st.boxShadow);
+        if (st.opacity !== undefined && st.opacity !== '') setStyleProp(el, 'opacity', 'opacity', st.opacity);
+        const isCarouselTrackSlide = !!(el.matches && el.matches('[data-builder-layer="carousel-slide"]'));
+        // Carousel slide dimensions belong to the track-level "Slides Visible"
+        // setting. Old drafts may contain per-slide resize values; applying
+        // those values makes one slide narrower and leaves a blank seam before
+        // the next slide. Focal point, rotation and visual styling remain valid.
+        if (st.width && !isCarouselTrackSlide) setStyleProp(el, 'width', 'width', st.width);
+        if (st.height && !isCarouselTrackSlide) setStyleProp(el, 'height', 'height', st.height);
+
+        // Container layers may own several textual children. Mirror saved
+        // typography onto those children because template-level inline styles
+        // otherwise override inheritance in Live Preview and New Tab.
+        const textSelector = 'h1,h2,h3,h4,h5,h6,p,blockquote,.wd-eyebrow,.project-eyebrow,.sec-eyebrow,.sec-subheading,.sec-title,.sec-subtitle,.sec-desc,.hero-title,.hero-desc,.wd-cta-heading,.wd-cta-desc,.wd-cta-sub,.wd-gallery-title,.wd-gallery-desc,.wd-deliverable-title,.wd-deliverable-text,.wd-narrative-card-title,.sec-carousel-title,.sec-card-title,.sec-feature-title,.sec-feature-desc,.sec-list-text,.sec-img-caption,.wd-meta-label,.wd-meta-val,.custom-sec-btn,.custom-btn-action,.sec-cta-btn,a.btn,button.btn';
+        const textTargets = [];
+        if (el.matches && el.matches(textSelector)) textTargets.push(el);
+        if (el.querySelectorAll) {
+          textTargets.push(...Array.from(el.querySelectorAll(textSelector)));
+          // Inline formatting created by the selection toolbar must receive
+          // element-level typography too; otherwise an inner span can override
+          // the builder's saved font size/family in Preview or New Tab.
+          textTargets.push(...Array.from(el.querySelectorAll('span,strong,b,em,i,u,s,mark,a')));
+        }
+        Array.from(new Set(textTargets)).forEach(textEl => {
+          if (st.fontFamily) {
+            setStyleProp(textEl, 'fontFamily', 'font-family', resolveFontFamily(st.fontFamily));
+            textEl.style.fontFamily = st.fontFamily;
+          }
+          if (st.fontStyle) setStyleProp(textEl, 'fontStyle', 'font-style', st.fontStyle);
+          if (st.fontWeight) setStyleProp(textEl, 'fontWeight', 'font-weight', st.fontWeight);
+          if (st.fontSize) setStyleProp(textEl, 'fontSize', 'font-size', st.fontSize);
+          if (st.color) setStyleProp(textEl, 'color', 'color', st.color);
+          if (st.textDecoration) setStyleProp(textEl, 'textDecoration', 'text-decoration', st.textDecoration);
+          if (st.letterSpacing) setStyleProp(textEl, 'letterSpacing', 'letter-spacing', st.letterSpacing);
+          if (st.lineHeight) setStyleProp(textEl, 'lineHeight', 'line-height', st.lineHeight);
+          if (st.textAlign) setStyleProp(textEl, 'textAlign', 'text-align', st.textAlign);
+          if (st.textTransform) setStyleProp(textEl, 'textTransform', 'text-transform', st.textTransform);
+        });
+        if (st.objectFit || st.objectPosition) {
+          const innerImg = el.querySelector('img') || (el.tagName === 'IMG' ? el : null);
+          if (innerImg) {
+            if (st.objectFit) innerImg.style.objectFit = st.objectFit;
+            if (st.objectPosition) innerImg.style.objectPosition = st.objectPosition;
+          }
+        }
+        if (st.rotation && parseInt(st.rotation) !== 0) {
+          const img = el.querySelector('img') || (el.tagName === 'IMG' ? el : null);
+          if (img) img.style.transform = `rotate(${parseInt(st.rotation)}deg)`;
+        }
+      });
+    }
+
+    // Apply section-level typography if defined in settings and not already overridden by elementStyles
+    if (effectiveSettings.fontFamily || effectiveSettings.fontStyle || effectiveSettings.fontWeight) {
+      const headingEl = resolveSavedElement(secEl, 'heading');
+      if (headingEl) {
+        const hasElFontFamily = stylesMap && stylesMap.heading && stylesMap.heading.fontFamily;
+        const hasElFontStyle = stylesMap && stylesMap.heading && stylesMap.heading.fontStyle;
+        const hasElFontWeight = stylesMap && stylesMap.heading && stylesMap.heading.fontWeight;
+        if (!hasElFontFamily && effectiveSettings.fontFamily) {
+          headingEl.style.setProperty('font-family', resolveFontFamily(effectiveSettings.fontFamily), 'important');
+        }
+        if (!hasElFontStyle && effectiveSettings.fontStyle) {
+          headingEl.style.setProperty('font-style', effectiveSettings.fontStyle, 'important');
+        }
+        if (!hasElFontWeight && effectiveSettings.fontWeight) {
+          headingEl.style.setProperty('font-weight', effectiveSettings.fontWeight, 'important');
+        }
+        headingEl.querySelectorAll('em, i, strong, b, span').forEach(child => {
+          if (!hasElFontFamily && effectiveSettings.fontFamily) child.style.setProperty('font-family', resolveFontFamily(effectiveSettings.fontFamily), 'important');
+          if (!hasElFontStyle && effectiveSettings.fontStyle) child.style.setProperty('font-style', effectiveSettings.fontStyle, 'important');
+        });
+      }
+    }
+
+    if (offsetsMap && typeof offsetsMap === 'object') {
+      Object.entries(offsetsMap).forEach(([key, pos]) => {
+        if (!pos || (pos.x === undefined && pos.y === undefined)) return;
+        const ox = parseInt(pos.x || 0);
+        const oy = parseInt(pos.y || 0);
+        const el = resolveSavedElement(secEl, key);
+        if (el && !(el.matches && el.matches('[data-builder-layer="carousel-slide"]'))) {
+          el.style.setProperty('transform', `translate3d(${ox}px, ${oy}px, 0)`, 'important');
+        }
+      });
+    }
+  }
+
+  SectionRegistry.resolveFontFamily = resolveFontFamily;
+  SectionRegistry.resolveSavedElement = resolveSavedElement;
+  SectionRegistry.applySavedSectionElementStyles = applySavedSectionElementStyles;
+
   // Mount builder-authored sections inside the same fixed design coordinate
   // system used by the visual builder. This prevents a wide public viewport
   // from stretching the canvas and changing relationships between manually
@@ -2937,6 +3386,16 @@
       container.style.display = 'block';
       container.innerHTML = `<div class="sec-page-surface" data-runtime-viewport="${activeViewport}">${html}</div>`;
       surface = container.querySelector('.sec-page-surface');
+
+      if (surface) {
+        visibleSections.forEach(section => {
+          if (!section || !section.id) return;
+          const secEl = surface.querySelector(`[data-section-id="${section.id}"]`);
+          if (secEl) {
+            applySavedSectionElementStyles(secEl, section, activeViewport);
+          }
+        });
+      }
 
       if (typeof SectionRegistry.initInteractive === 'function') {
         SectionRegistry.initInteractive(surface || container);

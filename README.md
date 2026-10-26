@@ -14,7 +14,7 @@ The project is organized into clear directories for easy access and maintainabil
 | **`services/`** | 10 specialized service landing pages (`/services/ai`, `/services/web`, `/services/smm`, etc.) |
 | **`samples/`** | Client demo & pitch mockups (`/samples/sample-dentist`, `/samples/sweetbasket`, etc.) |
 | **`assets/css/`** | Global stylesheet (`styles.css`) containing design tokens, bento layouts & animations |
-| **`assets/js/`** | Scripts (`app.js`, `sonic-live-cms.js`, `supabase-rest.js`, `service-page-optimizations.js`) |
+| **`assets/js/`** | Scripts (`app.js`, `section-registry.js`, `supabase-rest.js`, `service-page-optimizations.js`) |
 | **`assets/images/`** | Local brand graphics, icons, and favicons |
 | **`server/`** | Clean-URL local development servers (`server.js` and `server.py`) |
 | **`docs/`** | Architectural specifications & implementation documentation ([Architecture Guide](docs/ARCHITECTURE.md)) |

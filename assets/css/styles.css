@@ -6672,7 +6672,7 @@ a.wd-inline-link:hover {
 .sec-block h4:not(.sec-text-col *):not(.sec-content-col *),
 .sec-block h5:not(.sec-text-col *):not(.sec-content-col *),
 .sec-block h6:not(.sec-text-col *):not(.sec-content-col *) {
-  transform: translate3d(var(--sec-h-ox, 0px), var(--sec-h-oy, 0px), 0) !important;
+  transform: translate3d(var(--sec-h-ox, 0px), var(--sec-h-oy, 0px), 0);
 }
 
 .sec-block .sec-text-col,
