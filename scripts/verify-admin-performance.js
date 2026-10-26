@@ -58,16 +58,17 @@ assert(/sType === 'carousel'[\s\S]{0,1800}slides\[sIdx\]\.url = publicUrl/.test(
   assert(builder.includes(mapping), `Image upload mapping is missing for ${mapping}.`);
 });
 [
-  "updateContent('bgImage', url)",
-  "updateContent('url', url)",
-  "updateGalleryItem(${i}, 'url', u)",
-  "updateContent('imageUrl', url)",
-  "updateContent('avatar', url)",
-  "updateContent('beforeUrl', u)",
-  "updateContent('afterUrl', u)",
-  "updateCarouselSlide(${i}, 'url', u)",
-  "updateImageGridItem(${i}, 'url', u)",
-  "updateClientLogoItem(${i}, 'url', u)"
+  "updateContentForSection('${escapeHtml(sec.id)}', 'bgImage', url, false, true)",
+  "updateContentForSection('${escapeHtml(sec.id)}', 'url', url, false, true)",
+  "updateGalleryItemForSection('${escapeHtml(sec.id)}', ${i}, 'url', u, true)",
+  "updateContentForSection('${escapeHtml(sec.id)}', 'imageUrl', url, false, true)",
+  "updateContentForSection('${escapeHtml(sec.id)}', 'avatar', url, false, true)",
+  "updateContentForSection('${escapeHtml(sec.id)}', 'beforeUrl', u, false, true)",
+  "updateContentForSection('${escapeHtml(sec.id)}', 'afterUrl', u, false, true)",
+  "updateCarouselSlideForSection('${escapeHtml(sec.id)}', ${i}, 'url', u, true)",
+  "updateImageGridItemForSection('${escapeHtml(sec.id)}', ${i}, 'url', u, true)",
+  "updateClientLogoItemForSection('${escapeHtml(sec.id)}', ${i}, 'url', u, true)",
+  "updateImageSettingForSection('${escapeHtml(sec.id)}', 'bgImage', url)"
 ].forEach((uploadTarget) => {
   assert(builder.includes(uploadTarget), `Direct image upload target is missing: ${uploadTarget}.`);
 });

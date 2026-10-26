@@ -4025,6 +4025,12 @@
           try { document.activeElement.blur(); } catch (_) { }
         }
 
+        // Flush the latest inspector edit before rebuilding the canvas in a
+        // different rendering mode. Carousel uploads and URL edits must use
+        // the same in-memory/local snapshot in Edit and Live Preview modes.
+        flushHistoryDebounce();
+        saveCurrentDraftLocally();
+
         state.isPreviewMode = !state.isPreviewMode;
         const btn = document.getElementById('btnLivePreviewToggle');
         const btnTxt = document.getElementById('btnLivePreviewText');
@@ -4045,7 +4051,6 @@
           showToast('✏️ Edit Mode: Sidebars and inspector restored');
         }
 
-        saveCurrentDraftLocally();
         renderCanvas();
         if (!state.isPreviewMode) {
           renderProperties();
@@ -10030,6 +10035,7 @@
 
           markUnsaved();
           pushHistory();
+          saveCurrentDraftLocally();
           renderCanvas();
           renderProperties();
           showToast(`✓ Photo uploaded: ${file.name || 'Image'}`);
@@ -14209,7 +14215,7 @@
                 <input type="url" id="heroBgInput" class="prop-input" value="${escapeHtml(c.bgImage || '')}" oninput="updateContent('bgImage', this.value)">
                 <label class="btn btn-secondary btn-sm" style="cursor:pointer;white-space:nowrap;padding:8px 12px;">
                   Upload
-                  <input type="file" accept="image/*" style="display:none;" onchange="uploadAssetDirect(this, 'heroBgInput', (url) => updateContent('bgImage', url))">
+                  <input type="file" accept="image/*" style="display:none;" onchange="uploadAssetDirect(this, 'heroBgInput', (url) => updateContentForSection('${escapeHtml(sec.id)}', 'bgImage', url, false, true))">
                 </label>
               </div>
             </div>
@@ -14327,7 +14333,7 @@
                 <input type="url" id="singleImgInput" class="prop-input" value="${escapeHtml(c.url || '')}" oninput="updateContent('url', this.value)">
                 <label class="btn btn-secondary btn-sm" style="cursor:pointer;white-space:nowrap;padding:8px 12px;">
                   Upload
-                  <input type="file" accept="image/*" style="display:none;" onchange="uploadAssetDirect(this, 'singleImgInput', (url) => updateContent('url', url))">
+                  <input type="file" accept="image/*" style="display:none;" onchange="uploadAssetDirect(this, 'singleImgInput', (url) => updateContentForSection('${escapeHtml(sec.id)}', 'url', url, false, true))">
                 </label>
               </div>
             </div>
@@ -14445,7 +14451,7 @@
                   <input type="url" id="gal_img_${i}" class="prop-input" style="font-size:12px;" value="${escapeHtml(it.url || '')}" placeholder="Image URL" oninput="updateGalleryItem(${i}, 'url', this.value)">
                   <label class="btn btn-secondary btn-sm" style="cursor:pointer;padding:6px 10px;font-size:11px;">
                     Upload
-                    <input type="file" accept="image/*" style="display:none;" onchange="uploadAssetDirect(this, 'gal_img_${i}', (u) => updateGalleryItem(${i}, 'url', u))">
+                    <input type="file" accept="image/*" style="display:none;" onchange="uploadAssetDirect(this, 'gal_img_${i}', (u) => updateGalleryItemForSection('${escapeHtml(sec.id)}', ${i}, 'url', u, true))">
                   </label>
                 </div>
                 <input type="text" class="prop-input" style="font-size:12px;margin-bottom:6px;" value="${escapeHtml(it.title || '')}" placeholder="Title / Asset Name" oninput="updateGalleryItem(${i}, 'title', this.value)">
@@ -14484,7 +14490,7 @@
                 <input type="url" id="textImgInput" class="prop-input" value="${escapeHtml(c.imageUrl || '')}" oninput="updateContent('imageUrl', this.value)">
                 <label class="btn btn-secondary btn-sm" style="cursor:pointer;white-space:nowrap;padding:8px 12px;">
                   Upload
-                  <input type="file" accept="image/*" style="display:none;" onchange="uploadAssetDirect(this, 'textImgInput', (url) => updateContent('imageUrl', url))">
+                  <input type="file" accept="image/*" style="display:none;" onchange="uploadAssetDirect(this, 'textImgInput', (url) => updateContentForSection('${escapeHtml(sec.id)}', 'imageUrl', url, false, true))">
                 </label>
               </div>
             </div>
@@ -14732,7 +14738,7 @@
                 <input type="url" id="testiAvatarInput" class="prop-input" value="${escapeHtml(c.avatar || '')}" oninput="updateContent('avatar', this.value)">
                 <label class="btn btn-secondary btn-sm" style="cursor:pointer;white-space:nowrap;padding:8px 12px;">
                   Upload
-                  <input type="file" accept="image/*" style="display:none;" onchange="uploadAssetDirect(this, 'testiAvatarInput', (url) => updateContent('avatar', url))">
+                  <input type="file" accept="image/*" style="display:none;" onchange="uploadAssetDirect(this, 'testiAvatarInput', (url) => updateContentForSection('${escapeHtml(sec.id)}', 'avatar', url, false, true))">
                 </label>
               </div>
             </div>
@@ -15017,7 +15023,7 @@
                 <input type="url" id="ba_before_url" class="prop-input" style="font-size:12px;" value="${escapeHtml(c.beforeUrl || '')}" placeholder="Image URL" oninput="updateContent('beforeUrl', this.value)">
                 <label class="btn btn-secondary btn-sm" style="cursor:pointer;padding:6px 10px;font-size:11px;">
                   Upload
-                  <input type="file" accept="image/*" style="display:none;" onchange="uploadAssetDirect(this, 'ba_before_url', (u) => updateContent('beforeUrl', u))">
+                  <input type="file" accept="image/*" style="display:none;" onchange="uploadAssetDirect(this, 'ba_before_url', (u) => updateContentForSection('${escapeHtml(sec.id)}', 'beforeUrl', u, false, true))">
                 </label>
               </div>
               <input type="text" class="prop-input" style="font-size:12px;" value="${escapeHtml(c.beforeLabel || '')}" placeholder="Badge Label (e.g. Before)" oninput="updateContent('beforeLabel', this.value)">
@@ -15032,7 +15038,7 @@
                 <input type="url" id="ba_after_url" class="prop-input" style="font-size:12px;" value="${escapeHtml(c.afterUrl || '')}" placeholder="Image URL" oninput="updateContent('afterUrl', this.value)">
                 <label class="btn btn-secondary btn-sm" style="cursor:pointer;padding:6px 10px;font-size:11px;">
                   Upload
-                  <input type="file" accept="image/*" style="display:none;" onchange="uploadAssetDirect(this, 'ba_after_url', (u) => updateContent('afterUrl', u))">
+                  <input type="file" accept="image/*" style="display:none;" onchange="uploadAssetDirect(this, 'ba_after_url', (u) => updateContentForSection('${escapeHtml(sec.id)}', 'afterUrl', u, false, true))">
                 </label>
               </div>
               <input type="text" class="prop-input" style="font-size:12px;" value="${escapeHtml(c.afterLabel || '')}" placeholder="Badge Label (e.g. After)" oninput="updateContent('afterLabel', this.value)">
@@ -15170,7 +15176,7 @@
                   <input type="url" id="carousel_sl_${i}" class="prop-input" style="font-size:12px;" value="${escapeHtml(sl.url || '')}" placeholder="Image URL" oninput="updateCarouselSlide(${i}, 'url', this.value)">
                   <label class="btn btn-secondary btn-sm" style="cursor:pointer;padding:6px 10px;font-size:11px;">
                     Upload
-                    <input type="file" accept="image/*" style="display:none;" onchange="uploadAssetDirect(this, 'carousel_sl_${i}', (u) => updateCarouselSlide(${i}, 'url', u))">
+                    <input type="file" accept="image/*" style="display:none;" onchange="uploadAssetDirect(this, 'carousel_sl_${i}', (u) => updateCarouselSlideForSection('${escapeHtml(sec.id)}', ${i}, 'url', u, true))">
                   </label>
                 </div>
                 <input type="text" class="prop-input" style="font-size:12px;" value="${escapeHtml(sl.title || '')}" placeholder="Slide Caption / Title" oninput="updateCarouselSlide(${i}, 'title', this.value)">
@@ -15267,7 +15273,7 @@
                   <input type="url" id="grid_img_${i}" class="prop-input" style="font-size:12px;" value="${escapeHtml(it.url || '')}" placeholder="Image URL" oninput="updateImageGridItem(${i}, 'url', this.value)">
                   <label class="btn btn-secondary btn-sm" style="cursor:pointer;padding:6px 10px;font-size:11px;">
                     Upload
-                    <input type="file" accept="image/*" style="display:none;" onchange="uploadAssetDirect(this, 'grid_img_${i}', (u) => updateImageGridItem(${i}, 'url', u))">
+                    <input type="file" accept="image/*" style="display:none;" onchange="uploadAssetDirect(this, 'grid_img_${i}', (u) => updateImageGridItemForSection('${escapeHtml(sec.id)}', ${i}, 'url', u, true))">
                   </label>
                 </div>
                 <input type="text" class="prop-input" style="font-size:12px;margin-bottom:6px;" value="${escapeHtml(it.caption || '')}" placeholder="Caption (optional)" oninput="updateImageGridItem(${i}, 'caption', this.value)">
@@ -15308,7 +15314,7 @@
                   <input type="url" id="logo_url_${i}" class="prop-input" style="font-size:12px;" value="${escapeHtml(lg.url || '')}" placeholder="Logo PNG / SVG URL" oninput="updateClientLogoItem(${i}, 'url', this.value)">
                   <label class="btn btn-secondary btn-sm" style="cursor:pointer;padding:6px 10px;font-size:11px;">
                     Upload
-                    <input type="file" accept="image/*" style="display:none;" onchange="uploadAssetDirect(this, 'logo_url_${i}', (u) => updateClientLogoItem(${i}, 'url', u))">
+                    <input type="file" accept="image/*" style="display:none;" onchange="uploadAssetDirect(this, 'logo_url_${i}', (u) => updateClientLogoItemForSection('${escapeHtml(sec.id)}', ${i}, 'url', u, true))">
                   </label>
                 </div>
               </div>
@@ -15819,7 +15825,7 @@
               <input type="url" id="secBgImgInput" class="prop-input" value="${escapeHtml(s.bgImage || '')}" placeholder="https://..." oninput="updateSetting('bgImage', this.value)">
               <label class="btn btn-secondary btn-sm" style="cursor:pointer;white-space:nowrap;padding:8px 12px;">
                 Upload
-                <input type="file" accept="image/*" style="display:none;" onchange="uploadAssetDirect(this, 'secBgImgInput', (url) => updateSetting('bgImage', url))">
+                <input type="file" accept="image/*" style="display:none;" onchange="uploadAssetDirect(this, 'secBgImgInput', (url) => updateImageSettingForSection('${escapeHtml(sec.id)}', 'bgImage', url))">
               </label>
             </div>
             ${s.bgImage ? `
@@ -16007,12 +16013,13 @@
         showToast('▶ Playing animation preview');
       };
 
-      window.updateContent = function (key, val, isFormattedInternal = false) {
-        const sec = getSectionById(state.selectedSectionId);
+      window.updateContentForSection = function (sectionId, key, val, isFormattedInternal = false, commitImmediately = false) {
+        const sec = getSectionById(sectionId);
         if (!sec) return;
         if (!sec.content) sec.content = {};
         let processedVal = val;
-        if (typeof val === 'string' && key !== 'html') {
+        const isMediaField = ['url', 'imageUrl', 'bgImage', 'avatar', 'beforeUrl', 'afterUrl'].includes(key);
+        if (typeof val === 'string' && key !== 'html' && !isMediaField) {
           processedVal = isFormattedInternal
             ? sanitizeContentFormatting(val)
             : replaceFormattedTextPreservingStyles(sec.content[key] || '', val);
@@ -16020,12 +16027,33 @@
         } else {
           sec.content[key] = val;
         }
-        syncSectionTextAliases(sec, key, processedVal);
+        if (!isMediaField) syncSectionTextAliases(sec, key, processedVal);
         if (!updateRenderedSectionContent(sec.id, key, processedVal)) {
           scheduleCanvasSectionRender(sec.id);
         }
         markUnsaved();
-        window.pushHistoryDebounced(400);
+        if (commitImmediately) {
+          pushHistory();
+          saveCurrentDraftLocally();
+        } else {
+          window.pushHistoryDebounced(400);
+        }
+      };
+
+      window.updateContent = function (key, val, isFormattedInternal = false) {
+        return window.updateContentForSection(state.selectedSectionId, key, val, isFormattedInternal, false);
+      };
+
+      window.updateImageSettingForSection = function (sectionId, key, val) {
+        const sec = getSectionById(sectionId);
+        if (!sec) return;
+        const target = getViewportSettingsTarget(sec);
+        target[key] = val;
+        renderCanvasSection(sec.id);
+        markUnsaved();
+        pushHistory();
+        saveCurrentDraftLocally();
+        if (state.selectedSectionId === sec.id) renderProperties();
       };
 
       window.updateSetting = function (key, val) {
@@ -16401,13 +16429,22 @@
         renderProperties();
       };
 
-      window.updateGalleryItem = function (idx, key, val) {
-        const sec = getSectionById(state.selectedSectionId);
+      window.updateGalleryItemForSection = function (sectionId, idx, key, val, commitImmediately = false) {
+        const sec = getSectionById(sectionId);
         if (!sec || !sec.content.items[idx]) return;
         sec.content.items[idx][key] = val;
         renderCanvasSection(sec.id);
         markUnsaved();
-        window.pushHistoryDebounced(350);
+        if (commitImmediately) {
+          pushHistory();
+          saveCurrentDraftLocally();
+        } else {
+          window.pushHistoryDebounced(350);
+        }
+      };
+
+      window.updateGalleryItem = function (idx, key, val) {
+        return window.updateGalleryItemForSection(state.selectedSectionId, idx, key, val, false);
       };
 
       // Narrative cards updates
@@ -16707,9 +16744,12 @@
             } else if (sType === 'text_image') {
               sec.content.imageUrl = publicUrl;
             } else if (sType === 'before_after') {
-              sec.content.afterUrl = publicUrl;
+              const frame = targetEl && targetEl.closest ? targetEl.closest('.sec-ba-image-frame') : null;
+              const imageKey = elKey || (frame && frame.getAttribute('data-el-key')) || '';
+              sec.content[imageKey === 'before-image' ? 'beforeUrl' : 'afterUrl'] = publicUrl;
+            } else if (sType === 'testimonial') {
+              sec.content.avatar = publicUrl;
             } else if (sType === 'hero' || sType === 'hero_image') {
-              sec.content.url = publicUrl;
               sec.content.bgImage = publicUrl;
             } else {
               if (c.url !== undefined) sec.content.url = publicUrl;
@@ -16829,6 +16869,12 @@
             if (typeof gridItems[imgIdx] === 'string') gridItems[imgIdx] = '';
             else gridItems[imgIdx].url = '';
           }
+        } else if (sType === 'before_after') {
+          const frame = targetEl && targetEl.closest ? targetEl.closest('.sec-ba-image-frame') : null;
+          const imageKey = elKey || (frame && frame.getAttribute('data-el-key')) || '';
+          sec.content[imageKey === 'before-image' ? 'beforeUrl' : 'afterUrl'] = '';
+        } else if (sType === 'testimonial') {
+          sec.content.avatar = '';
         } else {
           if (sec.content && sec.content.url) sec.content.url = '';
           if (sec.content && sec.content.imageUrl) sec.content.imageUrl = '';
@@ -16836,6 +16882,7 @@
 
         markUnsaved();
         pushHistory();
+        saveCurrentDraftLocally();
         renderCanvas();
         renderProperties();
         renderTree();
@@ -16951,13 +16998,26 @@
         renderProperties();
       };
 
-      window.updateCarouselSlide = function (idx, field, val) {
-        const sec = getSectionById(state.selectedSectionId);
+      window.updateCarouselSlideForSection = function (sectionId, idx, field, val, commitImmediately = false) {
+        const sec = getSectionById(sectionId);
         if (!sec || !sec.content.slides[idx]) return;
         sec.content.slides[idx][field] = val;
         renderCanvasSection(sec.id);
         markUnsaved();
-        window.pushHistoryDebounced(350);
+
+        // Image replacements are completed, durable actions. Persist their
+        // exact section/slide binding immediately so refresh and Live Preview
+        // cannot fall back to the registry's starter image URLs.
+        if (commitImmediately) {
+          pushHistory();
+          saveCurrentDraftLocally();
+        } else {
+          window.pushHistoryDebounced(350);
+        }
+      };
+
+      window.updateCarouselSlide = function (idx, field, val) {
+        return window.updateCarouselSlideForSection(state.selectedSectionId, idx, field, val);
       };
 
       window.updateCarouselTimerPreset = function (secVal) {
@@ -16996,13 +17056,22 @@
         renderProperties();
       };
 
-      window.updateImageGridItem = function (idx, field, val) {
-        const sec = getSectionById(state.selectedSectionId);
+      window.updateImageGridItemForSection = function (sectionId, idx, field, val, commitImmediately = false) {
+        const sec = getSectionById(sectionId);
         if (!sec || !sec.content.items[idx]) return;
         sec.content.items[idx][field] = val;
         renderCanvasSection(sec.id);
         markUnsaved();
-        window.pushHistoryDebounced(350);
+        if (commitImmediately) {
+          pushHistory();
+          saveCurrentDraftLocally();
+        } else {
+          window.pushHistoryDebounced(350);
+        }
+      };
+
+      window.updateImageGridItem = function (idx, field, val) {
+        return window.updateImageGridItemForSection(state.selectedSectionId, idx, field, val, false);
       };
 
       // Client Logo handlers
@@ -17028,13 +17097,22 @@
         renderProperties();
       };
 
-      window.updateClientLogoItem = function (idx, field, val) {
-        const sec = getSectionById(state.selectedSectionId);
+      window.updateClientLogoItemForSection = function (sectionId, idx, field, val, commitImmediately = false) {
+        const sec = getSectionById(sectionId);
         if (!sec || !sec.content.logos[idx]) return;
         sec.content.logos[idx][field] = val;
         renderCanvasSection(sec.id);
         markUnsaved();
-        window.pushHistoryDebounced(350);
+        if (commitImmediately) {
+          pushHistory();
+          saveCurrentDraftLocally();
+        } else {
+          window.pushHistoryDebounced(350);
+        }
+      };
+
+      window.updateClientLogoItem = function (idx, field, val) {
+        return window.updateClientLogoItemForSection(state.selectedSectionId, idx, field, val, false);
       };
 
       // ── Starter Template Presets & Blank Canvas ──
@@ -17504,6 +17582,17 @@
         if (isNew) {
           const typePrefix = state.contentType === 'casestudies' ? 'case-' : (state.contentType === 'journal' ? 'post-' : 'proj-');
           state.projectId = typePrefix + Math.random().toString(36).substring(2, 7);
+
+          // Give an unsaved new project a stable address immediately. Its
+          // local auto-save can then be recovered on refresh instead of the
+          // `new=true` route generating a different starter project.
+          if (window.history && typeof window.history.replaceState === 'function') {
+            const projectUrl = new URL(window.location.href);
+            projectUrl.searchParams.delete('new');
+            projectUrl.searchParams.set('id', state.projectId);
+            projectUrl.searchParams.set('type', state.contentType);
+            window.history.replaceState({ projectId: state.projectId }, '', projectUrl.pathname + projectUrl.search + projectUrl.hash);
+          }
 
           if (state.contentType === 'casestudies') {
             state.name = 'New Case Study';
