@@ -2812,8 +2812,33 @@
   // ==========================================================================
   // INTERACTIVE RUNTIME INITIALIZER (Carousels, Before/After, Animations)
   // ==========================================================================
+  SectionRegistry.destroyInteractive = function (rootElement) {
+    const root = rootElement || document;
+    const interactiveNodes = [];
+
+    if (root.matches && root.matches('[data-carousel=true], .sec-ba-container')) {
+      interactiveNodes.push(root);
+    }
+    if (root.querySelectorAll) {
+      root.querySelectorAll('[data-carousel=true], .sec-ba-container').forEach(node => interactiveNodes.push(node));
+    }
+
+    interactiveNodes.forEach(node => {
+      if (typeof node._sectionInteractiveCleanup === 'function') {
+        try { node._sectionInteractiveCleanup(); } catch (_) { }
+      }
+      node._sectionInteractiveCleanup = null;
+    });
+  };
+
   SectionRegistry.initInteractive = function (rootElement) {
     const root = rootElement || document;
+
+    // Re-initialization is intentionally idempotent. The visual builder can
+    // refresh a single section many times while editing; clean the previous
+    // runtime before attaching a new one so detached nodes, timers and global
+    // pointer listeners are never retained.
+    SectionRegistry.destroyInteractive(root);
 
     // ── Carousel / Slider Initializer ──
     const carousels = root.querySelectorAll('[data-carousel="true"]');
@@ -2843,6 +2868,7 @@
       let isPaused = false;
       let isProgrammaticScroll = false;
       let settleTimer = null;
+      let scrollDebounce = null;
       let leadingClone = null;
       let trailingClone = null;
 
@@ -2984,7 +3010,6 @@
       });
 
       // Track scroll listener to sync dots when user swipes or scrolls manually
-      let scrollDebounce;
       track.onscroll = () => {
         clearTimeout(scrollDebounce);
         scrollDebounce = setTimeout(() => {
@@ -3056,6 +3081,22 @@
 
       // Start the autoplay loop
       startAutoplay();
+
+      car._sectionInteractiveCleanup = () => {
+        if (car._autoplayTimer) {
+          clearInterval(car._autoplayTimer);
+          car._autoplayTimer = null;
+        }
+        clearTimeout(settleTimer);
+        clearTimeout(scrollDebounce);
+        track.onscroll = null;
+        car.onmouseenter = null;
+        car.onmouseleave = null;
+        if (prevBtn) prevBtn.onclick = null;
+        if (nextBtn) nextBtn.onclick = null;
+        dots.forEach(dot => { dot.onclick = null; });
+        track.querySelectorAll('[data-carousel-clone]').forEach(clone => clone.remove());
+      };
     });
 
     // ── Before/After Slider Initializer ──
@@ -3072,21 +3113,34 @@
         box.style.setProperty('--pos', pct.toFixed(2) + '%');
       };
 
-      box.onmousedown = (e) => {
+      const onMouseDown = (e) => {
         isDown = true;
         updateDivider(e.clientX);
       };
-      window.addEventListener('mousemove', (e) => {
+      const onMouseMove = (e) => {
         if (!isDown) return;
         updateDivider(e.clientX);
-      });
-      window.addEventListener('mouseup', () => {
+      };
+      const onMouseUp = () => {
         isDown = false;
-      });
-      box.ontouchmove = (e) => {
+      };
+      const onTouchMove = (e) => {
         if (e.touches && e.touches[0]) {
           updateDivider(e.touches[0].clientX);
         }
+      };
+
+      box.onmousedown = onMouseDown;
+      box.ontouchmove = onTouchMove;
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+
+      box._sectionInteractiveCleanup = () => {
+        isDown = false;
+        box.onmousedown = null;
+        box.ontouchmove = null;
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
       };
     });
 
@@ -3384,6 +3438,7 @@
       container.classList.add('sec-page-runtime');
       container.dataset.viewport = activeViewport;
       container.style.display = 'block';
+      SectionRegistry.destroyInteractive(container);
       container.innerHTML = `<div class="sec-page-surface" data-runtime-viewport="${activeViewport}">${html}</div>`;
       surface = container.querySelector('.sec-page-surface');
 
@@ -3429,6 +3484,7 @@
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(resizeFrame);
       if (resizeObserver) resizeObserver.disconnect();
+      SectionRegistry.destroyInteractive(container);
     };
     container._sectionRuntimeCleanup = cleanup;
     return cleanup;

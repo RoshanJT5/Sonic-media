@@ -30,11 +30,11 @@
   <!-- Supabase JS Client & Config -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"
     integrity="sha384-YieCqqg9gQufX7+5HcFvCEg/n3KUEdl8/Jb+A6J0npf1mB740VayvwKjTrtCeUoy"
-    crossorigin="anonymous"></script>
+    crossorigin="anonymous" defer></script>
   <script src="assets/js/supabase-config.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
-<script src="assets/js/section-registry.js?v=4.0"></script>
-  <script src="assets/js/admin-dialogs.js?v=2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" defer></script>
+<script src="assets/js/section-registry.js?v=4.0" defer></script>
+  <script src="assets/js/admin-dialogs.js?v=2" defer></script>
 
   <style>
     /* ══════════ STANDARD SYSTEM CURSOR (O(1) Root Inheritance instead of O(N) Wildcard Tree Traversal) ══════════ */
@@ -2239,6 +2239,39 @@
         collapsedDrawers: {}
       };
 
+      // O(1) lookup for the hot editing path. Structural operations rebuild
+      // this index through renderCanvas(), while content edits reuse it.
+      let sectionById = new Map();
+      let sectionPositionById = new Map();
+      const builderDomCache = new Map();
+
+      function getBuilderElement(id) {
+        let element = builderDomCache.get(id);
+        if (element && element.isConnected) return element;
+        element = document.getElementById(id);
+        if (element) builderDomCache.set(id, element);
+        else builderDomCache.delete(id);
+        return element;
+      }
+
+      function rebuildSectionIndex() {
+        sectionById = new Map();
+        sectionPositionById = new Map();
+        state.sections.forEach((section, index) => {
+          sectionById.set(section.id, section);
+          sectionPositionById.set(section.id, index);
+        });
+      }
+
+      function getSectionById(sectionId) {
+        let section = sectionById.get(sectionId);
+        if (!section || state.sections.length !== sectionById.size) {
+          rebuildSectionIndex();
+          section = sectionById.get(sectionId);
+        }
+        return section || null;
+      }
+
       function hydrateBuilderSections(sections) {
         return window.SectionRegistry && typeof window.SectionRegistry.migrateSections === 'function'
           ? window.SectionRegistry.migrateSections(sections)
@@ -2458,11 +2491,33 @@
 
       // ── Local Draft Auto-Backup & Storage Engine ──
       let _autoDraftBackupTimer = null;
+      let _autoDraftIdleHandle = null;
+
+      function cancelScheduledAutoDraftBackup() {
+        if (_autoDraftBackupTimer) {
+          clearTimeout(_autoDraftBackupTimer);
+          _autoDraftBackupTimer = null;
+        }
+        if (_autoDraftIdleHandle !== null && typeof window.cancelIdleCallback === 'function') {
+          window.cancelIdleCallback(_autoDraftIdleHandle);
+        }
+        _autoDraftIdleHandle = null;
+      }
+
       function scheduleAutoDraftBackup() {
-        if (_autoDraftBackupTimer) clearTimeout(_autoDraftBackupTimer);
+        cancelScheduledAutoDraftBackup();
         _autoDraftBackupTimer = setTimeout(() => {
-          saveCurrentDraftLocally();
-        }, 150); // fast 150ms auto-backup to localStorage
+          _autoDraftBackupTimer = null;
+          const saveWhenIdle = () => {
+            _autoDraftIdleHandle = null;
+            saveCurrentDraftLocally();
+          };
+          if (typeof window.requestIdleCallback === 'function') {
+            _autoDraftIdleHandle = window.requestIdleCallback(saveWhenIdle, { timeout: 700 });
+          } else {
+            saveWhenIdle();
+          }
+        }, 1200);
       }
 
       function getListingFormData() {
@@ -2495,13 +2550,15 @@
       }
 
       function saveCurrentDraftLocally() {
+        cancelScheduledAutoDraftBackup();
         const slug = (document.getElementById('cardSlug') ? document.getElementById('cardSlug').value.trim() : '') || state.projectId;
         if (!slug || !Array.isArray(state.sections) || state.sections.length === 0) return;
         const listing = getListingFormData();
         listing.slug = slug;
+        const persistedSections = serializeBuilderSections();
         saveDraftLocally(slug, {
           name: listing.name,
-          sections: serializeBuilderSections(),
+          sections: persistedSections,
           listing_data: listing,
           status: listing.status
         });
@@ -2514,7 +2571,7 @@
             id: slug,
             name: data.name || 'Untitled',
             contentType: state.contentType || 'portfolio',
-            sections: serializeBuilderSections(data.sections || state.sections || []),
+            sections: Array.isArray(data.sections) ? data.sections : serializeBuilderSections(),
             listing_data: data.listing_data || {},
             status: data.status || state.status || 'draft',
             updatedAt: Date.now()
@@ -2547,10 +2604,32 @@
             updatedAt: record.updatedAt
           }));
 
-          updateDraftsBadgeCount();
+          updateDraftsBadgeFromLocalIndex(index.length);
         } catch (e) {
           console.warn('Local draft storage warning:', e);
         }
+      }
+
+      function renderDraftsBadgeCount(count) {
+        const badge = document.getElementById('topbarDraftsBadge');
+        if (!badge) return;
+        if (count > 0) {
+          badge.textContent = count;
+          badge.style.display = 'inline-block';
+        } else {
+          badge.style.display = 'none';
+        }
+      }
+
+      function updateDraftsBadgeFromLocalIndex(knownCount) {
+        let count = Number.isFinite(knownCount) ? knownCount : 0;
+        if (!Number.isFinite(knownCount)) {
+          try {
+            const index = JSON.parse(localStorage.getItem('tsm_drafts_index') || '[]');
+            count = Array.isArray(index) ? index.length : 0;
+          } catch (_) { count = 0; }
+        }
+        renderDraftsBadgeCount(count);
       }
 
       function formatRelativeTime(dateInput) {
@@ -2584,15 +2663,7 @@
             if (Array.isArray(index)) count = index.length;
           }
 
-          const badge = document.getElementById('topbarDraftsBadge');
-          if (badge) {
-            if (count > 0) {
-              badge.textContent = count;
-              badge.style.display = 'inline-block';
-            } else {
-              badge.style.display = 'none';
-            }
-          }
+          renderDraftsBadgeCount(count);
         } catch (_) { }
       }
 
@@ -2681,7 +2752,7 @@
 
         const totalCountEl = document.getElementById('draftsModalTotalCount');
         if (totalCountEl) totalCountEl.textContent = `${list.length} ${list.length === 1 ? 'draft' : 'drafts'}`;
-        updateDraftsBadgeCount();
+        renderDraftsBadgeCount(list.length);
 
         renderDraftsList();
       };
@@ -2863,8 +2934,38 @@
         }
       }
 
+      function discardUnsavedNewProjectDraft() {
+        if (!state.isNew || !state.projectId) return;
+
+        cancelScheduledAutoDraftBackup();
+
+        try {
+          const temporaryId = state.projectId;
+          localStorage.removeItem('tsm_draft_' + temporaryId);
+
+          const rawIndex = localStorage.getItem('tsm_drafts_index');
+          const index = rawIndex ? JSON.parse(rawIndex) : [];
+          if (Array.isArray(index)) {
+            const nextIndex = index.filter(item => item && item.id !== temporaryId);
+            localStorage.setItem('tsm_drafts_index', JSON.stringify(nextIndex));
+            updateDraftsBadgeFromLocalIndex(nextIndex.length);
+          }
+
+          const lastActive = localStorage.getItem('tsm_last_active_draft');
+          if (lastActive) {
+            const lastActiveRecord = JSON.parse(lastActive);
+            if (lastActiveRecord && lastActiveRecord.id === temporaryId) {
+              localStorage.removeItem('tsm_last_active_draft');
+            }
+          }
+        } catch (error) {
+          console.warn('Temporary new-project cleanup notice:', error);
+        }
+      }
+
       window.confirmResumeRecentDraft = function () {
         if (!_recentDraftForResume) return;
+        discardUnsavedNewProjectDraft();
         const targetUrl = resolveAppUrl(`/admin-builder.html?id=${encodeURIComponent(_recentDraftForResume.id)}${_recentDraftForResume.contentType !== 'portfolio' ? '&type=' + encodeURIComponent(_recentDraftForResume.contentType) : ''}`);
         window.location.href = targetUrl;
       };
@@ -2910,7 +3011,7 @@
 
         // Avoid pushing identical snapshot if state hasn't changed
         if (!force && state.history.length > 0 && state.historyIndex >= 0 && state.historyIndex < state.history.length) {
-          const lastSnapshot = JSON.stringify(state.history[state.historyIndex]);
+          const lastSnapshot = state.history[state.historyIndex];
           if (lastSnapshot === serializedCurrent) {
             updateHistoryButtons();
             return;
@@ -2922,7 +3023,10 @@
           state.history = state.history.slice(0, state.historyIndex + 1);
         }
 
-        state.history.push(JSON.parse(serializedCurrent));
+        // Keep compact serialized snapshots instead of duplicate object graphs.
+        // This preserves the exact 15-change undo behaviour while substantially
+        // reducing retained heap and avoiding a second stringify per change.
+        state.history.push(serializedCurrent);
 
         // Keep last 15 changes (16 snapshots = initial baseline + 15 undoable changes)
         while (state.history.length > (MAX_UNDO_CHANGES + 1)) {
@@ -2967,7 +3071,7 @@
 
         if (state.historyIndex > 0) {
           state.historyIndex--;
-          state.sections = hydrateBuilderSections(JSON.parse(JSON.stringify(state.history[state.historyIndex])));
+          state.sections = hydrateBuilderSections(JSON.parse(state.history[state.historyIndex]));
           if (!state.sections.find(s => s.id === state.selectedSectionId)) {
             state.selectedSectionId = state.sections[0] ? state.sections[0].id : null;
           }
@@ -2991,7 +3095,7 @@
 
         if (state.historyIndex < state.history.length - 1) {
           state.historyIndex++;
-          state.sections = hydrateBuilderSections(JSON.parse(JSON.stringify(state.history[state.historyIndex])));
+          state.sections = hydrateBuilderSections(JSON.parse(state.history[state.historyIndex]));
           if (!state.sections.find(s => s.id === state.selectedSectionId)) {
             state.selectedSectionId = state.sections[0] ? state.sections[0].id : null;
           }
@@ -3183,8 +3287,8 @@
       window.getBuilderCanvasScale = getBuilderCanvasScale;
 
       function syncBuilderPageShellHeight() {
-        const canvas = document.getElementById('builderCanvas');
-        const shell = document.getElementById('builderPageShell');
+        const canvas = getBuilderElement('builderCanvas');
+        const shell = getBuilderElement('builderPageShell');
         if (!canvas || !shell) return;
         const scale = builderCanvasScale;
         const logicalHeight = Math.max(800, canvas.scrollHeight, canvas.offsetHeight);
@@ -3193,9 +3297,9 @@
       }
 
       function updateBuilderCanvasViewport() {
-        const stage = document.getElementById('builderCanvasStage');
-        const shell = document.getElementById('builderPageShell');
-        const canvas = document.getElementById('builderCanvas');
+        const stage = getBuilderElement('builderCanvasStage');
+        const shell = getBuilderElement('builderPageShell');
+        const canvas = getBuilderElement('builderCanvas');
         if (!stage || !shell || !canvas) return;
 
         const mode = getBuilderViewportMode();
@@ -3249,7 +3353,7 @@
       };
 
       function initBuilderCanvasWorkspace() {
-        const canvas = document.getElementById('builderCanvas');
+        const canvas = getBuilderElement('builderCanvas');
         if (!canvas) return;
         if (window.ResizeObserver && !builderCanvasResizeObserver) {
           builderCanvasResizeObserver = new ResizeObserver(syncBuilderPageShellHeight);
@@ -3668,7 +3772,7 @@
 
         window.highlightTreeElement(cId);
 
-        const canvas = document.getElementById('builderCanvas');
+        const canvas = getBuilderElement('builderCanvas');
         let el = document.querySelector(`[data-container-id="${cId}"]`);
         if (!el && canvas) el = canvas.querySelector(`[data-container-id="${cId}"]`);
 
@@ -3721,7 +3825,7 @@
         const secEl = document.getElementById('canvas_sec_' + secId);
         if (!secEl) return;
         const targetSec = state.sections.find(s => s.id === secId);
-        const canvas = document.getElementById('builderCanvas');
+        const canvas = getBuilderElement('builderCanvas');
 
         // Look for registered candidate first
         const cands = (targetSec && targetSec._candidates) ? targetSec._candidates : (window._activeCandidates || []);
@@ -3769,7 +3873,7 @@
       };
 
       window.deleteSectionContentItem = function (secId, itemIdx) {
-        const sec = state.sections.find(s => s.id === secId);
+        const sec = getSectionById(secId);
         if (!sec || !sec.content) return;
         const items = Array.isArray(sec.content.items)
           ? sec.content.items
@@ -3950,8 +4054,14 @@
 
       // ── Live Canvas Rendering ──
       function renderCanvas() {
-        const canvas = document.getElementById('builderCanvas');
+        const canvas = getBuilderElement('builderCanvas');
         if (!canvas) return;
+
+        rebuildSectionIndex();
+
+        if (window.SectionRegistry && typeof window.SectionRegistry.destroyInteractive === 'function') {
+          window.SectionRegistry.destroyInteractive(canvas);
+        }
 
         if (state.sections.length === 0) {
           canvas.innerHTML = `
@@ -4109,6 +4219,158 @@
         // Initialize Wordpad floating toolbar text selection (BOTH Edit & Live Preview modes)
         initCanvasTextSelection(canvas);
         requestAnimationFrame(updateBuilderCanvasViewport);
+      }
+
+      function syncCanvasSectionFrameStyle(sectionEl, sec, secIdx) {
+        if (!sectionEl || !sec) return;
+        const viewMode = getBuilderViewportMode();
+        const settings = window.SectionRegistry
+          ? window.SectionRegistry.resolveSettings(sec, viewMode)
+          : (sec.settings || {});
+        const customWidthRaw = String(settings.customWidth || '').trim();
+        const customWidthMatch = customWidthRaw.match(/^(\d+(?:\.\d+)?)(px|%)?$/i);
+        const customWidth = customWidthMatch
+          ? customWidthMatch[1] + (customWidthMatch[2] || 'px')
+          : '';
+        const customHeight = settings.customHeight && parseInt(settings.customHeight) > 0
+          ? `${parseInt(settings.customHeight)}px`
+          : '';
+        const offsetX = parseInt(settings.offsetX || 0);
+        const offsetY = parseInt(settings.offsetY || 0);
+        const automaticZIndex = 10 + (secIdx + 1) * 10;
+        const zIndex = settings.zIndex !== undefined && settings.zIndex !== '' && !isNaN(parseInt(settings.zIndex))
+          ? parseInt(settings.zIndex)
+          : automaticZIndex;
+
+        sectionEl.style.maxWidth = customWidth;
+        sectionEl.style.margin = customWidth ? '0 auto' : '';
+        sectionEl.style.width = customWidth ? '100%' : '';
+        sectionEl.style.minHeight = customHeight;
+        sectionEl.style.transform = (offsetX || offsetY)
+          ? `translate3d(${offsetX}px, ${offsetY}px, 0)`
+          : '';
+        sectionEl.style.position = 'relative';
+        sectionEl.style.isolation = 'isolate';
+        sectionEl.style.zIndex = String(zIndex);
+      }
+
+      // Hot-path renderer: content and style edits replace only the selected
+      // section. Adding, deleting, duplicating and reordering still use the
+      // full renderer so all existing structural behaviour remains unchanged.
+      function renderCanvasSection(sectionId) {
+        const canvas = getBuilderElement('builderCanvas');
+        const sec = getSectionById(sectionId);
+        let secIdx = sectionPositionById.get(sectionId);
+        if (sec && state.sections[secIdx] !== sec) {
+          rebuildSectionIndex();
+          secIdx = sectionPositionById.get(sectionId);
+        }
+        const sectionEl = document.getElementById('canvas_sec_' + sectionId);
+        if (!canvas || !sec || !sectionEl || !window.SectionRegistry) {
+          renderCanvas();
+          return;
+        }
+
+        const previousBlock = Array.from(sectionEl.children).find(child => child.classList && child.classList.contains('sec-block'));
+        if (!previousBlock) {
+          renderCanvas();
+          return;
+        }
+
+        if (typeof window.SectionRegistry.destroyInteractive === 'function') {
+          window.SectionRegistry.destroyInteractive(previousBlock);
+        }
+
+        const template = document.createElement('template');
+        template.innerHTML = window.SectionRegistry.renderSection(sec, {
+          isPublic: state.isPreviewMode,
+          isSelected: sec.id === state.selectedSectionId,
+          index: secIdx,
+          viewport: getBuilderViewportMode()
+        }).trim();
+        const nextBlock = template.content.firstElementChild;
+        if (!nextBlock) {
+          renderCanvas();
+          return;
+        }
+
+        if (state.selectedElementEl && previousBlock.contains(state.selectedElementEl)) {
+          state.selectedElementEl = null;
+          state.selectedElementCand = null;
+          state.selectedElementSectionId = null;
+        }
+        if (window.wdpadState && window.wdpadState.containerEl && previousBlock.contains(window.wdpadState.containerEl)) {
+          window.wdpadState.containerEl = null;
+        }
+
+        previousBlock.replaceWith(nextBlock);
+        syncCanvasSectionFrameStyle(sectionEl, sec, secIdx);
+
+        if (typeof window.SectionRegistry.initInteractive === 'function') {
+          window.SectionRegistry.initInteractive(nextBlock);
+        }
+        if (typeof window.SectionRegistry.applySavedSectionElementStyles === 'function') {
+          window.SectionRegistry.applySavedSectionElementStyles(sectionEl, sec, getBuilderViewportMode());
+        }
+
+        if (!state.isPreviewMode) initImageResizeHandlers(nextBlock);
+        initCanvasDirectTextEditing(nextBlock);
+        initElementRepositionDrag(sectionEl);
+        if (!state.isPreviewMode) initImagePanHandlers(nextBlock);
+        initCanvasTextSelection(nextBlock);
+        requestAnimationFrame(updateBuilderCanvasViewport);
+      }
+
+      let _scheduledSectionRenderId = null;
+      let _scheduledSectionRenderFrame = 0;
+
+      function scheduleCanvasSectionRender(sectionId) {
+        _scheduledSectionRenderId = sectionId;
+        if (_scheduledSectionRenderFrame) return;
+        _scheduledSectionRenderFrame = requestAnimationFrame(() => {
+          const nextSectionId = _scheduledSectionRenderId;
+          _scheduledSectionRenderId = null;
+          _scheduledSectionRenderFrame = 0;
+          if (nextSectionId) renderCanvasSection(nextSectionId);
+        });
+      }
+
+      function findRenderedSectionContentElement(sectionEl, key) {
+        if (!sectionEl || !key) return null;
+        const keyed = Array.from(sectionEl.querySelectorAll('[data-el-key]'))
+          .find(element => element.getAttribute('data-el-key') === key);
+        if (keyed) return keyed;
+
+        const selectors = {
+          eyebrow: '.wd-eyebrow, .project-eyebrow, .sec-eyebrow, .sec-subheading, .hero-eyebrow',
+          title: '.hero-title, .sec-heading, .sec-title, .wd-h1, h1, h2, h3',
+          heading: '.sec-heading, .sec-title, .wd-h1, h1, h2, h3',
+          subtitle: '.hero-subtitle, .sec-subtitle, .wd-sub, .sec-subheading',
+          description: '.hero-desc, .sec-desc, .wd-cta-desc, .wd-gallery-desc, p',
+          body: '.wd-article-body, .sec-rich-text, .sec-content-col, p',
+          btnText: '.sec-cta-btn, .wd-cta-btn, .custom-sec-btn, .btn-primary, .btn-secondary'
+        };
+        const selector = selectors[key];
+        return selector ? sectionEl.querySelector(selector) : null;
+      }
+
+      function updateRenderedSectionContent(sectionId, key, value) {
+        const sectionEl = document.getElementById('canvas_sec_' + sectionId);
+        const matchedElement = findRenderedSectionContentElement(sectionEl, key);
+        if (!matchedElement) return false;
+        const target = matchedElement.matches('h1,h2,h3,h4,h5,h6,p,blockquote,a,button,[contenteditable="true"]')
+          ? matchedElement
+          : (matchedElement.querySelector('h1,h2,h3,h4,h5,h6,p,blockquote,a,button,[contenteditable="true"]') || matchedElement);
+
+        const nextHtml = typeof value === 'string'
+          ? sanitizeContentFormatting(value)
+          : String(value ?? '');
+        if (key === 'body' || key === 'html' || /<[^>]+>/.test(nextHtml)) {
+          target.innerHTML = nextHtml;
+        } else {
+          target.textContent = nextHtml;
+        }
+        return true;
       }
 
       // ── Smooth DOM Selection updater (Preserves Text Selection & Canvas Nodes) ──
@@ -4488,7 +4750,7 @@
 
               // Handle Width (e or se)
               if (activeHandle === 'e' || activeHandle === 'se') {
-                const canvasEl = document.getElementById('builderCanvas');
+                const canvasEl = getBuilderElement('builderCanvas');
                 const canvasMax = canvasEl ? canvasEl.offsetWidth : 1200;
                 curW = Math.max(320, Math.min(2000, Math.round(startW + deltaX)));
                 if (curW >= canvasMax - 60) {
@@ -4539,7 +4801,7 @@
 
               // Persist width
               if (curW !== startW) {
-                const canvasEl = document.getElementById('builderCanvas');
+                const canvasEl = getBuilderElement('builderCanvas');
                 const canvasMax = canvasEl ? canvasEl.offsetWidth : 1200;
                 if (curW >= canvasMax - 60) {
                   targetSettings.customWidth = '';
@@ -5409,7 +5671,7 @@
       };
 
       window.updateMultiButtonProp = function (secId, bIdx, key, val, fast = false) {
-        const sec = state.sections.find(s => s.id === (secId || state.selectedSectionId));
+        const sec = getSectionById(secId || state.selectedSectionId);
         if (!sec) return;
         const btns = window.ensureSectionButtonsArray(sec);
         if (!btns[bIdx]) return;
@@ -5420,7 +5682,7 @@
         btns[bIdx][key] = val;
         syncLegacyButtonProperties(sec);
 
-        renderCanvas();
+        renderCanvasSection(sec.id);
         if (fast) {
           markUnsaved();
           window.pushHistoryDebounced(350);
@@ -5436,7 +5698,7 @@
         if (!sec) return;
         if (!sec.settings) sec.settings = {};
         sec.settings[key] = val;
-        renderCanvas();
+        renderCanvasSection(sec.id);
         renderProperties();
         pushHistory();
         markUnsaved();
@@ -7245,7 +7507,6 @@
         }
 
         markUnsaved();
-        saveCurrentDraftLocally();
         pushHistory();
       }
 
@@ -7373,7 +7634,7 @@
               let detectedFont = (targetEl.style && targetEl.style.fontFamily) || '';
               if (!detectedFont) {
                 const secId = window.wdpadState.secId || state.selectedSectionId;
-                const sec = secId ? state.sections.find(s => s.id === secId) : null;
+                const sec = secId ? getSectionById(secId) : null;
                 if (sec) {
                   const candKey = (state.selectedElementCand && state.selectedElementCand.key) || (window.wdpadState.field === 'heading' ? 'heading' : 'heading');
                   const elSt = getViewportElementStyle(sec, candKey);
@@ -7414,7 +7675,7 @@
                 const weight = parseInt(comp.fontWeight) || 400;
                 if (weight >= 600 || targetEl.closest('b, strong')) isBold = true;
                 const secId = window.wdpadState.secId || state.selectedSectionId;
-                const sec = secId ? state.sections.find(s => s.id === secId) : null;
+                const sec = secId ? getSectionById(secId) : null;
                 if (sec) {
                   const candKey = (state.selectedElementCand && state.selectedElementCand.key) || 'heading';
                   const elSt = getViewportElementStyle(sec, candKey);
@@ -7428,7 +7689,7 @@
               if (!isItalic) {
                 if (comp.fontStyle === 'italic' || targetEl.closest('i, em')) isItalic = true;
                 const secId = window.wdpadState.secId || state.selectedSectionId;
-                const sec = secId ? state.sections.find(s => s.id === secId) : null;
+                const sec = secId ? getSectionById(secId) : null;
                 if (sec) {
                   const candKey = (state.selectedElementCand && state.selectedElementCand.key) || 'heading';
                   const elSt = getViewportElementStyle(sec, candKey);
@@ -7743,7 +8004,6 @@
                 targetSettings.fontFamily = fontVal;
               }
               markUnsaved();
-              saveCurrentDraftLocally();
             }
 
             // 2. Apply directly to active element on canvas if present
@@ -7850,7 +8110,6 @@
                 elSt.textDecoration = isU ? 'underline' : 'none';
               }
               markUnsaved();
-              saveCurrentDraftLocally();
             }
 
             wdpadUpdateActiveButtonStates();
@@ -7891,7 +8150,6 @@
               }
               if (sec) {
                 markUnsaved();
-                saveCurrentDraftLocally();
               }
               syncCanvasTextToModel(textEl, window.wdpadState.secId, window.wdpadState.field);
               pushHistory();
@@ -8300,7 +8558,7 @@
           }
         }
 
-        const sec = state.sections.find(s => s.id === target.secId);
+        const sec = getSectionById(target.secId);
         const secEl = target.secEl || document.getElementById('canvas_sec_' + target.secId);
         const cardEl = target.cardEl;
 
@@ -8445,7 +8703,7 @@
           return;
         }
 
-        const sec = state.sections.find(s => s.id === target.secId);
+        const sec = getSectionById(target.secId);
         const secEl = target.secEl || document.getElementById('canvas_sec_' + target.secId);
         const cardEl = target.cardEl;
 
@@ -8547,7 +8805,7 @@
           }
         }
 
-        const sec = state.sections.find(s => s.id === target.secId);
+        const sec = getSectionById(target.secId);
         const secEl = target.secEl || document.getElementById('canvas_sec_' + target.secId);
         const cardEl = target.cardEl;
 
@@ -8707,7 +8965,7 @@
         }
 
         // 3. Card / Structured Item paste
-        const sec = state.sections.find(s => s.id === target.secId);
+        const sec = getSectionById(target.secId);
         const secEl = target.secEl || document.getElementById('canvas_sec_' + target.secId);
         const cardEl = target.cardEl;
 
@@ -9536,7 +9794,7 @@
           newSec.settings.isIndependentContainer = true;
           newSec.settings.containerAlign = placement === 'left' ? 'left' : 'center';
 
-          const canvasEl = document.getElementById('builderCanvas');
+          const canvasEl = getBuilderElement('builderCanvas');
           const canvasW = canvasEl ? canvasEl.offsetWidth : 1200;
 
           // Responsive Hybrid Row Flow
@@ -10048,7 +10306,7 @@
             e.stopPropagation();
             const secId = secEl.getAttribute('data-section-id') || secEl.id.replace('canvas_sec_', '');
             window.builderAddCustomContainer('image', secId);
-            const sec = state.sections.find(s => s.id === secId);
+            const sec = getSectionById(secId);
             if (sec && sec.settings && Array.isArray(sec.settings.customContainers) && sec.settings.customContainers.length > 0) {
               const newCcont = sec.settings.customContainers[sec.settings.customContainers.length - 1];
               window.processCustomContainerImageFile(files[0], secId, newCcont.id);
@@ -10137,7 +10395,7 @@
             const secEl = el.closest('.canvas-section');
             if (!secEl) return;
             const secId = secEl.getAttribute('data-section-id') || secEl.id.replace('canvas_sec_', '');
-            const sec = state.sections.find(s => s.id === secId);
+            const sec = getSectionById(secId);
             if (!sec) return;
             if (!sec.content) sec.content = {};
 
@@ -10292,7 +10550,6 @@
             }
 
             markUnsaved();
-            saveCurrentDraftLocally();
             window.pushHistoryDebounced(400);
           });
 
@@ -10724,7 +10981,9 @@
       function initElementRepositionDrag(canvas) {
         if (!canvas) return;
 
-        const secEls = canvas.querySelectorAll('.canvas-section');
+        const secEls = [];
+        if (canvas.matches && canvas.matches('.canvas-section')) secEls.push(canvas);
+        canvas.querySelectorAll('.canvas-section').forEach(secEl => secEls.push(secEl));
         secEls.forEach(secEl => {
           const secId = secEl.getAttribute('data-section-id') || secEl.id.replace('canvas_sec_', '');
           const targetSec = state.sections.find(s => s.id === secId);
@@ -11349,7 +11608,7 @@
           if (!bar.isConnected || !el.isConnected) return;
           const sectionRoot = owningSectionEl || el.closest('.canvas-section');
           const sectionBar = sectionRoot ? sectionRoot.querySelector(':scope > .canvas-section-header-bar') : null;
-          const canvasRoot = document.getElementById('builderCanvas') || sectionRoot;
+          const canvasRoot = getBuilderElement('builderCanvas') || sectionRoot;
           const elementRect = el.getBoundingClientRect();
           const canvasRect = canvasRoot ? canvasRoot.getBoundingClientRect() : { top: 0, left: 0, right: window.innerWidth };
 
@@ -12734,7 +12993,7 @@
         const el = state.selectedElementEl;
         const cand = state.selectedElementCand;
         const secId = state.selectedElementSectionId || state.selectedSectionId;
-        const sec = state.sections.find(s => s.id === secId);
+        const sec = getSectionById(secId);
         if (!el || !cand || !sec) return;
 
         if (prop === 'width') {
@@ -12815,7 +13074,6 @@
         }
 
         markUnsaved();
-        saveCurrentDraftLocally();
         if (!fast) pushHistory();
         if (window.wdpadUpdateActiveButtonStates) window.wdpadUpdateActiveButtonStates();
       };
@@ -12859,7 +13117,7 @@
         let el = state.selectedElementEl;
         const cand = state.selectedElementCand;
         const secId = state.selectedElementSectionId || state.selectedSectionId;
-        const sec = state.sections.find(s => s.id === secId);
+        const sec = getSectionById(secId);
         if (!cand || !sec) return;
 
         // A properties-panel refresh may replace the selected DOM node. Resolve
@@ -12970,7 +13228,7 @@
         const el = state.selectedElementEl;
         const cand = state.selectedElementCand;
         const secId = state.selectedElementSectionId || state.selectedSectionId;
-        const sec = state.sections.find(s => s.id === secId);
+        const sec = getSectionById(secId);
         if (!el || !cand || !sec) return;
 
         if (cand.isCustomContainer) {
@@ -13019,7 +13277,7 @@
         const el = state.selectedElementEl;
         const cand = state.selectedElementCand;
         const secId = state.selectedElementSectionId || state.selectedSectionId;
-        const sec = state.sections.find(s => s.id === secId);
+        const sec = getSectionById(secId);
         if (!el || !cand || !sec) return;
 
         const isUrlField = field === 'buttonUrl' || field === 'url' || field === 'href';
@@ -13113,7 +13371,6 @@
               }
             }
             markUnsaved();
-            saveCurrentDraftLocally();
             pushHistory();
             return;
           }
@@ -13174,7 +13431,6 @@
         }
 
         markUnsaved();
-        saveCurrentDraftLocally();
         pushHistory();
       };
 
@@ -13182,7 +13438,7 @@
         const el = state.selectedElementEl;
         const cand = state.selectedElementCand;
         const secId = state.selectedElementSectionId || state.selectedSectionId;
-        const sec = state.sections.find(s => s.id === secId);
+        const sec = getSectionById(secId);
         if (!el || !cand || !sec) return;
 
         if (cand.isCustomContainer) {
@@ -15652,7 +15908,7 @@
 
       // ── Property Update Helpers ──
       window.replaySectionAnim = function (targetMode) {
-        const canvas = document.getElementById('builderCanvas');
+        const canvas = getBuilderElement('builderCanvas');
         if (!canvas) return;
 
         let activeId = state.selectedSectionId;
@@ -15752,7 +16008,7 @@
       };
 
       window.updateContent = function (key, val, isFormattedInternal = false) {
-        const sec = state.sections.find(s => s.id === state.selectedSectionId);
+        const sec = getSectionById(state.selectedSectionId);
         if (!sec) return;
         if (!sec.content) sec.content = {};
         let processedVal = val;
@@ -15765,14 +16021,15 @@
           sec.content[key] = val;
         }
         syncSectionTextAliases(sec, key, processedVal);
-        renderCanvas();
+        if (!updateRenderedSectionContent(sec.id, key, processedVal)) {
+          scheduleCanvasSectionRender(sec.id);
+        }
         markUnsaved();
-        saveCurrentDraftLocally();
         window.pushHistoryDebounced(400);
       };
 
       window.updateSetting = function (key, val) {
-        const sec = state.sections.find(s => s.id === state.selectedSectionId);
+        const sec = getSectionById(state.selectedSectionId);
         if (!sec) return;
         const target = getViewportSettingsTarget(sec);
         target[key] = val;
@@ -15807,8 +16064,7 @@
           if (key === 'buttonOffsetY') target.elementOffsets.button.y = parseInt(val) || 0;
         }
         markUnsaved();
-        saveCurrentDraftLocally();
-        renderCanvas();
+        scheduleCanvasSectionRender(sec.id);
         renderProperties();
         pushHistory();
       };
@@ -15826,7 +16082,7 @@
         });
         if (getBuilderViewportMode() === 'desktop') sec.layout = Object.assign({}, nextLayout);
         getViewportSettingsTarget(sec).semanticLayout = Object.assign({}, nextLayout);
-        renderCanvas();
+        renderCanvasSection(sec.id);
         renderProperties();
         markUnsaved();
         pushHistory();
@@ -15842,7 +16098,7 @@
           : Math.max(0, Math.min(160, parseInt(value) || 0));
         if (getBuilderViewportMode() === 'desktop') sec.layout = Object.assign({}, nextLayout);
         getViewportSettingsTarget(sec).semanticLayout = Object.assign({}, nextLayout);
-        renderCanvas();
+        scheduleCanvasSectionRender(sec.id);
         markUnsaved();
         window.pushHistoryDebounced(300);
       };
@@ -15855,13 +16111,13 @@
         target.showBgOverlay = val > 0;
         const display = document.getElementById('heroOverlayDisplay');
         if (display) display.textContent = Math.round(val * 100) + '%';
-        renderCanvas();
+        renderCanvasSection(sec.id);
         renderProperties();
         pushHistory();
       };
 
       window.updateSettingFast = function (key, val) {
-        const sec = state.sections.find(s => s.id === state.selectedSectionId);
+        const sec = getSectionById(state.selectedSectionId);
         if (!sec) return;
         const target = getViewportSettingsTarget(sec);
         target[key] = val;
@@ -15895,9 +16151,8 @@
           if (key === 'buttonOffsetX') target.elementOffsets.button.x = parseInt(val) || 0;
           if (key === 'buttonOffsetY') target.elementOffsets.button.y = parseInt(val) || 0;
         }
-        renderCanvas();
+        scheduleCanvasSectionRender(sec.id);
         markUnsaved();
-        saveCurrentDraftLocally();
         window.pushHistoryDebounced(300);
       };
 
@@ -16065,7 +16320,7 @@
         } else {
           target.zIndex = parseInt(val) || 0;
         }
-        renderCanvas();
+        renderCanvasSection(sec.id);
         const displayEl = document.getElementById('propZIndexDisplay');
         if (displayEl) {
           const secIdx = state.sections.findIndex(s => s.id === sec.id);
@@ -16085,7 +16340,7 @@
         if (picker && /^#[0-9A-Fa-f]{6}$/.test(val)) {
           picker.value = val;
         }
-        renderCanvas();
+        renderCanvasSection(sec.id);
         markUnsaved();
         window.pushHistoryDebounced(350);
       };
@@ -16098,7 +16353,7 @@
         if (textInput) {
           textInput.value = val;
         }
-        renderCanvas();
+        renderCanvasSection(sec.id);
         markUnsaved();
         window.pushHistoryDebounced(350);
       };
@@ -16118,7 +16373,7 @@
         if (textInput) textInput.value = '';
         const picker = document.getElementById('secBgColorPicker');
         if (picker) picker.value = '#080808';
-        renderCanvas();
+        renderCanvasSection(sec.id);
         markUnsaved();
         pushHistory();
       };
@@ -16147,10 +16402,10 @@
       };
 
       window.updateGalleryItem = function (idx, key, val) {
-        const sec = state.sections.find(s => s.id === state.selectedSectionId);
+        const sec = getSectionById(state.selectedSectionId);
         if (!sec || !sec.content.items[idx]) return;
         sec.content.items[idx][key] = val;
-        renderCanvas();
+        renderCanvasSection(sec.id);
         markUnsaved();
         window.pushHistoryDebounced(350);
       };
@@ -16179,20 +16434,20 @@
       };
 
       window.updateNarrativeCard = function (idx, key, val) {
-        const sec = state.sections.find(s => s.id === state.selectedSectionId);
+        const sec = getSectionById(state.selectedSectionId);
         if (!sec || !sec.content.cards[idx]) return;
         sec.content.cards[idx][key] = val;
-        renderCanvas();
+        renderCanvasSection(sec.id);
         markUnsaved();
         window.pushHistoryDebounced(350);
       };
 
       // Deliverables list updates
       window.updateDeliverablesList = function (text) {
-        const sec = state.sections.find(s => s.id === state.selectedSectionId);
+        const sec = getSectionById(state.selectedSectionId);
         if (!sec) return;
         sec.content.items = text.split('\n').map(s => s.trim()).filter(Boolean);
-        renderCanvas();
+        renderCanvasSection(sec.id);
         markUnsaved();
         window.pushHistoryDebounced(350);
       };
@@ -16221,10 +16476,10 @@
       };
 
       window.updateMetricItem = function (idx, key, val) {
-        const sec = state.sections.find(s => s.id === state.selectedSectionId);
+        const sec = getSectionById(state.selectedSectionId);
         if (!sec || !sec.content.items[idx]) return;
         sec.content.items[idx][key] = val;
-        renderCanvas();
+        renderCanvasSection(sec.id);
         markUnsaved();
         window.pushHistoryDebounced(350);
       };
@@ -16253,10 +16508,10 @@
       };
 
       window.updateGridCard = function (idx, key, val) {
-        const sec = state.sections.find(s => s.id === state.selectedSectionId);
+        const sec = getSectionById(state.selectedSectionId);
         if (!sec || !sec.content.cards[idx]) return;
         sec.content.cards[idx][key] = val;
-        renderCanvas();
+        renderCanvasSection(sec.id);
         markUnsaved();
         window.pushHistoryDebounced(350);
       };
@@ -16631,28 +16886,26 @@
 
       // List Block items update
       window.updateListBlockItems = function (text) {
-        const sec = state.sections.find(s => s.id === state.selectedSectionId);
+        const sec = getSectionById(state.selectedSectionId);
         if (!sec) return;
         if (!sec.content) sec.content = {};
         const items = text.split('\n').map(s => s.trim()).filter(Boolean);
         sec.content.items = items;
         sec.content.checklist = items;
         sec.content.features = items;
-        renderCanvas();
+        renderCanvasSection(sec.id);
         markUnsaved();
-        saveCurrentDraftLocally();
         window.pushHistoryDebounced(350);
       };
 
       // Multi-column sub-content update
       window.updateColumnSubContent = function (colKey, field, val) {
-        const sec = state.sections.find(s => s.id === state.selectedSectionId);
+        const sec = getSectionById(state.selectedSectionId);
         if (!sec || !sec.content) return;
         if (!sec.content[colKey]) sec.content[colKey] = {};
         sec.content[colKey][field] = replaceFormattedTextPreservingStyles(sec.content[colKey][field] || '', val);
-        renderCanvas();
+        renderCanvasSection(sec.id);
         markUnsaved();
-        saveCurrentDraftLocally();
         window.pushHistoryDebounced(350);
       };
 
@@ -16695,10 +16948,10 @@
       };
 
       window.updateCarouselSlide = function (idx, field, val) {
-        const sec = state.sections.find(s => s.id === state.selectedSectionId);
+        const sec = getSectionById(state.selectedSectionId);
         if (!sec || !sec.content.slides[idx]) return;
         sec.content.slides[idx][field] = val;
-        renderCanvas();
+        renderCanvasSection(sec.id);
         markUnsaved();
         window.pushHistoryDebounced(350);
       };
@@ -16712,7 +16965,7 @@
         const numInput = document.getElementById('carouselTimerNum');
         if (display) display.textContent = secVal + 's per slide';
         if (numInput) numInput.value = secVal;
-        renderCanvas();
+        renderCanvasSection(sec.id);
         pushHistory();
       };
 
@@ -16740,10 +16993,10 @@
       };
 
       window.updateImageGridItem = function (idx, field, val) {
-        const sec = state.sections.find(s => s.id === state.selectedSectionId);
+        const sec = getSectionById(state.selectedSectionId);
         if (!sec || !sec.content.items[idx]) return;
         sec.content.items[idx][field] = val;
-        renderCanvas();
+        renderCanvasSection(sec.id);
         markUnsaved();
         window.pushHistoryDebounced(350);
       };
@@ -16772,10 +17025,10 @@
       };
 
       window.updateClientLogoItem = function (idx, field, val) {
-        const sec = state.sections.find(s => s.id === state.selectedSectionId);
+        const sec = getSectionById(state.selectedSectionId);
         if (!sec || !sec.content.logos[idx]) return;
         sec.content.logos[idx][field] = val;
-        renderCanvas();
+        renderCanvasSection(sec.id);
         markUnsaved();
         window.pushHistoryDebounced(350);
       };
@@ -17252,56 +17505,17 @@
             state.name = 'New Case Study';
             document.getElementById('cardCategory').value = 'Growth Strategy';
             document.getElementById('cardSubtitle').value = 'How we unlocked breakthrough performance for the brand.';
-            state.sections = [
-              window.SectionRegistry.createSection('hero', {
-                eyebrow: 'CASE STUDY · STRATEGY',
-                title: 'New Case Study Headline',
-                subtitle: 'Performance Marketing · Creative Strategy · Rapid Scaling'
-              }),
-              window.SectionRegistry.createSection('narrative_cards', {
-                cards: [
-                  { icon: 'target', title: 'The Challenge', body: 'Describe the core obstacles the client was facing...' },
-                  { icon: 'bulb', title: 'The Solution', body: 'Explain the tailored strategic methodology deployed...' }
-                ]
-              }),
-              window.SectionRegistry.createSection('gallery', { heading: 'Execution Highlights' }),
-              window.SectionRegistry.createSection('rich_text', { heading: 'Results & Impact', body: '<p>Detail the measurable outcomes achieved...</p>' }),
-              window.SectionRegistry.createSection('cta')
-            ];
+            state.sections = [];
           } else if (state.contentType === 'journal') {
             state.name = 'New Journal Article';
             document.getElementById('cardCategory').value = 'Marketing & Growth';
             document.getElementById('cardSubtitle').value = 'A deep-dive analysis on brand scaling and creative performance.';
             document.getElementById('cardReadTime').value = '5 min read';
-            state.sections = [
-              window.SectionRegistry.createSection('hero', {
-                eyebrow: 'JOURNAL · INSIGHTS',
-                title: 'New Article Headline',
-                subtitle: 'May 2026 · 5 min read'
-              }),
-              window.SectionRegistry.createSection('rich_text', {
-                heading: '',
-                body: '<p>Write your opening thesis here...</p><h2>Key Principles</h2><p>Share actionable insights, frameworks, and case evidence.</p>'
-              }),
-              window.SectionRegistry.createSection('cta', {
-                eyebrow: 'Stay Ahead of the Curve',
-                heading: 'Scale With The Sonic Media',
-                description: 'We help ambitious brands grow through elite creative and performance systems.'
-              })
-            ];
+            state.sections = [];
           } else {
             state.name = 'New Visual Project';
             document.getElementById('cardCategory').value = 'Branding & Advertising Solutions';
-            state.sections = [
-              window.SectionRegistry.createSection('hero', {
-                eyebrow: 'PORTFOLIO · NEW SHOWCASE',
-                title: 'Your Project Headline',
-                subtitle: 'Creative Direction · Brand Strategy · High Performance'
-              }),
-              window.SectionRegistry.createSection('narrative_cards'),
-              window.SectionRegistry.createSection('gallery'),
-              window.SectionRegistry.createSection('cta')
-            ];
+            state.sections = [];
           }
 
           state.status = 'draft';
@@ -17316,7 +17530,7 @@
             window.updateCardStatusBadge('draft');
           }
 
-          state.selectedSectionId = state.sections[0].id;
+          state.selectedSectionId = null;
           pushHistory();
           renderTree();
           renderCanvas();

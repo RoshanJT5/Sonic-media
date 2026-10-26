@@ -7,7 +7,9 @@
     "dev": "node server/server.js 5000",
     "start": "node server/server.js 5000",
     "serve": "node server/server.js 5000",
-    "test:sections": "node scripts/verify-section-registry.js"
+    "test:sections": "node scripts/verify-section-registry.js",
+    "test:auth": "node scripts/verify-admin-auth.js",
+    "test:admin-performance": "node scripts/verify-admin-performance.js"
   },
   "author": "The Sonic Media",
   "license": "UNLICENSED"

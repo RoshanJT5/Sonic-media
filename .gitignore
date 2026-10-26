@@ -11,6 +11,10 @@ node_modules/
 .DS_Store
 Thumbs.db
 *.log
+
+# Local browser/debug captures and one-off inspection artifacts.
+# Keep these out of commits and production deployments without ignoring
+# production images or other assets elsewhere in the repository.
 scratch/
 .system_generated/
 

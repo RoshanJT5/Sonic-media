@@ -23,12 +23,12 @@
   <!-- Supabase JS Client pinned to 2.49.1 with SRI integrity check -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"
     integrity="sha384-YieCqqg9gQufX7+5HcFvCEg/n3KUEdl8/Jb+A6J0npf1mB740VayvwKjTrtCeUoy"
-    crossorigin="anonymous"></script>
+    crossorigin="anonymous" defer></script>
 
   <!-- Central Supabase Credentials -->
-<script src="assets/js/section-registry.js?v=4.0"></script>
+<script src="assets/js/section-registry.js?v=4.0" defer></script>
   <script src="assets/js/supabase-config.js"></script>
-  <script src="assets/js/admin-dialogs.js?v=2"></script>
+  <script src="assets/js/admin-dialogs.js?v=2" defer></script>
 
   <script>
     // Automatically strip .html from admin URL in browser address bar
@@ -3473,17 +3473,30 @@
     window.showModalError = showModalError;
 
     // ── UI View Helpers ──
+    function clearAuthViewGates() {
+      // The initial session gate uses !important display rules to prevent the
+      // dashboard flashing before authentication finishes. Remove every gate
+      // before switching views; otherwise a successful login remains visually
+      // stuck on the sign-in screen until the next page refresh.
+      ['preAuthStyle', 'uncloakStyle', 'stealthStyle'].forEach(id => {
+        const styleEl = document.getElementById(id);
+        if (styleEl) styleEl.remove();
+      });
+    }
+
     function showDashboard() {
-      document.getElementById('loginShield').style.display = 'none';
-      document.getElementById('appView').style.display = 'flex';
+      clearAuthViewGates();
+      const loginShield = document.getElementById('loginShield');
+      const appView = document.getElementById('appView');
+      const stealth404 = document.getElementById('stealth404');
+      if (loginShield) loginShield.style.display = 'none';
+      if (stealth404) stealth404.style.display = 'none';
+      if (appView) appView.style.display = 'flex';
       document.body.style.overflow = 'auto';
     }
 
     function showLoginShield() {
-      const preAuthStyle = document.getElementById('preAuthStyle');
-      if (preAuthStyle) preAuthStyle.remove();
-      const stealthStyle = document.getElementById('stealthStyle');
-      if (stealthStyle) stealthStyle.remove();
+      clearAuthViewGates();
       const s404 = document.getElementById('stealth404');
       if (s404) s404.style.display = 'none';
       document.title = "Admin Dashboard — The Sonic Media";
@@ -3722,6 +3735,13 @@
         saveSessionToStorage(data.session, data.user);
         scheduleExpirationWatcher(data.session.expires_at);
         updateUserDisplay(data.user.email);
+
+        // Reveal the authenticated dashboard first so the admin immediately
+        // sees the welcome confirmation. This also removes the pre-auth
+        // !important display gate that previously required a manual refresh.
+        showDashboard();
+        showToast('Welcome back! Redirecting to your admin dashboard...');
+
         // Check if there was a redirect param (e.g. from Visual Page Builder)
         // SECURITY: Only allow relative path redirects to prevent open redirect attacks
         const redirectParam = new URLSearchParams(window.location.search).get('redirect');
@@ -3729,16 +3749,20 @@
           const safeRedirect = redirectParam.trim();
           // Only allow paths starting with / that don't start with // (protocol-relative) and don't contain ://
           if (safeRedirect.startsWith('/') && !safeRedirect.startsWith('//') && !safeRedirect.includes('://') && !safeRedirect.toLowerCase().startsWith('/\\') && !safeRedirect.toLowerCase().includes('javascript:')) {
-            window.location.href = safeRedirect;
+            const redirectUrl = resolveAppUrl(safeRedirect);
+            setTimeout(() => window.location.assign(redirectUrl), 650);
             return;
           } else {
             console.warn('[SonicAdmin] Blocked unsafe redirect target:', safeRedirect);
           }
         }
 
-        // Immediately transition to the dashboard panel
-        showDashboard();
-        showToast('Welcome back! Admin session established.');
+        // Keep the authenticated dashboard on its canonical URL without a
+        // reload. The established session is already ready for protected data.
+        const dashboardUrl = resolveAppUrl('/sonicmediaadmin');
+        if (window.history && typeof window.history.replaceState === 'function') {
+          window.history.replaceState({ admin: true }, '', dashboardUrl);
+        }
 
         // Load fresh data
         loadAllData();
@@ -3835,9 +3859,9 @@
       try {
         const client = getSupabase();
         const [portsRes, casesRes, journalsRes, headersRes] = await Promise.all([
-          client.from('portfolio_items').select('*').order('display_order', { ascending: true }),
-          client.from('case_studies').select('*').order('display_order', { ascending: true }),
-          client.from('journal_posts').select('*').order('display_order', { ascending: true }),
+          client.from('portfolio_items').select('id,status,display_order,num,cat,name,tags,img,metric_val,metric_lbl').order('display_order', { ascending: true }),
+          client.from('case_studies').select('id,status,display_order,cat,cat_label,date,img,title,excerpt').order('display_order', { ascending: true }),
+          client.from('journal_posts').select('id,status,display_order,num,cat,read_time,date,title,thumb_url').order('display_order', { ascending: true }),
           client.from('site_content').select('*')
         ]);
 
@@ -3907,6 +3931,30 @@
         console.error('Failed to load dashboard data:', err);
         showToast('Failed to load data from Supabase');
       }
+    }
+
+    async function getFullAdminItem(collectionKey, tableName, id) {
+      const list = state[collectionKey];
+      if (!Array.isArray(list)) return null;
+      const index = list.findIndex(item => item.id === id);
+      if (index < 0) return null;
+      const current = list[index];
+      if (current && current._fullRecordLoaded) return current;
+
+      const client = getSupabase();
+      const { data, error } = await client.from(tableName).select('*').eq('id', id).maybeSingle();
+      if (error) throw error;
+      if (!data) return current;
+
+      const fullItem = Object.assign({}, current, data);
+      Object.defineProperty(fullItem, '_fullRecordLoaded', {
+        value: true,
+        writable: true,
+        configurable: true,
+        enumerable: false
+      });
+      list[index] = fullItem;
+      return fullItem;
     }
 
     // ── Auto Open Edit Modal from URL Parameter (?edit=portfolio&id=xxx) ──
@@ -4538,8 +4586,14 @@
       openModal('portfolioModal');
     }
 
-    function editPortfolioItem(id, startTab = 'card') {
-      const item = state.portfolio.find(p => p.id === id);
+    async function editPortfolioItem(id, startTab = 'card') {
+      let item;
+      try {
+        item = await getFullAdminItem('portfolio', 'portfolio_items', id);
+      } catch (err) {
+        showFriendlyAdminError(err);
+        return;
+      }
       if (!item) return;
 
       document.getElementById('portModalTitle').textContent = 'Edit Portfolio Project';
@@ -5628,8 +5682,14 @@
       openModal('caseStudyModal');
     }
 
-    function editCaseStudy(id) {
-      const item = state.casestudies.find(c => c.id === id);
+    async function editCaseStudy(id) {
+      let item;
+      try {
+        item = await getFullAdminItem('casestudies', 'case_studies', id);
+      } catch (err) {
+        showFriendlyAdminError(err);
+        return;
+      }
       if (!item) return;
 
       resetModalSaveUi('casestudy');
@@ -6037,8 +6097,14 @@
       openModal('journalModal');
     }
 
-    function editJournalPost(id) {
-      const item = state.journal.find(j => j.id === id);
+    async function editJournalPost(id) {
+      let item;
+      try {
+        item = await getFullAdminItem('journal', 'journal_posts', id);
+      } catch (err) {
+        showFriendlyAdminError(err);
+        return;
+      }
       if (!item) return;
 
       resetModalSaveUi('journal');
