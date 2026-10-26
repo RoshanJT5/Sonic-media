@@ -631,6 +631,78 @@
       gap: 12px;
     }
 
+    .dashboard-skeleton-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .dashboard-skeleton-row {
+      min-height: 108px;
+      padding: 16px 20px;
+      display: grid;
+      grid-template-columns: 32px 38px 70px 1fr minmax(130px, auto) auto;
+      align-items: center;
+      gap: 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+
+    .dashboard-skeleton-block {
+      height: 12px;
+      border-radius: 5px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.055) 25%, rgba(255,92,0,0.14) 50%, rgba(255,255,255,0.055) 75%);
+      background-size: 220% 100%;
+      animation: dashboard-skeleton-shimmer 1.35s ease-in-out infinite;
+    }
+
+    .dashboard-skeleton-thumb {
+      width: 64px;
+      height: 64px;
+      border-radius: 8px;
+    }
+
+    .dashboard-skeleton-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .dashboard-skeleton-copy .dashboard-skeleton-block:first-child {
+      width: min(230px, 72%);
+      height: 16px;
+    }
+
+    .dashboard-skeleton-copy .dashboard-skeleton-block:last-child {
+      width: min(160px, 52%);
+    }
+
+    .dashboard-skeleton-status {
+      width: 92px;
+      height: 22px;
+      border-radius: 999px;
+    }
+
+    .dashboard-skeleton-actions {
+      width: 176px;
+      height: 30px;
+      justify-self: end;
+    }
+
+    @keyframes dashboard-skeleton-shimmer {
+      0% { background-position: 100% 0; }
+      100% { background-position: -100% 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .dashboard-skeleton-block {
+        animation: none;
+        background-position: 50% 0;
+      }
+    }
+
     .item-row {
       background: var(--bg-card);
       border: 1px solid var(--border-subtle);
@@ -1839,20 +1911,24 @@
 
     /* Responsive */
     @media (max-width: 850px) {
-      .item-row {
+      .item-row,
+      .dashboard-skeleton-row {
         grid-template-columns: 32px 30px 50px 1fr;
         grid-template-rows: auto auto;
         gap: 10px;
       }
 
-      .item-badge {
+      .item-badge,
+      .dashboard-skeleton-status {
         grid-column: 2 / span 2;
         justify-self: start;
       }
 
-      .item-actions {
+      .item-actions,
+      .dashboard-skeleton-actions {
         grid-column: 1 / -1;
         justify-content: flex-start;
+        justify-self: stretch;
       }
 
       .grid-2 {
@@ -2051,7 +2127,12 @@
           </div>
         </div>
         <div class="items-list" id="portfolioListContainer">
-          <!-- Rendered via JS -->
+          <div class="dashboard-skeleton-list" aria-label="Loading portfolio projects" role="status">
+            <div class="dashboard-skeleton-row" aria-hidden="true"><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block dashboard-skeleton-thumb"></div><div class="dashboard-skeleton-copy"><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block"></div></div><div class="dashboard-skeleton-block dashboard-skeleton-status"></div><div class="dashboard-skeleton-block dashboard-skeleton-actions"></div></div>
+            <div class="dashboard-skeleton-row" aria-hidden="true"><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block dashboard-skeleton-thumb"></div><div class="dashboard-skeleton-copy"><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block"></div></div><div class="dashboard-skeleton-block dashboard-skeleton-status"></div><div class="dashboard-skeleton-block dashboard-skeleton-actions"></div></div>
+            <div class="dashboard-skeleton-row" aria-hidden="true"><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block dashboard-skeleton-thumb"></div><div class="dashboard-skeleton-copy"><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block"></div></div><div class="dashboard-skeleton-block dashboard-skeleton-status"></div><div class="dashboard-skeleton-block dashboard-skeleton-actions"></div></div>
+            <div class="dashboard-skeleton-row" aria-hidden="true"><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block dashboard-skeleton-thumb"></div><div class="dashboard-skeleton-copy"><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block"></div></div><div class="dashboard-skeleton-block dashboard-skeleton-status"></div><div class="dashboard-skeleton-block dashboard-skeleton-actions"></div></div>
+          </div>
         </div>
       </section>
 
@@ -2071,7 +2152,12 @@
           </div>
         </div>
         <div class="items-list" id="caseStudiesListContainer">
-          <!-- Rendered via JS -->
+          <div class="dashboard-skeleton-list" aria-label="Loading case studies" role="status">
+            <div class="dashboard-skeleton-row" aria-hidden="true"><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block dashboard-skeleton-thumb"></div><div class="dashboard-skeleton-copy"><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block"></div></div><div class="dashboard-skeleton-block dashboard-skeleton-status"></div><div class="dashboard-skeleton-block dashboard-skeleton-actions"></div></div>
+            <div class="dashboard-skeleton-row" aria-hidden="true"><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block dashboard-skeleton-thumb"></div><div class="dashboard-skeleton-copy"><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block"></div></div><div class="dashboard-skeleton-block dashboard-skeleton-status"></div><div class="dashboard-skeleton-block dashboard-skeleton-actions"></div></div>
+            <div class="dashboard-skeleton-row" aria-hidden="true"><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block dashboard-skeleton-thumb"></div><div class="dashboard-skeleton-copy"><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block"></div></div><div class="dashboard-skeleton-block dashboard-skeleton-status"></div><div class="dashboard-skeleton-block dashboard-skeleton-actions"></div></div>
+            <div class="dashboard-skeleton-row" aria-hidden="true"><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block dashboard-skeleton-thumb"></div><div class="dashboard-skeleton-copy"><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block"></div></div><div class="dashboard-skeleton-block dashboard-skeleton-status"></div><div class="dashboard-skeleton-block dashboard-skeleton-actions"></div></div>
+          </div>
         </div>
       </section>
 
@@ -2091,7 +2177,12 @@
           </div>
         </div>
         <div class="items-list" id="journalListContainer">
-          <!-- Rendered via JS -->
+          <div class="dashboard-skeleton-list" aria-label="Loading journal posts" role="status">
+            <div class="dashboard-skeleton-row" aria-hidden="true"><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block dashboard-skeleton-thumb"></div><div class="dashboard-skeleton-copy"><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block"></div></div><div class="dashboard-skeleton-block dashboard-skeleton-status"></div><div class="dashboard-skeleton-block dashboard-skeleton-actions"></div></div>
+            <div class="dashboard-skeleton-row" aria-hidden="true"><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block dashboard-skeleton-thumb"></div><div class="dashboard-skeleton-copy"><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block"></div></div><div class="dashboard-skeleton-block dashboard-skeleton-status"></div><div class="dashboard-skeleton-block dashboard-skeleton-actions"></div></div>
+            <div class="dashboard-skeleton-row" aria-hidden="true"><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block dashboard-skeleton-thumb"></div><div class="dashboard-skeleton-copy"><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block"></div></div><div class="dashboard-skeleton-block dashboard-skeleton-status"></div><div class="dashboard-skeleton-block dashboard-skeleton-actions"></div></div>
+            <div class="dashboard-skeleton-row" aria-hidden="true"><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block dashboard-skeleton-thumb"></div><div class="dashboard-skeleton-copy"><div class="dashboard-skeleton-block"></div><div class="dashboard-skeleton-block"></div></div><div class="dashboard-skeleton-block dashboard-skeleton-status"></div><div class="dashboard-skeleton-block dashboard-skeleton-actions"></div></div>
+          </div>
         </div>
       </section>
 
@@ -3854,8 +3945,56 @@
       document.getElementById('tab-' + tabName).classList.add('active');
     }
 
+    function dashboardSkeletonMarkup(label) {
+      return `
+        <div class="dashboard-skeleton-list" aria-label="${label}" role="status">
+          ${Array.from({ length: 4 }, () => `
+            <div class="dashboard-skeleton-row" aria-hidden="true">
+              <div class="dashboard-skeleton-block"></div>
+              <div class="dashboard-skeleton-block"></div>
+              <div class="dashboard-skeleton-block dashboard-skeleton-thumb"></div>
+              <div class="dashboard-skeleton-copy">
+                <div class="dashboard-skeleton-block"></div>
+                <div class="dashboard-skeleton-block"></div>
+              </div>
+              <div class="dashboard-skeleton-block dashboard-skeleton-status"></div>
+              <div class="dashboard-skeleton-block dashboard-skeleton-actions"></div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function setDashboardLoading(isLoading) {
+      [
+        ['portfolioListContainer', 'Loading portfolio projects'],
+        ['caseStudiesListContainer', 'Loading case studies'],
+        ['journalListContainer', 'Loading journal posts']
+      ].forEach(([id, label]) => {
+        const container = document.getElementById(id);
+        if (!container) return;
+        container.setAttribute('aria-busy', String(isLoading));
+        if (isLoading) container.innerHTML = dashboardSkeletonMarkup(label);
+      });
+    }
+
+    function renderDashboardLoadError() {
+      ['portfolioListContainer', 'caseStudiesListContainer', 'journalListContainer'].forEach(id => {
+        const container = document.getElementById(id);
+        if (!container) return;
+        container.setAttribute('aria-busy', 'false');
+        container.innerHTML = `
+          <div style="padding:40px;text-align:center;color:var(--text-muted);border:1px solid var(--border-subtle);border-radius:var(--radius-md);background:var(--bg-card);">
+            Unable to load this content right now.
+            <button type="button" class="btn btn-secondary btn-sm" onclick="loadAllData()" style="margin-left:8px;color:var(--orange);border-color:rgba(255,92,0,0.45);">Retry</button>
+          </div>
+        `;
+      });
+    }
+
     // ── Load All Data ──
     async function loadAllData() {
+      setDashboardLoading(true);
       try {
         const client = getSupabase();
         const [portsRes, casesRes, journalsRes, headersRes] = await Promise.all([
@@ -3925,10 +4064,12 @@
         renderPortfolio();
         renderCaseStudies();
         renderJournal();
+        setDashboardLoading(false);
         populateHeaders();
         checkUrlAutoOpen();
       } catch (err) {
         console.error('Failed to load dashboard data:', err);
+        renderDashboardLoadError();
         showToast('Failed to load data from Supabase');
       }
     }

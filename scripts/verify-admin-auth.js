@@ -13,6 +13,11 @@ requireSource("resolveAppUrl('/sonicmediaadmin')", 'Successful login is missing 
 requireSource('window.history.replaceState({ admin: true }', 'Dashboard URL is not normalized after login.');
 requireSource('setTimeout(() => window.location.assign(redirectUrl), 650)', 'Safe return redirects do not allow the welcome message to appear first.');
 requireSource("safeRedirect.startsWith('/') && !safeRedirect.startsWith('//')", 'Same-origin redirect validation was removed or weakened.');
+requireSource('dashboard-skeleton-shimmer', 'Dashboard loading skeleton styles are missing.');
+requireSource('function setDashboardLoading(isLoading)', 'Dashboard loading state handler is missing.');
+requireSource('setDashboardLoading(true);', 'Dashboard data loading does not show skeleton rows before fetching.');
+requireSource('setDashboardLoading(false);', 'Dashboard data loading does not clear skeleton rows after fetching.');
+requireSource('renderDashboardLoadError();', 'Dashboard fetch failures do not replace skeleton rows with a retry state.');
 
 const revealIndex = source.indexOf('showDashboard();', source.indexOf('async function handleLogin'));
 const welcomeIndex = source.indexOf("showToast('Welcome back! Redirecting to your admin dashboard...')", revealIndex);
