@@ -40,6 +40,37 @@ assert(builder.includes('updateRenderedSectionContent(sec.id, key, processedVal)
 assert((builder.match(/state\.sections = \[\];/g) || []).length >= 3, 'New builder projects are not defaulting to blank canvases.');
 assert(builder.includes('function discardUnsavedNewProjectDraft()'), 'Resume cleanup for unsaved new projects is missing.');
 assert(builder.includes('discardUnsavedNewProjectDraft();'), 'Resume action does not discard the temporary new project draft.');
+assert((builder.match(/saveCurrentDraftLocally\(\);/g) || []).length >= 4, 'Image uploads are not persisted immediately.');
+assert(/sType === 'carousel'[\s\S]{0,1800}slides\[sIdx\]\.url = publicUrl/.test(builder), 'Carousel uploads are not mapped to the selected slide.');
+[
+  'sType === \'gallery\'',
+  'sType === \'carousel\'',
+  'sType === \'narrative_cards\'',
+  'sType === \'deliverables\'',
+  'sType === \'cards_grid\'',
+  'sType === \'columns\'',
+  'sType === \'logos\' || sType === \'client_logos\'',
+  'sType === \'image_grid\'',
+  'sType === \'text_image\'',
+  'sType === \'before_after\'',
+  'sType === \'hero\' || sType === \'hero_image\''
+].forEach((mapping) => {
+  assert(builder.includes(mapping), `Image upload mapping is missing for ${mapping}.`);
+});
+[
+  "updateContent('bgImage', url)",
+  "updateContent('url', url)",
+  "updateGalleryItem(${i}, 'url', u)",
+  "updateContent('imageUrl', url)",
+  "updateContent('avatar', url)",
+  "updateContent('beforeUrl', u)",
+  "updateContent('afterUrl', u)",
+  "updateCarouselSlide(${i}, 'url', u)",
+  "updateImageGridItem(${i}, 'url', u)",
+  "updateClientLogoItem(${i}, 'url', u)"
+].forEach((uploadTarget) => {
+  assert(builder.includes(uploadTarget), `Direct image upload target is missing: ${uploadTarget}.`);
+});
 assert(dashboard.includes('id,status,display_order,num,cat,name,tags,img,metric_val,metric_lbl'), 'Portfolio summary query regressed to a full-row fetch.');
 assert(dashboard.includes('async function getFullAdminItem'), 'On-demand full record loading is missing.');
 

@@ -16556,6 +16556,7 @@
           showToast('✓ Image uploaded successfully!');
           markUnsaved();
           pushHistory();
+          saveCurrentDraftLocally();
         } catch (err) {
           console.error('Storage upload error:', err);
           showAdminError('upload the image', err);
@@ -16718,6 +16719,9 @@
             renderCanvas();
             markUnsaved();
             pushHistory();
+            // Asset uploads must survive an immediate refresh/navigation; normal
+            // text and slider edits continue using the trailing backup debounce.
+            saveCurrentDraftLocally();
             showToast('✓ Image replaced successfully!');
           } catch (err) {
             console.error('Canvas image upload error:', err);
