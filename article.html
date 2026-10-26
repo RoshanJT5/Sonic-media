@@ -34,8 +34,8 @@
     href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="assets/css/styles.css">
-  <link rel="stylesheet" href="assets/css/section-builder.css">
-  <script src="assets/js/section-registry.js"></script>
+  <link rel="stylesheet" href="assets/css/section-builder.css?v=3.0">
+  <script src="assets/js/section-registry.js?v=3.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" defer
     integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a"
     crossorigin="anonymous"></script>
@@ -715,7 +715,7 @@
   <!-- DATA & SUPABASE HYDRATION -->
   <script src="assets/js/supabase-config.js"></script>
   <script src="assets/js/supabase-rest.js?v=3"></script>
-  <script src="assets/js/app.js?v=7"></script>
+  <script src="assets/js/app.js?v=9"></script>
   <script>
     function getArticleId() {
       const urlParams = new URLSearchParams(window.location.search);
@@ -785,14 +785,7 @@
       const legBody = document.getElementById('legacyBodySection');
 
       if (dynContainer && window.SectionRegistry && Array.isArray(data.sections) && data.sections.length > 0) {
-        dynContainer.innerHTML = data.sections
-          .map((sec, secIdx) => window.SectionRegistry.renderSection(sec, { isPublic: !isPreview, index: secIdx }))
-          .join('');
-        dynContainer.style.display = 'block';
-
-        if (typeof window.SectionRegistry.initInteractive === 'function') {
-          window.SectionRegistry.initInteractive(dynContainer);
-        }
+        window.SectionRegistry.mountPageSections(dynContainer, data.sections);
 
         if (legHero) legHero.style.display = 'none';
         if (legBody) legBody.style.display = 'none';
@@ -901,6 +894,7 @@
 
     async function initArticle() {
       let hasRendered = false;
+      let hasAuthoritativeLocalPreview = false;
       const requestedPreview = new URLSearchParams(window.location.search).get('preview') === 'true';
       let adminAccessToken = '';
       try {
@@ -918,11 +912,31 @@
         return;
       }
 
-      // Public pages may use published cache/fallback data. Draft previews wait
-      // for an authenticated Supabase response and never trust local cache.
+      // 1: Check instant local draft from Visual Builder for 0ms identical sync with Live Preview
+      try {
+        const cleanSlug = currentArticleId.toLowerCase();
+        const localDraftRaw = localStorage.getItem('tsm_draft_' + cleanSlug) || localStorage.getItem('tsm_draft_' + currentArticleId);
+        if (localDraftRaw && (canPreviewDraft || requestedPreview || adminAccessToken)) {
+          const draft = JSON.parse(localDraftRaw);
+          if (draft && Array.isArray(draft.sections) && draft.sections.length > 0) {
+            hasRendered = true;
+            renderArticle(Object.assign({}, draft, draft.listing_data || {}, {
+              title: draft.name,
+              sections: draft.sections,
+              status: 'draft'
+            }), canPreviewDraft || requestedPreview);
+            hasAuthoritativeLocalPreview = requestedPreview;
+          }
+        }
+      } catch (_) { }
+
+      // Keep the exact builder snapshot authoritative in its New Tab preview.
+      if (hasAuthoritativeLocalPreview) return;
+
+      // Public pages may use published cache/fallback data.
       try {
         const cachedRaw = localStorage.getItem('tsm_supabase_cache');
-        if (!requestedPreview && cachedRaw) {
+        if (!hasRendered && !requestedPreview && cachedRaw) {
           const cached = JSON.parse(cachedRaw);
           if (cached.journal && Array.isArray(cached.journal)) {
             const row = cached.journal.find(p => (p.id || '').toLowerCase() === currentArticleId.toLowerCase());

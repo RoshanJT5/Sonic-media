@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "node server/server.js 5000",
     "start": "node server/server.js 5000",
-    "serve": "node server/server.js 5000"
+    "serve": "node server/server.js 5000",
+    "test:sections": "node scripts/verify-section-registry.js"
   },
   "author": "The Sonic Media",
   "license": "UNLICENSED"

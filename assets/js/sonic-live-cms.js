@@ -373,7 +373,14 @@
         pointer-events: none !important;
       }
       body.cms-hovering-bar,
-      body.cms-hovering-bar #sonicCmsBar {
+      body.cms-hovering-bar #sonicCmsBar,
+      body.cms-hovering-bar #sonicCmsBar *,
+      body.cms-hovering-bar #sonicCmsModal,
+      body.cms-hovering-bar #sonicCmsModal *,
+      body.cms-hovering-bar #sonicImgModal,
+      body.cms-hovering-bar #sonicImgModal *,
+      body.cms-hovering-bar #sonicCmsToast,
+      body.cms-hovering-bar #sonicCmsToast * {
         cursor: default !important;
       }
       body.cms-hovering-bar #sonicCmsBar button,
@@ -382,14 +389,25 @@
       body.cms-hovering-bar #sonicCmsBar .cms-btn-icon-only,
       body.cms-hovering-bar #sonicCmsBar a,
       body.cms-hovering-bar #sonicCmsBar [onclick],
-      body.cms-hovering-bar .cms-modal-box button,
-      body.cms-hovering-bar .cms-modal-box .cms-btn {
+      body.cms-hovering-bar :is(#sonicCmsModal, #sonicImgModal) .cms-modal-box button,
+      body.cms-hovering-bar :is(#sonicCmsModal, #sonicImgModal) .cms-modal-box button *,
+      body.cms-hovering-bar :is(#sonicCmsModal, #sonicImgModal) .cms-modal-box .cms-btn,
+      body.cms-hovering-bar :is(#sonicCmsModal, #sonicImgModal) .cms-modal-box .cms-btn *,
+      body.cms-hovering-bar :is(#sonicCmsModal, #sonicImgModal) .cms-modal-box label:has(input[type=file]),
+      body.cms-hovering-bar :is(#sonicCmsModal, #sonicImgModal) .cms-modal-box label:has(input[type=file]) * {
         cursor: pointer !important;
       }
       body.cms-hovering-bar #sonicCmsBar button *,
       body.cms-hovering-bar #sonicCmsBar .cms-btn *,
       body.cms-hovering-bar #sonicCmsBar .cms-btn-subtle *,
       body.cms-hovering-bar #sonicCmsBar .cms-btn-icon-only * {
+        cursor: pointer !important;
+      }
+      body.cms-hovering-bar :is(#sonicCmsModal, #sonicImgModal) .cms-modal-box input:not([type=file]),
+      body.cms-hovering-bar :is(#sonicCmsModal, #sonicImgModal) .cms-modal-box textarea {
+        cursor: text !important;
+      }
+      body.cms-hovering-bar :is(#sonicCmsModal, #sonicImgModal) .cms-modal-box select {
         cursor: pointer !important;
       }
 
@@ -1332,7 +1350,8 @@
 
       showCmsToast('✓ Image uploaded successfully!', true);
     } catch (err) {
-      alert('Upload error: ' + err.message);
+      if (window.showAdminError) window.showAdminError('upload the image', err);
+      else showCmsToast('Image upload failed. Check your connection and try again.', false);
     }
   };
 
@@ -1627,7 +1646,8 @@
       window._sonicCmsCloseModal();
       tagEditableElements();
     } catch (err) {
-      alert('Save failed: ' + err.message);
+      if (window.showAdminError) window.showAdminError('save these changes', err);
+      else showCmsToast('Changes could not be saved. Check your connection and try again.', false);
     } finally {
       if (saveBtn) {
         saveBtn.disabled = false;

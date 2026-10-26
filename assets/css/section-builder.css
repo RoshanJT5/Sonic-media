@@ -194,24 +194,73 @@ body.builder-mode #mouse-glow {
 .sec-block .wd-h1,
 .sec-block .sec-heading-custom,
 .sec-block .sec-hero h1,
+.sec-block .hero-title,
+.sec-block .wd-cta-heading,
+.sec-block .wd-narrative-card-header,
+.sec-block .wd-narrative-card-title,
+.sec-block .wd-gallery-title,
+.sec-block .sec-carousel-title,
+.sec-block .sec-feature-title,
+.sec-block .wd-deliverable-title,
+.sec-block .wd-deliverable-text,
+.sec-block .sec-card-title,
+.sec-block .cards-grid-title,
+.sec-block .sec-title,
 .sec-block h1,
 .sec-block h2,
 .sec-block h3,
-.sec-block h4 {
-  margin-top: var(--sec-h-mt, initial);
-  margin-bottom: var(--sec-h-mb, initial);
-  padding-left: var(--sec-h-pl, 0px);
-  padding-right: var(--sec-h-pr, 0px);
+.sec-block h4,
+.sec-block h5,
+.sec-block h6 {
+  margin-top: var(--sec-h-mt, revert) !important;
+  margin-bottom: var(--sec-h-mb, revert) !important;
+  padding-left: var(--sec-h-pl, 0px) !important;
+  padding-right: var(--sec-h-pr, 0px) !important;
 }
+
+.sec-block .wd-narrative-card-title,
+.sec-block .wd-deliverable-text,
+.sec-block .wd-meta-label,
+.sec-block .wd-meta-val {
+  display: inline-block !important;
+}
+
+.sec-block .wd-narrative-card-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.sec-block .wd-narrative-card-header .wd-narrative-card-title {
+  transform: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
 .sec-block[style*="--sec-h-align"] .sec-heading,
 .sec-block[style*="--sec-h-align"] .wd-h1,
 .sec-block[style*="--sec-h-align"] .sec-heading-custom,
 .sec-block[style*="--sec-h-align"] .sec-hero h1,
+.sec-block[style*="--sec-h-align"] .hero-title,
+.sec-block[style*="--sec-h-align"] .wd-cta-heading,
+.sec-block[style*="--sec-h-align"] .wd-narrative-card-header,
+.sec-block[style*="--sec-h-align"] .wd-narrative-card-title,
+.sec-block[style*="--sec-h-align"] .wd-gallery-title,
+.sec-block[style*="--sec-h-align"] .sec-carousel-title,
+.sec-block[style*="--sec-h-align"] .sec-feature-title,
+.sec-block[style*="--sec-h-align"] .wd-deliverable-title,
+.sec-block[style*="--sec-h-align"] .wd-deliverable-text,
+.sec-block[style*="--sec-h-align"] .sec-card-title,
+.sec-block[style*="--sec-h-align"] .cards-grid-title,
+.sec-block[style*="--sec-h-align"] .sec-title,
 .sec-block[style*="--sec-h-align"] h1,
 .sec-block[style*="--sec-h-align"] h2,
 .sec-block[style*="--sec-h-align"] h3,
-.sec-block[style*="--sec-h-align"] h4 {
+.sec-block[style*="--sec-h-align"] h4,
+.sec-block[style*="--sec-h-align"] h5,
+.sec-block[style*="--sec-h-align"] h6 {
   text-align: var(--sec-h-align) !important;
+  justify-content: var(--sec-h-justify, flex-start) !important;
 }
 
 /* Subtitles, paragraphs, and descriptions in section */
@@ -531,6 +580,17 @@ body.builder-mode {
   flex-direction: column;
   flex-shrink: 0;
   overflow: hidden;
+  opacity: 1;
+  transform: translateX(0);
+  transition:
+    width 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.16s ease,
+    transform 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.16s ease;
+}
+
+.builder-sidebar-left > * {
+  min-width: 320px;
 }
 
 .sidebar-tab-nav {
@@ -591,9 +651,6 @@ body.builder-mode {
   background: rgba(255, 92, 0, 0.1);
   border-color: #FF5C00;
   box-shadow: 0 0 10px rgba(255, 92, 0, 0.2);
-}
-.section-tree-item.hidden-sec {
-  opacity: 0.45;
 }
 .section-tree-item.is-dragging {
   opacity: 0.55;
@@ -669,15 +726,250 @@ body.builder-mode {
 /* CENTER CANVAS */
 .builder-canvas-wrap {
   flex: 1;
-  background: #050505;
+  min-width: 0;
+  min-height: 0;
+  background: #101012;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  overflow-y: auto;
-  overflow-x: hidden;
+  align-items: stretch;
+  overflow: hidden;
   position: relative;
-  padding: 24px 32px 80px;
+  padding: 0;
   box-sizing: border-box;
+}
+
+.builder-stage-toolbar {
+  min-height: 46px;
+  padding: 0 16px;
+  background: #0c0c0d;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 20;
+  transition: padding 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body.builder-left-collapsed .builder-stage-toolbar {
+  padding-left: 16px;
+}
+
+body.builder-right-collapsed .builder-stage-toolbar {
+  padding-right: 16px;
+}
+
+.builder-stage-meta {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(245, 240, 235, 0.62);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.builder-stage-meta-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #FF5C00;
+  box-shadow: 0 2px 10px rgba(255, 92, 0, 0.42);
+  flex: 0 0 auto;
+}
+
+.builder-stage-meta strong {
+  color: #F5F0EB;
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.builder-stage-meta-separator {
+  color: rgba(245, 240, 235, 0.24);
+}
+
+.builder-zoom-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.04);
+  flex: 0 0 auto;
+}
+
+.builder-zoom-btn,
+.builder-zoom-value {
+  height: 28px;
+  min-width: 30px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: rgba(245, 240, 235, 0.72);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+
+.builder-zoom-btn:hover,
+.builder-zoom-btn.is-active {
+  background: rgba(255, 92, 0, 0.16);
+  color: #FF7A2D;
+}
+
+.builder-zoom-btn:focus-visible {
+  outline: 2px solid #FF5C00;
+  outline-offset: 2px;
+}
+
+.builder-zoom-value {
+  min-width: 48px;
+  color: #F5F0EB;
+  cursor: default !important;
+}
+
+.builder-canvas-stage {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  position: relative;
+  padding: 0 48px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 160px),
+    #151517;
+  scrollbar-color: rgba(255, 92, 0, 0.55) #0c0c0d;
+  scrollbar-width: thin;
+}
+
+.builder-canvas-stage::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+
+.builder-canvas-stage::-webkit-scrollbar-track {
+  background: #0c0c0d;
+}
+
+.builder-canvas-stage::-webkit-scrollbar-thumb {
+  background: rgba(255, 92, 0, 0.48);
+  border: 3px solid #0c0c0d;
+  border-radius: 10px;
+}
+
+.builder-page-shell {
+  --ruler-step: 44px;
+  position: relative;
+  width: 100%;
+  min-height: 800px;
+  margin: 64px auto 96px;
+  flex: 0 0 auto;
+  background: #080808;
+  outline: 1px solid rgba(255, 255, 255, 0.17);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.62);
+}
+
+.builder-page-label {
+  position: absolute;
+  left: 0;
+  top: -47px;
+  height: 25px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  background: #0c0c0d;
+  color: rgba(245, 240, 235, 0.68);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: 'Syne', sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.builder-page-label::before {
+  content: '''';
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  background: #FF5C00;
+}
+
+.builder-ruler-horizontal,
+.builder-ruler-vertical {
+  position: absolute;
+  pointer-events: none;
+  color: rgba(245, 240, 235, 0.42);
+  font-family: monospace;
+  font-size: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.builder-ruler-horizontal {
+  left: 0;
+  right: 0;
+  top: -22px;
+  height: 17px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.25) 0,
+    rgba(255, 255, 255, 0.25) 1px,
+    transparent 1px,
+    transparent var(--ruler-step)
+  );
+}
+
+.builder-ruler-horizontal span {
+  position: absolute;
+  top: -2px;
+  transform: translateX(-50%);
+}
+
+.builder-ruler-horizontal .ruler-start {
+  left: 0;
+  transform: none;
+}
+
+.builder-ruler-horizontal .ruler-mid {
+  left: 50%;
+}
+
+.builder-ruler-horizontal .ruler-end {
+  right: 0;
+  transform: none;
+}
+
+.builder-ruler-vertical {
+  top: 0;
+  bottom: 0;
+  left: -22px;
+  width: 17px;
+  border-right: 1px solid rgba(255, 255, 255, 0.16);
+  background-image: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.25) 0,
+    rgba(255, 255, 255, 0.25) 1px,
+    transparent 1px,
+    transparent var(--ruler-step)
+  );
 }
 
 .builder-canvas {
@@ -685,12 +977,77 @@ body.builder-mode {
   max-width: 100%;
   min-height: 800px;
   background: #080808;
-  border-left: 1px solid rgba(255, 255, 255, 0.05);
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.8);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  position: relative;
+  border: 0;
+  box-shadow: none;
+  transition: background-color 0.2s ease;
+  position: absolute;
+  inset: 0 auto auto 0;
+  transform-origin: top left;
   box-sizing: border-box;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  align-content: flex-start;
+}
+
+/* Canonical public canvas. Builder-authored pixel geometry is evaluated on
+   the same 1440 / 768 / 390 design surfaces used in the editor, then the
+   whole surface scales down as one unit when the browser is narrower. */
+.sec-page-runtime {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  background: #080808;
+  box-sizing: border-box;
+}
+
+.sec-page-surface {
+  position: absolute;
+  top: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  align-content: flex-start;
+  max-width: none;
+  min-height: 1px;
+  background: #080808;
+  box-sizing: border-box;
+  will-change: transform;
+}
+
+.sec-page-surface > .sec-block {
+  box-sizing: border-box;
+}
+
+body.live-preview-mode .builder-stage-toolbar,
+body.live-preview-mode .builder-page-label,
+body.live-preview-mode .builder-ruler-horizontal,
+body.live-preview-mode .builder-ruler-vertical {
+  display: none;
+}
+
+body.live-preview-mode .builder-canvas-stage {
+  padding: 0 32px 80px;
+  overflow-x: hidden;
+  background: #050505;
+}
+
+body.live-preview-mode .builder-page-shell {
+  margin: 0 auto;
+  outline: 0;
+  box-shadow: none;
+}
+
+@media (max-width: 1180px) {
+  .builder-canvas-stage {
+    padding-inline: 36px;
+  }
+
+  .builder-stage-meta-detail,
+  .builder-stage-meta-separator {
+    display: none;
+  }
 }
 
 /* Mobile Frame Container */
@@ -704,13 +1061,28 @@ body.builder-mode {
   overflow: hidden;
 }
 
-/* Canvas Section Selection Outline */
+/* Canvas Section Selection Outline & Row Flow */
 .canvas-section {
   position: relative;
   isolation: isolate;
   transition: outline 0.15s;
   box-sizing: border-box;
   width: 100%;
+  flex: 0 0 100%;
+}
+.canvas-section.has-row-flow,
+.canvas-section[style*="max-width:"] {
+  flex: 0 1 auto;
+  display: inline-block;
+  vertical-align: top;
+}
+/* Prevent doubled transform on .sec-block when inside .canvas-section in builder */
+.canvas-section > .sec-block {
+  transform: none !important;
+}
+/* Ensure dynamic section eyebrows never inherit legacy hero dash ::before */
+.sec-block .wd-eyebrow::before {
+  display: none !important;
 }
 .canvas-section:hover {
   outline: 1px dashed rgba(255, 92, 0, 0.4);
@@ -719,6 +1091,146 @@ body.builder-mode {
   outline: 2px solid #FF5C00;
   outline-offset: -2px;
   box-shadow: 0 0 16px rgba(255, 92, 0, 0.25);
+}
+
+/* Tree Drawer Toggle Button & Sliding Children Container */
+.tree-drawer-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(245, 240, 235, 0.7);
+  font-size: 10px;
+  font-family: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin: 0 4px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+  line-height: 1.2;
+}
+.tree-drawer-btn:hover {
+  background: rgba(255, 92, 0, 0.15);
+  border-color: rgba(255, 92, 0, 0.45);
+  color: #FF5C00;
+  box-shadow: 0 0 10px rgba(255, 92, 0, 0.2);
+}
+.tree-drawer-btn.is-expanded {
+  background: rgba(255, 92, 0, 0.12);
+  border-color: rgba(255, 92, 0, 0.3);
+  color: #FF5C00;
+}
+.tree-drawer-btn .drawer-arrow-icon {
+  font-size: 9px;
+  line-height: 1;
+  display: inline-block;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.tree-drawer-btn.is-collapsed .drawer-arrow-icon {
+  transform: rotate(-90deg);
+}
+.tree-drawer-btn .drawer-count-badge {
+  font-size: 9.5px;
+  line-height: 1;
+  opacity: 0.9;
+}
+
+.section-tree-children {
+  margin-left: 18px;
+  border-left: 1px dashed rgba(255, 255, 255, 0.14);
+  padding-left: 4px;
+  margin-top: 2px;
+  margin-bottom: 4px;
+  overflow: hidden;
+  max-height: 1200px;
+  opacity: 1;
+  transform-origin: top;
+  transition: max-height 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.22s ease,
+              margin 0.22s ease,
+              padding 0.22s ease;
+}
+.section-tree-children.is-collapsed {
+  max-height: 0 !important;
+  opacity: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  border-left-color: transparent !important;
+  pointer-events: none !important;
+}
+
+/* Tree Child Item (Custom Containers & Elements) */
+.tree-child-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px 6px 32px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-left: 2px solid transparent;
+  user-select: none;
+  position: relative;
+}
+.tree-child-item:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.04);
+}
+.tree-child-item.active {
+  color: var(--orange);
+  background: rgba(255, 92, 0, 0.08);
+  border-left-color: var(--orange);
+  font-weight: 700;
+}
+.tree-child-icon {
+  font-size: 13px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.tree-child-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tree-child-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  opacity: 0.55;
+  transition: opacity 0.15s ease;
+  flex-shrink: 0;
+}
+.tree-child-item:hover .tree-child-actions,
+.tree-child-item.active .tree-child-actions {
+  opacity: 1;
+}
+.tree-child-actions .child-delete-btn {
+  background: transparent;
+  border: none;
+  font-size: 11px;
+  padding: 3px 5px;
+  cursor: pointer;
+  border-radius: 4px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  color: rgba(245, 240, 235, 0.6);
+}
+.tree-child-actions .child-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.25);
+  color: #ef4444;
+  transform: scale(1.15);
 }
 
 /* ══════════ FLOATING SECTION ACTION HEADER BAR (TOP-LEFT) ══════════ */
@@ -766,12 +1278,6 @@ body.builder-mode {
   background: #fff;
   display: inline-block;
 }
-.canvas-section-badge .badge-hidden-tag {
-  font-size: 9.5px;
-  opacity: 0.8;
-  font-weight: 600;
-  margin-left: 2px;
-}
 
 /* RIGHT SIDEBAR (PROPERTIES PANEL) */
 .builder-sidebar-right {
@@ -782,6 +1288,219 @@ body.builder-mode {
   flex-direction: column;
   flex-shrink: 0;
   overflow: hidden;
+  opacity: 1;
+  transform: translateX(0);
+  transition:
+    width 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.16s ease,
+    transform 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.16s ease;
+}
+
+.builder-sidebar-right > * {
+  min-width: 360px;
+}
+
+body.builder-left-collapsed .builder-sidebar-left {
+  width: 0;
+  opacity: 0;
+  transform: translateX(-16px);
+  border-right-color: transparent;
+  pointer-events: none;
+}
+
+body.builder-right-collapsed .builder-sidebar-right {
+  width: 0;
+  opacity: 0;
+  transform: translateX(16px);
+  border-left-color: transparent;
+  pointer-events: none;
+}
+
+/* Compact workspace drawer controls. Kept at the lower-left edge so they
+   stay reachable whether either sidebar is open or closed. */
+.layout-toggle-group {
+  display: inline-flex;
+  align-items: center;
+  position: fixed;
+  left: 12px;
+  bottom: 12px;
+  z-index: 240;
+  background: rgba(12, 12, 13, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  padding: 4px;
+  gap: 4px;
+  flex-shrink: 0;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.layout-btn {
+  width: 34px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 7px;
+  color: rgba(245, 240, 235, 0.45);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+
+.layout-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(245, 240, 235, 0.95);
+}
+
+.layout-btn:active {
+  transform: scale(0.95);
+}
+
+.layout-btn.active {
+  color: #FFFFFF;
+  background: rgba(255, 92, 0, 0.28);
+  box-shadow: inset 0 0 0 1px rgba(255, 92, 0, 0.42), 0 0 12px rgba(255, 92, 0, 0.18);
+}
+
+.layout-btn.active:hover {
+  background: rgba(255, 92, 0, 0.32);
+  color: #FFFFFF;
+}
+
+.layout-btn:focus-visible {
+  outline: 2px solid #FF5C00;
+  outline-offset: 1px;
+}
+
+.layout-btn svg {
+  width: 17px;
+  height: 17px;
+  display: block;
+}
+
+/* Panel fill inside SVG: when active, full solid fill; when inactive, subtle outline/dimmed */
+.layout-btn .panel-fill {
+  transition: opacity 0.18s ease, fill 0.18s ease;
+  opacity: 0.15;
+}
+
+.layout-btn.active .panel-fill {
+  opacity: 1;
+  fill: currentColor;
+}
+
+.layout-btn:hover:not(.active) .panel-fill {
+  opacity: 0.5;
+  fill: currentColor;
+}
+
+body.live-preview-mode .layout-toggle-group {
+  display: none !important;
+}
+
+/* ══════════ BOTTOM PANEL: SECTION TIMELINE & QUICK ACTIONS ══════════ */
+.builder-bottom-panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 125px;
+  background: #0E0E10;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.6);
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+}
+
+body.builder-bottom-open .builder-bottom-panel {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+body.builder-bottom-open .builder-canvas-stage {
+  padding-bottom: 130px;
+}
+
+.bottom-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  background: #08080A;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.bottom-panel-close-btn {
+  background: none;
+  border: none;
+  color: rgba(245, 240, 235, 0.5);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 3px 6px;
+  border-radius: 4px;
+  line-height: 1;
+  transition: all 0.15s ease;
+}
+
+.bottom-panel-close-btn:hover {
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.bottom-panel-strip {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.bottom-panel-strip::-webkit-scrollbar {
+  height: 6px;
+}
+.bottom-panel-strip::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+.bottom-panel-strip::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+.bottom-panel-strip::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 92, 0, 0.4);
+}
+
+.bottom-timeline-card {
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.bottom-timeline-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 92, 0, 0.5) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .builder-sidebar-left,
+  .builder-sidebar-right,
+  .builder-stage-toolbar,
+  .layout-btn,
+  .builder-bottom-panel {
+    transition: none;
+  }
 }
 
 .properties-header {
@@ -1233,6 +1952,25 @@ body.builder-mode {
   background: #141414;
   border: 1px solid rgba(255, 255, 255, 0.08);
   transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+/* In the builder a slide is one semantic layer. Keep the viewport clipped so
+   neighboring slides never flash through while its inline toolbar is active. */
+.canvas-section .sec-carousel-wrap,
+.canvas-section .sec-carousel-wrap:has(.sec-carousel-slide.element-active-selected),
+.canvas-section .sec-carousel-wrap.element-has-active-child {
+  overflow: hidden !important;
+}
+.canvas-section .sec-carousel-container:has(.sec-carousel-slide.element-active-selected) {
+  overflow: visible !important;
+}
+.canvas-section .sec-carousel-slide.element-active-selected {
+  overflow: hidden !important;
+  isolation: isolate;
+}
+.element-action-bar--carousel-slide {
+  z-index: 18 !important;
+  max-width: calc(100% - 16px) !important;
 }
 @media (min-width: 768px) {
   .sec-carousel-slide.cols-2 { flex: 0 0 calc(50% - 10px); min-width: calc(50% - 10px); max-width: calc(50% - 10px); width: calc(50% - 10px); }
@@ -2161,6 +2899,43 @@ body.is-resizing-canvas * {
   filter: none !important;
 }
 
+/* ==========================================================================
+   CANVAS HOVER STABILITY: Prevent hover transforms from shifting element positions
+   ========================================================================== */
+#canvas .btn-hover-lift:hover,
+#canvas .btn-hover-scale:hover,
+#canvas .btn-hover-glow:hover,
+#canvas .btn-hover-none:hover,
+#canvas .custom-sec-btn:hover,
+#canvas .custom-btn-action:hover,
+#canvas .btn-p:hover,
+#canvas .btn-s:hover,
+#canvas .sec-cta-btn:hover,
+#canvas .sec-block .custom-sec-btn:hover,
+#canvas .sec-block .sec-cta-btn:hover,
+#canvas .wd-narrative-card:hover,
+#canvas .cards-grid-item:hover,
+#canvas .sec-card:hover,
+#canvas .sec-col-card:hover,
+#canvas .testimonial-card:hover,
+#canvas .wd-gallery-card:hover,
+#canvas .sec-feature-card:hover,
+#canvas .has-element-box:hover,
+#canvas .has-element-box *:hover,
+#canvas .element-active-selected,
+#canvas .element-active-selected:hover,
+#canvas .element-active-selected *:hover,
+body.builder-mode .canvas-section .btn-hover-lift:hover,
+body.builder-mode .canvas-section .btn-hover-scale:hover,
+body.builder-mode .canvas-section .btn-hover-glow:hover,
+body.builder-mode .canvas-section .custom-sec-btn:hover,
+body.builder-mode .canvas-section .custom-btn-action:hover,
+body.builder-mode .canvas-section .btn-p:hover,
+body.builder-mode .canvas-section .btn-s:hover,
+body.builder-mode .canvas-section .sec-cta-btn:hover {
+  transform: revert !important;
+}
+
 .prop-button-card {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -2286,15 +3061,18 @@ body.is-resizing-canvas * {
 .wdpad-context-menu {
   position: fixed;
   z-index: 100000;
-  background: #18181b;
+  background: #141416;
   color: #F5F0EB;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 8px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 0 0 1px 1px rgba(255, 255, 255, 0.1);
-  padding: 5px 0;
-  min-width: 210px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.72);
+  padding: 6px;
+  width: 258px;
+  max-width: calc(100vw - 20px);
+  overflow: visible;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   user-select: none;
+  outline: none;
   animation: wdpadPopIn 0.12s ease-out;
 }
 
@@ -2302,42 +3080,144 @@ body.is-resizing-canvas * {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 7px 14px;
-  font-size: 12px;
+  min-height: 38px;
+  padding: 0 10px;
+  border-radius: 7px;
+  font-size: 13px;
+  line-height: 1.2;
   color: #F5F0EB;
   cursor: pointer;
-  transition: background 0.1s ease;
+  outline: none;
+  transition: background 0.12s ease, color 0.12s ease, transform 0.12s ease;
 }
 
-.wdpad-menu-item:hover {
-  background: #FF5C00;
+.wdpad-menu-item:hover,
+.wdpad-menu-item:focus-visible {
+  background: rgba(255, 92, 0, 0.16);
   color: #FFFFFF;
+  transform: translateX(2px);
+}
+
+.wdpad-menu-item--primary {
+  color: #FF7A29;
+  font-weight: 750;
+}
+
+.wdpad-menu-item--primary:hover,
+.wdpad-menu-item--primary:focus-visible {
+  background: #FF5C00;
+  color: #111214;
+}
+
+.wdpad-menu-item--accent {
+  color: #45EFFF;
+  font-weight: 750;
+}
+
+.wdpad-menu-item--accent:hover,
+.wdpad-menu-item--accent:focus-visible {
+  background: #00D8EA;
+  color: #071012;
+}
+
+.wdpad-menu-item--danger {
+  color: #FF6B6B;
+}
+
+.wdpad-menu-item--danger:hover,
+.wdpad-menu-item--danger:focus-visible {
+  background: #C9343B;
+  color: #FFFFFF;
+}
+
+.wdpad-menu-item.is-disabled,
+.wdpad-menu-item[aria-disabled="true"] {
+  color: rgba(245, 240, 235, 0.34);
+  cursor: not-allowed;
+  pointer-events: none;
+  transform: none;
 }
 
 .wdpad-menu-item-left {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
+}
+
+.wdpad-menu-item-left > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .wdpad-menu-icon {
-  width: 16px;
+  width: 22px;
+  height: 22px;
   font-size: 13px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.9;
+  flex: 0 0 22px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.06);
+  opacity: 0.95;
 }
 
 .wdpad-menu-shortcut {
-  font-size: 10px;
-  opacity: 0.6;
+  margin-inline-start: 18px;
+  font-size: 10.5px;
+  color: rgba(245, 240, 235, 0.48);
+  font-variant-numeric: tabular-nums;
+}
+
+.wdpad-menu-item:hover .wdpad-menu-shortcut,
+.wdpad-menu-item:focus-visible .wdpad-menu-shortcut {
+  color: currentColor;
+  opacity: 0.72;
 }
 
 .wdpad-menu-separator {
   height: 1px;
-  background: rgba(255, 255, 255, 0.1);
-  margin: 4px 0;
+  background: rgba(255, 255, 255, 0.09);
+  margin: 5px 6px;
+}
+
+/* Submenu Styles */
+.wdpad-has-submenu {
+  position: relative;
+}
+
+.wdpad-submenu {
+  display: none;
+  position: absolute;
+  left: calc(100% - 2px);
+  top: -6px;
+  background: #141416;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.72);
+  padding: 6px;
+  min-width: 224px;
+  z-index: 100005;
+}
+
+.wdpad-has-submenu:hover > .wdpad-submenu,
+.wdpad-has-submenu:focus-within > .wdpad-submenu {
+  display: block;
+}
+
+.wdpad-submenu.submenu-flip-left {
+  left: auto;
+  right: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wdpad-context-menu,
+  .wdpad-menu-item {
+    animation: none;
+    transition: none;
+  }
 }
 
 /* Wordpad Link Dialog / Popover */
@@ -2411,17 +3291,36 @@ body.is-resizing-canvas * {
 /* ==========================================================================
    UNIVERSAL CSS VARIABLE BINDINGS (IMAGE & TEXT OVERRIDES)
    ========================================================================== */
+/* Universal Section Container Repositioning (Public / Published Pages) */
 .sec-block {
   transform: translate3d(var(--sec-ox, 0px), var(--sec-oy, 0px), 0);
   transition: transform 0.04s ease-out;
 }
 
+/* Inside builder canvas, .canvas-section handles container repositioning; neutralize duplicate inner transform so container and contents stay locked together */
+.canvas-section > .sec-block {
+  transform: none !important;
+}
+
 /* Universal Section Image Overrides */
 .sec-block .sec-img-wrap,
-.sec-block .sec-img-col,
-.sec-block .sec-img-holder {
+.sec-block .sec-img-col {
   transform: translate3d(var(--sec-img-ox, 0px), var(--sec-img-oy, 0px), 0);
   transition: transform 0.1s ease;
+}
+/* Fallback if sec-img-wrap is not used */
+.sec-block > .sec-img-holder,
+.sec-block .sec-inner > .sec-img-holder {
+  transform: translate3d(var(--sec-img-ox, 0px), var(--sec-img-oy, 0px), 0);
+  transition: transform 0.1s ease;
+}
+/* Neutralize compounding transform on child holders/imgs so image does not multiply translation */
+.sec-block .sec-img-wrap .sec-img-holder,
+.sec-block .sec-img-col .sec-img-holder,
+.sec-block .sec-img-wrap img,
+.sec-block .sec-img-col img,
+.custom-container-item img {
+  transform: none !important;
 }
 .sec-block .sec-img-wrap {
   max-width: var(--sec-img-w, 100%);
@@ -2440,39 +3339,62 @@ body.is-resizing-canvas * {
 .sec-block .sec-heading,
 .sec-block .sec-heading-custom,
 .sec-block .wd-cta-heading,
-.sec-block h1,
-.sec-block h2,
-.sec-block h3,
-.sec-block h4,
-.sec-block h5,
-.sec-block h6 {
-  transform: translate3d(var(--sec-h-ox, var(--sec-t-ox, 0px)), var(--sec-h-oy, var(--sec-t-oy, 0px)), 0);
+.sec-block .hero-title,
+.sec-block .wd-h1,
+.sec-block .wd-narrative-card-header,
+.sec-block .wd-narrative-card-title,
+.sec-block .wd-gallery-title,
+.sec-block .sec-carousel-title,
+.sec-block .sec-feature-title,
+.sec-block .wd-deliverable-title,
+.sec-block .wd-deliverable-text,
+.sec-block .sec-card-title,
+.sec-block .cards-grid-title,
+.sec-block .sec-title,
+.sec-block h1:not(.sec-text-col *):not(.sec-content-col *),
+.sec-block h2:not(.sec-text-col *):not(.sec-content-col *),
+.sec-block h3:not(.sec-text-col *):not(.sec-content-col *),
+.sec-block h4:not(.sec-text-col *):not(.sec-content-col *),
+.sec-block h5:not(.sec-text-col *):not(.sec-content-col *),
+.sec-block h6:not(.sec-text-col *):not(.sec-content-col *) {
+  transform: translate3d(var(--sec-h-ox, 0px), var(--sec-h-oy, 0px), 0) !important;
 }
 
 .sec-block .sec-text-col,
 .sec-block .sec-content-col,
-.sec-block .sec-desc,
-.sec-block .wd-sub,
-.sec-block .wd-eyebrow,
-.sec-block .wd-article-body,
-.sec-block p,
-.sec-block blockquote {
+.sec-block .sec-desc:not(.sec-text-col *):not(.sec-content-col *),
+.sec-block .wd-sub:not(.sec-text-col *):not(.sec-content-col *),
+.sec-block .wd-eyebrow:not(.sec-text-col *):not(.sec-content-col *),
+.sec-block .wd-article-body:not(.sec-text-col *):not(.sec-content-col *),
+.sec-block p:not(.sec-text-col *):not(.sec-content-col *),
+.sec-block blockquote:not(.sec-text-col *):not(.sec-content-col *) {
   transform: translate3d(var(--sec-t-ox, 0px), var(--sec-t-oy, 0px), 0);
 }
 
-.sec-block .sec-img-col,
 .sec-block .media-container,
 .sec-block .sec-block-img,
-.sec-block .portfolio-hero-img,
-.sec-block img:not(.canvas-resize-handle):not(.element-reposition-handle img) {
+.sec-block .portfolio-hero-img {
   transform: translate3d(var(--sec-img-ox, 0px), var(--sec-img-oy, 0px), 0);
 }
 
+/* Button Container Positioning: Only the outermost wrapper receives the section button offset */
 .sec-block .custom-btn-wrapper,
-.sec-block .custom-btn-group,
-.sec-block .custom-sec-btn,
-.sec-block .sec-cta-btn {
+.sec-block .custom-btn-group:not(.custom-btn-wrapper *),
+.sec-block .custom-sec-btn:not(.custom-btn-wrapper *):not(.custom-btn-group *),
+.sec-block .sec-cta-btn:not(.custom-btn-wrapper *):not(.custom-btn-group *) {
   transform: translate3d(var(--sec-btn-ox, 0px), var(--sec-btn-oy, 0px), 0);
+}
+
+/* Ensure child buttons inside a button wrapper never receive a redundant second transform */
+.sec-block .custom-btn-wrapper .custom-sec-btn,
+.sec-block .custom-btn-wrapper .custom-btn-action,
+.sec-block .custom-btn-wrapper .btn-p,
+.sec-block .custom-btn-wrapper .btn-s,
+.sec-block .custom-btn-group .custom-sec-btn,
+.sec-block .custom-btn-group .custom-btn-action,
+.sec-block .custom-btn-group .btn-p,
+.sec-block .custom-btn-group .btn-s {
+  transform: none;
 }
 
 .sec-block .sec-text-col,
@@ -2511,12 +3433,11 @@ body.is-resizing-canvas * {
 
 /* ══════════ CALL TO ACTION (CTA) CARD COMPONENT ══════════ */
 .sec-cta-card {
-  width: 100% !important;
-  max-width: 1000px !important;
+  width: 100%;
+  max-width: 1000px;
   min-width: 280px;
-  margin: 0 auto !important;
-  box-sizing: border-box !important;
-  overflow: hidden !important;
+  margin: 0 auto;
+  box-sizing: border-box;
   word-break: break-word;
   overflow-wrap: break-word;
 }
@@ -2592,12 +3513,22 @@ body.is-resizing-canvas * {
   display: inline-block;
 }
 
-/* Hover: Subtle dashed orange outline */
+/* Hover & Preview: Subtle dashed orange outline across ANY layer when hovered in canvas or tree */
+.element-hover-highlight,
 .has-reposition-handle:hover,
-.has-element-box:hover {
-  outline: 1.5px dashed rgba(255, 92, 0, 0.65) !important;
+.has-element-box:hover,
+.canvas-section.active-selected .wd-gallery-card:hover,
+.canvas-section.active-selected .wd-gallery-img-wrap:hover,
+.canvas-section.active-selected .sec-prebuilt-img-holder:hover,
+.canvas-section.active-selected .custom-container-item:hover,
+.canvas-section.active-selected .sec-col:hover,
+.canvas-section.active-selected .cards-grid-item:hover,
+.canvas-section.active-selected .wd-narrative-card:hover,
+.canvas-section.active-selected .wd-deliverable-item:hover,
+.canvas-section.active-selected .sec-feature-card:hover,
+.canvas-section.active-selected [data-el-key]:hover {
+  outline: 1.5px dashed rgba(255, 92, 0, 0.75) !important;
   outline-offset: 3px !important;
-  border-radius: 4px;
   cursor: pointer;
 }
 .has-reposition-handle.canvas-live-editable:hover,
@@ -2607,13 +3538,24 @@ body.is-resizing-canvas * {
   cursor: text !important;
 }
 
-/* Active Selected Element: Solid orange 2px border with glow and handles */
+/* Active Selected Element: Solid orange 2px border with glow across ANY selected layer */
+.element-active-selected,
 .has-reposition-handle.element-active-selected,
-.has-element-box.element-active-selected {
+.has-element-box.element-active-selected,
+.wd-gallery-card.element-active-selected,
+.wd-gallery-img-wrap.element-active-selected,
+.sec-prebuilt-img-holder.element-active-selected,
+.custom-container-item.element-active-selected,
+.sec-col.element-active-selected,
+.cards-grid-item.element-active-selected,
+.wd-narrative-card.element-active-selected,
+.wd-deliverable-item.element-active-selected,
+.sec-feature-card.element-active-selected,
+.client-logo-item.element-active-selected,
+.sec-carousel-slide.element-active-selected {
   outline: 2px solid #FF5C00 !important;
   outline-offset: 3px !important;
   box-shadow: 0 0 16px rgba(255, 92, 0, 0.45) !important;
-  border-radius: 4px !important;
   z-index: 120 !important;
   overflow: visible !important;
 }
@@ -3011,6 +3953,58 @@ body.live-preview-mode .has-element-box.element-active-selected .element-resize-
   z-index: 2;
 }
 
+.sec-custom-containers-layer.sec-layout-structured {
+  gap: var(--layout-gap, 20px);
+  align-items: stretch;
+}
+
+.sec-custom-containers-layer.sec-layout-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--layout-columns, 2), minmax(0, 1fr));
+}
+
+.sec-custom-containers-layer.sec-layout-row {
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+.sec-custom-containers-layer.sec-layout-row > .custom-container-item {
+  flex: 1 1 0;
+}
+
+.sec-custom-containers-layer.sec-layout-stack {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+}
+
+.sec-custom-containers-layer.sec-layout-structured > .custom-container-item {
+  width: 100% !important;
+  max-width: none !important;
+  transform: none !important;
+}
+
+.sec-custom-containers-layer.sec-layout-structured > .custom-container-text,
+.sec-custom-containers-layer.sec-layout-structured > .custom-container-card,
+.sec-custom-containers-layer.sec-layout-structured > .custom-container-button {
+  height: auto !important;
+  min-height: min-content;
+}
+
+@media (max-width: 768px) {
+  .sec-custom-containers-layer.sec-layout-grid,
+  .sec-custom-containers-layer.sec-layout-row {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
+}
+
+.sec-block.sec-containers-only .sec-custom-containers-layer {
+  margin-top: 0;
+  min-height: 40px;
+}
+
 .custom-container-item {
   position: relative;
   border-radius: 18px;
@@ -3029,18 +4023,49 @@ body.live-preview-mode .has-element-box.element-active-selected .element-resize-
   box-shadow: 0 0 20px rgba(255, 92, 0, 0.2);
 }
 
-.custom-container-upload-zone {
+/* Drag and Drop states for Image Container */
+.custom-container-item.drag-over-container,
+.custom-container-upload-zone.drag-over,
+.sec-image-upload-zone.drag-over {
+  border-color: #FF5C00 !important;
+  background: rgba(255, 92, 0, 0.16) !important;
+  box-shadow: 0 0 35px rgba(255, 92, 0, 0.45), inset 0 0 20px rgba(255, 92, 0, 0.2) !important;
+  transform: scale(1.015);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.custom-container-upload-zone.drag-over .custom-upload-icon,
+.sec-image-upload-zone.drag-over .custom-upload-icon {
+  transform: scale(1.25) translateY(-3px);
+  background: rgba(255, 92, 0, 0.35);
+  box-shadow: 0 0 20px rgba(255, 92, 0, 0.6);
+}
+
+.custom-container-upload-zone.drag-over .custom-upload-title,
+.sec-image-upload-zone.drag-over .custom-upload-title {
+  color: #FF7A29;
+}
+
+.custom-container-item.drag-over-container .custom-image-drop-overlay,
+.sec-prebuilt-img-holder.drag-over-img .sec-image-drop-overlay,
+.sec-img-holder.drag-over-img .sec-image-drop-overlay {
+  display: flex !important;
+}
+
+.custom-container-upload-zone,
+.sec-image-upload-zone {
   width: 100%;
   height: 100%;
-  min-height: 180px;
+  min-height: 80px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 30px 20px;
+  padding: 18px 14px;
   cursor: pointer !important;
   text-align: center;
   border-radius: 16px;
+  box-sizing: border-box;
   user-select: none;
 }
 
@@ -3080,6 +4105,23 @@ body.live-preview-mode .has-element-box.element-active-selected .element-resize-
   background: #111;
 }
 
+/* Uploaded media is the fill of the container, not a second canvas layer. */
+.custom-container-image.has-uploaded-image .custom-image-wrapper,
+.custom-container-image.has-uploaded-image .custom-image-wrapper > img {
+  pointer-events: none;
+}
+
+/* Uploaded images can be moved directly, while their controls keep their
+   existing pointer/resize cursors. */
+.element-image-drag-surface {
+  cursor: grab !important;
+  touch-action: none;
+}
+
+.element-image-drag-surface.is-dragging {
+  cursor: grabbing !important;
+}
+
 .custom-container-text {
   background: rgba(25, 25, 29, 0.6);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -3095,10 +4137,12 @@ body.live-preview-mode .has-element-box.element-active-selected .element-resize-
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 
-/* Action bar buttons for containers */
+/* Action bar buttons for containers and prebuilt image elements */
+.element-action-upload-img,
 .element-action-rotate,
 .element-action-delete-img,
-.element-action-delete-ccont {
+.element-action-delete-ccont,
+.element-action-delete-element {
   background: #222 !important;
   color: #fff !important;
   border: 1px solid rgba(255, 255, 255, 0.25) !important;
@@ -3111,6 +4155,14 @@ body.live-preview-mode .has-element-box.element-active-selected .element-resize-
   gap: 3px !important;
   cursor: pointer !important;
   transition: all 0.15s ease !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+.element-action-upload-img:hover {
+  background: #FF5C00 !important;
+  border-color: #FF5C00 !important;
+  color: #fff !important;
 }
 
 .element-action-rotate:hover {
@@ -3120,8 +4172,508 @@ body.live-preview-mode .has-element-box.element-active-selected .element-resize-
 }
 
 .element-action-delete-img:hover,
-.element-action-delete-ccont:hover {
-  background: #ef4444 !important;
-  border-color: #ef4444 !important;
+.element-action-delete-ccont:hover,
+.element-action-delete-element:hover,
+.element-action-delete-element:focus-visible {
+  background: #C9343B !important;
+  border-color: #C9343B !important;
   color: #fff !important;
+}
+
+/* ==========================================================================
+   PREBUILT EMPTY IMAGE PLACEHOLDERS
+   Attractive dashed upload card shown when an image is cleared or empty
+   ========================================================================== */
+.wd-gallery-empty-placeholder,
+.sec-carousel-empty-placeholder,
+.sec-image-empty-placeholder {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 80px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 2px dashed rgba(255, 92, 0, 0.4) !important;
+  border-radius: 12px !important;
+  color: rgba(245, 240, 235, 0.8) !important;
+  font-family: var(--font-heading, 'Syne', sans-serif) !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  padding: 16px !important;
+  box-sizing: border-box !important;
+  text-align: center !important;
+}
+
+/* Flexible container height overrides during resize */
+.canvas-section.active-selected,
+.canvas-section[style*="min-height"],
+.has-element-box.element-active-selected,
+.has-element-box[style*="height"] {
+  min-height: 0;
+}
+.wd-gallery-card[style*="height"] .wd-gallery-img-wrap,
+.wd-deliverable-item[style*="height"] .sec-prebuilt-img-holder,
+.sec-custom-container[style*="height"],
+.sec-custom-container[style*="height"] .custom-container-upload-zone {
+  min-height: 0 !important;
+}
+
+.wd-gallery-empty-placeholder:hover,
+.sec-carousel-empty-placeholder:hover,
+.sec-image-empty-placeholder:hover {
+  background: rgba(255, 92, 0, 0.08) !important;
+  border-color: #FF5C00 !important;
+  color: #FF5C00 !important;
+}
+
+.wd-gallery-empty-placeholder svg,
+.sec-carousel-empty-placeholder svg,
+.sec-image-empty-placeholder svg {
+  opacity: 0.75;
+  transition: transform 0.2s ease;
+}
+
+.wd-gallery-empty-placeholder:hover svg,
+.sec-carousel-empty-placeholder:hover svg,
+.sec-image-empty-placeholder:hover svg {
+  transform: scale(1.1);
+  opacity: 1;
+}
+
+/* ==========================================================================
+   GALLERY IMAGE WRAPPER & ALL OVERFLOW-HIDDEN IMAGE CONTAINERS
+   When selected, allow action-bar & resize handles to overflow clipping bounds
+   ========================================================================== */
+
+/* Allow selected image wrapper and cards to overflow so action bar is visible */
+.element-has-active-child,
+.wd-gallery-img-wrap.element-active-selected,
+.wd-gallery-card.element-active-selected,
+.wd-gallery-card > div:first-child.element-active-selected,
+.sec-prebuilt-img-holder.element-active-selected,
+.sec-img-holder.element-active-selected,
+.sec-img-col.element-active-selected,
+.sec-ba-container.element-active-selected,
+.sec-img-wrap.element-active-selected,
+.sec-carousel-slide.element-active-selected,
+.sec-grid-item.element-active-selected,
+.cards-grid-item.element-active-selected,
+.sec-hover-card.element-active-selected,
+.wd-narrative-card.element-active-selected,
+.wd-deliverable-item.element-active-selected,
+.client-logo-item.element-active-selected,
+.sec-logo-item.element-active-selected {
+  overflow: visible !important;
+}
+
+/* The inner <img> inside a selected wrapper keeps its radius via clip-path */
+.wd-gallery-img-wrap.element-active-selected > img,
+.sec-prebuilt-img-holder.element-active-selected > img,
+.sec-img-holder.element-active-selected > img,
+.sec-img-col.element-active-selected > img,
+.sec-img-wrap.element-active-selected > img,
+.sec-img-col.element-active-selected .sec-img-holder > img {
+  border-radius: 12px;
+}
+
+/* Prevent parent cards and containers from clipping their selected child's handles & action bar */
+.element-active-selected,
+.has-element-box.element-active-selected,
+.wd-gallery-card.element-active-selected,
+.wd-gallery-img-wrap.element-active-selected,
+.sec-prebuilt-img-holder.element-active-selected,
+.sec-img-holder.element-active-selected,
+.sec-img-wrap.element-active-selected,
+.sec-carousel-slide.element-active-selected,
+.cards-grid-item.element-active-selected,
+.sec-hover-card.element-active-selected,
+.wd-narrative-card.element-active-selected,
+.wd-deliverable-item.element-active-selected,
+.client-logo-item.element-active-selected,
+.sec-logo-item.element-active-selected,
+.sec-col.element-active-selected,
+.sec-img-col.element-active-selected,
+.sec-image-upload-zone.element-active-selected,
+.wd-gallery-empty-placeholder.element-active-selected,
+.sec-carousel-empty-placeholder.element-active-selected,
+body.live-preview-mode .element-active-selected,
+body.live-preview-mode .has-element-box.element-active-selected,
+.wd-gallery-card:has(.element-active-selected),
+.wd-gallery-card:has(.wd-gallery-img-wrap.element-active-selected),
+.wd-gallery-card:has(.sec-prebuilt-img-holder.element-active-selected),
+.wd-gallery-img-wrap:has(.element-active-selected),
+.wd-gallery-card.element-has-active-child,
+.wd-gallery-img-wrap.element-has-active-child,
+.wd-full-card:has(.element-active-selected),
+.wd-full-card.element-has-active-child,
+.sec-img-grid-container:has(.element-active-selected),
+.sec-img-grid-container.element-has-active-child,
+.sec-carousel-wrap:has(.element-active-selected),
+.sec-carousel-container:has(.element-active-selected),
+.sec-carousel-slide:has(.element-active-selected),
+.sec-carousel-slide.element-has-active-child,
+.cards-grid-item:has(.element-active-selected),
+.cards-grid-item.element-has-active-child,
+.wd-narrative-card:has(.element-active-selected),
+.wd-narrative-card.element-has-active-child,
+.wd-deliverable-item:has(.element-active-selected),
+.wd-deliverable-item.element-has-active-child,
+.sec-col:has(.element-active-selected),
+.sec-col.element-has-active-child,
+.client-logo-item:has(.element-active-selected),
+.client-logo-item.element-has-active-child,
+.sec-logo-item:has(.element-active-selected),
+.sec-logo-item.element-has-active-child {
+  overflow: visible !important;
+}
+
+/* Prevent sec-img-col parent from clipping when the column itself is selected */
+.sec-split-grid:has(.sec-img-col.element-active-selected) {
+  overflow: visible !important;
+}
+
+/* Ensure sec-img-col img wrapper doesn't duplicate translate when col is moved */
+.sec-img-col.has-element-box .sec-img-holder {
+  transform: none !important;
+}
+
+/* Live Preview Mode: Ensure element selection outline & action bar are always interactive */
+body.live-preview-mode .element-active-selected .element-action-bar,
+body.live-preview-mode .has-element-box.element-active-selected .element-action-bar {
+  display: inline-flex !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  z-index: 99999 !important;
+}
+
+body.live-preview-mode .element-action-bar,
+body.live-preview-mode .element-action-bar * {
+  pointer-events: auto !important;
+}
+
+/* Two-lane editor controls: the section toolbar owns the first row and the
+   selected inner element automatically moves to a second row when necessary. */
+.canvas-section-header-bar {
+  max-width: calc(100% - 28px);
+  flex-wrap: wrap;
+  row-gap: 5px;
+}
+
+.canvas-section.has-active-element-controls > .canvas-section-header-bar {
+  z-index: 150;
+}
+
+.element-action-bar {
+  width: max-content;
+  max-width: min(680px, calc(100vw - 48px));
+  flex-wrap: wrap !important;
+  row-gap: 4px !important;
+}
+
+.element-action-bar.element-action-bar--inside-lane {
+  z-index: 160 !important;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.72), 0 0 0 1px rgba(255, 92, 0, 0.22) !important;
+}
+
+.element-action-bar.element-action-bar--align-right {
+  transform-origin: top right;
+}
+
+@media (max-width: 720px) {
+  .canvas-section-header-bar {
+    left: 8px;
+    max-width: calc(100% - 16px);
+    gap: 5px;
+  }
+
+  .element-action-bar {
+    max-width: calc(100vw - 32px);
+  }
+}
+
+body.live-preview-mode .element-action-upload-img,
+body.live-preview-mode .element-action-rotate,
+body.live-preview-mode .element-action-delete-img,
+body.live-preview-mode .element-action-reset,
+body.live-preview-mode .element-action-delete-element {
+  cursor: pointer !important;
+  user-select: none !important;
+}
+
+body.live-preview-mode .element-reposition-drag-handle,
+body.live-preview-mode .element-reposition-drag-handle * {
+  cursor: grab !important;
+}
+
+body.live-preview-mode .element-active-selected,
+body.live-preview-mode .has-element-box.element-active-selected {
+  outline: 2px solid #FF5C00 !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 16px rgba(255, 92, 0, 0.45) !important;
+}
+/* Active responsive editing context */
+.viewport-edit-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 11px 12px;
+  border: 1px solid rgba(255, 92, 0, 0.38);
+  border-radius: 12px;
+  background: rgba(255, 92, 0, 0.08);
+}
+
+.viewport-edit-notice > div {
+  min-width: 0;
+}
+
+.viewport-edit-notice strong,
+.viewport-edit-notice span {
+  display: block;
+}
+
+.viewport-edit-notice strong {
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.viewport-edit-notice span {
+  margin-top: 2px;
+  color: rgba(245, 240, 235, 0.66);
+  font-size: 10.5px;
+  line-height: 1.35;
+}
+
+.viewport-edit-notice button {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 9px;
+  background: #202020;
+  color: #fff;
+  font: inherit;
+  font-size: 10.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.viewport-edit-notice button:hover,
+.viewport-edit-notice button:focus-visible {
+  border-color: #ff5c00;
+  background: #2a211d;
+  outline: none;
+}
+
+.viewport-edit-notice.is-base {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+/* Distilled layers panel: primary information stays visible; secondary
+   controls reveal on intent instead of competing with every section name. */
+.section-tree-list {
+  gap: 6px;
+}
+
+.section-tree-group {
+  min-width: 0;
+}
+
+.section-tree-item {
+  position: relative;
+  min-height: 44px;
+  gap: 7px;
+  padding: 7px 9px;
+  border-color: rgba(255, 255, 255, 0.055);
+  border-radius: 10px;
+  box-shadow: none;
+}
+
+.section-tree-item.selected {
+  background: rgba(255, 92, 0, 0.075);
+  box-shadow: inset 0 0 0 1px rgba(255, 92, 0, 0.14);
+}
+
+.tree-drag-handle {
+  width: 18px;
+  padding: 3px 1px;
+  opacity: 0.55;
+}
+
+.tree-item-icon {
+  width: 20px;
+  text-align: center;
+  flex: 0 0 20px;
+  font-size: 15px;
+}
+
+.tree-item-title {
+  min-width: 54px;
+  font-size: 12.5px;
+}
+
+.tree-actions {
+  position: absolute;
+  top: calc(100% - 3px);
+  right: 7px;
+  z-index: 12;
+  display: flex;
+  gap: 1px;
+  padding: 3px;
+  border-radius: 8px;
+  background: #1b1b1c;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.42);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(4px);
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+}
+
+.section-tree-item:hover .tree-actions,
+.section-tree-item:focus-within .tree-actions {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.tree-action-btn {
+  width: 27px;
+  height: 27px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tree-drawer-btn {
+  min-width: 34px;
+  min-height: 26px;
+  margin: 0 2px;
+  padding: 3px 7px;
+  border-radius: 7px;
+  box-shadow: none !important;
+}
+
+.section-tree-children {
+  margin: 3px 0 5px 30px !important;
+  padding-left: 8px !important;
+  border-left-style: solid !important;
+  border-left-color: rgba(255, 255, 255, 0.09) !important;
+}
+
+.tree-child-item {
+  min-height: 34px;
+  gap: 7px;
+  padding: 5px 7px;
+  border-radius: 7px;
+  border-left: 0;
+  color: rgba(245, 240, 235, 0.7);
+}
+
+.tree-child-item.active {
+  background: rgba(255, 92, 0, 0.09);
+  color: #fff;
+}
+
+.tree-child-actions {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.tree-child-item:hover .tree-child-actions,
+.tree-child-item:focus-within .tree-child-actions,
+.tree-child-item.active .tree-child-actions {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Panel toggles now belong to the canvas toolbar beside zoom. */
+.builder-toolbar-divider {
+  width: 1px;
+  height: 20px;
+  margin: 0 3px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.layout-toggle-group.layout-toggle-group--canvas {
+  position: static;
+  inset: auto;
+  z-index: auto;
+  padding: 0;
+  gap: 1px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.layout-toggle-group--canvas .layout-btn {
+  width: 30px;
+  height: 28px;
+  border-radius: 6px;
+}
+
+.layout-toggle-group--canvas .layout-btn.active {
+  background: rgba(255, 92, 0, 0.16);
+  box-shadow: none;
+  color: #ff7a2d;
+}
+
+.builder-template-drawer {
+  margin-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.builder-template-drawer summary {
+  min-height: 38px;
+  padding: 0 3px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(245, 240, 235, 0.82);
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+
+.builder-template-drawer summary::-webkit-details-marker {
+  display: none;
+}
+
+.builder-template-drawer summary::before {
+  content: '›';
+  color: rgba(245, 240, 235, 0.48);
+  font-size: 17px;
+  line-height: 1;
+  transform: rotate(0deg);
+  transition: transform 0.16s ease;
+}
+
+.builder-template-drawer[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.builder-template-summary-note {
+  margin-left: auto;
+  color: rgba(245, 240, 235, 0.4);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.builder-template-drawer-body {
+  display: flex;
+  gap: 6px;
+  padding: 2px 0 12px;
 }

@@ -43,6 +43,11 @@ const server = http.createServer((req, res) => {
   // Security check: prevent directory traversal
   const safePath = path.normalize(pathname).replace(/^(\.\.[\/\\])+/, '');
   let fullPath = path.join(ROOT_DIR, safePath);
+  const resolvedFullPath = path.resolve(fullPath);
+  if (!resolvedFullPath.startsWith(ROOT_DIR)) {
+    serve404();
+    return;
+  }
 
   // 1. If someone accesses /index.html directly -> redirect 301 to /
   if (pathname === '/index.html') {

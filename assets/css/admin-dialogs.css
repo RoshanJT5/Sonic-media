@@ -1,0 +1,214 @@
+:root {
+  --admin-dialog-bg: #151515;
+  --admin-dialog-panel: #1b1b1b;
+  --admin-dialog-border: rgba(255, 255, 255, 0.12);
+  --admin-dialog-text: #f7f3ef;
+  --admin-dialog-muted: #bbb3ad;
+  --admin-dialog-accent: #ff5c00;
+  --admin-dialog-danger: #ef5b63;
+  --admin-dialog-success: #20c997;
+}
+
+.admin-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.76);
+  opacity: 0;
+  transition: opacity 160ms ease-out;
+}
+
+.admin-dialog-overlay.is-open {
+  opacity: 1;
+}
+
+.admin-dialog {
+  position: relative;
+  width: min(100%, 480px);
+  max-height: min(720px, calc(100vh - 48px));
+  overflow: auto;
+  color: var(--admin-dialog-text);
+  background: var(--admin-dialog-bg);
+  border: 1px solid var(--admin-dialog-border);
+  border-radius: 16px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.58);
+  transform: translateY(8px) scale(0.985);
+  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.admin-dialog-overlay.is-open .admin-dialog {
+  transform: translateY(0) scale(1);
+}
+
+.admin-dialog__body {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 16px;
+  padding: 24px 24px 18px;
+}
+
+.admin-dialog__icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  color: var(--admin-dialog-accent);
+  background: rgba(255, 92, 0, 0.12);
+  border-radius: 12px;
+}
+
+.admin-dialog--danger .admin-dialog__icon {
+  color: var(--admin-dialog-danger);
+  background: rgba(239, 91, 99, 0.12);
+}
+
+.admin-dialog--success .admin-dialog__icon {
+  color: var(--admin-dialog-success);
+  background: rgba(32, 201, 151, 0.12);
+}
+
+.admin-dialog__icon svg {
+  width: 21px;
+  height: 21px;
+}
+
+.admin-dialog__title {
+  margin: 0 36px 7px 0;
+  color: var(--admin-dialog-text);
+  font-family: "Syne", sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+}
+
+.admin-dialog__message,
+.admin-dialog__detail,
+.admin-dialog__recovery {
+  margin: 0;
+  color: var(--admin-dialog-muted);
+  font-family: "DM Sans", sans-serif;
+  font-size: 14px;
+  line-height: 1.55;
+  white-space: pre-line;
+}
+
+.admin-dialog__detail,
+.admin-dialog__recovery {
+  margin-top: 12px;
+  padding: 11px 12px;
+  color: #d8d1cc;
+  background: var(--admin-dialog-panel);
+  border-radius: 10px;
+}
+
+.admin-dialog__recovery strong {
+  color: var(--admin-dialog-text);
+}
+
+.admin-dialog__input {
+  width: 100%;
+  margin-top: 16px;
+  padding: 11px 12px;
+  color: var(--admin-dialog-text);
+  background: #0e0e0e;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  font: 14px/1.4 "DM Sans", sans-serif;
+  outline: none;
+}
+
+.admin-dialog__input:focus {
+  border-color: var(--admin-dialog-accent);
+  box-shadow: 0 0 0 3px rgba(255, 92, 0, 0.15);
+}
+
+.admin-dialog__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  color: var(--admin-dialog-muted);
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+}
+
+.admin-dialog__close:hover,
+.admin-dialog__close:focus-visible {
+  color: var(--admin-dialog-text);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.admin-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-dialog__button {
+  min-height: 40px;
+  padding: 9px 17px;
+  color: var(--admin-dialog-text);
+  background: #252525;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  font-family: "DM Sans", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.admin-dialog__button:hover,
+.admin-dialog__button:focus-visible {
+  background: #303030;
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.admin-dialog__button--primary {
+  color: #fff;
+  background: var(--admin-dialog-accent);
+  border-color: var(--admin-dialog-accent);
+}
+
+.admin-dialog__button--primary:hover,
+.admin-dialog__button--primary:focus-visible {
+  background: #e95300;
+  border-color: #e95300;
+}
+
+.admin-dialog--danger .admin-dialog__button--primary {
+  background: #c63f48;
+  border-color: #c63f48;
+}
+
+.admin-dialog--danger .admin-dialog__button--primary:hover,
+.admin-dialog--danger .admin-dialog__button--primary:focus-visible {
+  background: #ad343c;
+  border-color: #ad343c;
+}
+
+.admin-dialog button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+@media (max-width: 520px) {
+  .admin-dialog-overlay { padding: 14px; }
+  .admin-dialog__body { grid-template-columns: 36px minmax(0, 1fr); padding: 20px 18px 16px; }
+  .admin-dialog__icon { width: 36px; height: 36px; }
+  .admin-dialog__actions { padding: 14px 18px 18px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-dialog-overlay,
+  .admin-dialog { transition: none; }
+}

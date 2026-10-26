@@ -338,10 +338,24 @@ function initTimelineAnimations() {
     const slider = section.querySelector('.sonic-timeline-slider');
     if (!slider) return;
 
-    // 1. Kill any existing ScrollTrigger instances scoped to this section to avoid duplicate triggers
+    // 1. Give this section exactly one animation owner. Killing only the
+    // ScrollTrigger leaves its GSAP timeline alive, which can keep writing
+    // transforms after CMS or resize-driven rebuilds.
+    if (section.__sonicTimelineMaster) {
+      if (section.__sonicTimelineMaster.scrollTrigger) {
+        section.__sonicTimelineMaster.scrollTrigger.kill();
+      }
+      section.__sonicTimelineMaster.kill();
+      section.__sonicTimelineMaster = null;
+    }
+
+    // Clean up any legacy/untracked instance created before the owner above
+    // was introduced.
     ScrollTrigger.getAll().forEach(function(st) {
       if (st.trigger === section || (st.vars && st.vars.trigger === section)) {
+        const animation = st.animation;
         st.kill();
+        if (animation && animation !== section.__sonicTimelineMaster) animation.kill();
       }
     });
 
@@ -353,7 +367,8 @@ function initTimelineAnimations() {
     let itemsToAnimate = [];
     if (works && works.length > 0) {
       works.forEach(function(w, idx) {
-        const el = section.querySelector('.sonic-milestone-item[data-id="' + w.id + '"]');
+        const safeId = String(w.id || '').toLowerCase().replace(/[^a-z0-9-]/g, '-');
+        const el = section.querySelector('.sonic-milestone-item[data-id="' + safeId + '"]');
         if (el) itemsToAnimate.push({ el: el, index: idx, id: w.id });
       });
     }
@@ -395,10 +410,8 @@ function initTimelineAnimations() {
       itemsToAnimate.forEach(function(itemObj) {
         const s = itemObj.el.querySelector('.sonic-stem-line');
         const d = itemObj.el.querySelector('.sonic-stem-dot');
-        const c = itemObj.el.querySelector('.sonic-milestone-card');
         if (s) gsap.set(s, { scaleY: 1 });
         if (d) gsap.set(d, { scale: 1 });
-        if (c) gsap.set(c, { opacity: 1, y: 0 });
       });
       return;
     }
@@ -422,16 +435,15 @@ function initTimelineAnimations() {
     const movementEnd = travelScroll / requiredScroll;
     section.style.height = Math.ceil(viewportHeight + requiredScroll) + 'px';
 
-    // Responsive scrub stiffness: snappy on touch devices, buttery on desktop
-    const scrubVal = isMobile ? 0.75 : (isTablet ? 0.95 : 1.2);
-
-    // 3. Unified Master Timeline scrubbed across the pinned section
+    // 3. Unified master timeline follows the scrollbar exactly. A numeric
+    // scrub keeps advancing after wheel/touch input stops; that delayed catch-up
+    // crosses upcoming stem thresholds and reads as branch flicker.
     const masterTl = gsap.timeline({
       scrollTrigger: {
         trigger: section,
         start: 'top top',
         end: 'bottom bottom',
-        scrub: scrubVal,
+        scrub: true,
         invalidateOnRefresh: true,
         onUpdate: function(self) {
           if (headDot) {
@@ -447,6 +459,7 @@ function initTimelineAnimations() {
         }
       }
     });
+    section.__sonicTimelineMaster = masterTl;
 
     // 3a. Horizontal slider scrub across the entire 0 -> 1 timeline progress
     masterTl.fromTo(slider,
@@ -464,7 +477,9 @@ function initTimelineAnimations() {
       );
     }
 
-    // 3c. Staggered stem, dot & card reveals along the scrub
+    // 3c. Staggered stem and dot reveals along the scrub. Cards remain fully
+    // opaque while the parent slider moves; animating opacity on nested cards
+    // caused compositing flashes when scrolling stopped between milestones.
     // Supports ANY number of cards: dynamically slots every card between startRange and endRange
     const startRange = isSmallPhone ? 0.025 : (isMobile ? 0.03 : 0.03);
     const endRange = movementEnd * (isMobile ? 0.92 : 0.90);
@@ -477,30 +492,21 @@ function initTimelineAnimations() {
       const isTop = el.classList.contains('top') || (index % 2 === 0);
       const stem = el.querySelector('.sonic-stem-line');
       const dot = el.querySelector('.sonic-stem-dot');
-      const card = el.querySelector('.sonic-milestone-card');
 
       const cardStart = startRange + (index * step);
 
       if (stem) {
         masterTl.fromTo(stem,
-          { scaleY: 0, transformOrigin: isTop ? 'bottom bottom' : 'top top' },
-          { scaleY: 1, duration: cardDuration * 0.65, ease: 'power2.out' },
+          { scaleY: 0, transformOrigin: isTop ? 'bottom bottom' : 'top top', force3D: true },
+          { scaleY: 1, duration: cardDuration * 0.65, ease: 'power2.out', force3D: true },
           cardStart
         );
       }
       if (dot) {
         masterTl.fromTo(dot,
-          { scale: 0 },
-          { scale: 1, duration: cardDuration * 0.55, ease: 'back.out(2)' },
+          { scale: 0, force3D: true },
+          { scale: 1, duration: cardDuration * 0.55, ease: 'power2.out', force3D: true },
           cardStart
-        );
-      }
-      if (card) {
-        const yOffset = isSmallPhone ? (isTop ? 20 : -20) : (isMobile ? (isTop ? 26 : -26) : (isTop ? 32 : -32));
-        masterTl.fromTo(card,
-          { opacity: 0.15, y: yOffset },
-          { opacity: 1, y: 0, duration: cardDuration, ease: 'power2.out' },
-          cardStart + cardDuration * 0.12
         );
       }
     });
@@ -2381,40 +2387,105 @@ function renderPageData() {
   }
 
   /* ── Build Milestone Cards for the Pinned Horizontal Timeline ── */
+  function escapeTimelineText(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function safeTimelineImageUrl(value) {
+    const fallback = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=900&q=80';
+    try {
+      const raw = String(value || '').trim();
+      if (!raw) return fallback;
+      const parsed = new URL(raw, window.location.origin);
+      if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return fallback;
+      return parsed.href;
+    } catch (_) {
+      return fallback;
+    }
+  }
+
   function buildTimelineMilestone(w, isTop) {
-    const tagsHTML = (w.tags || []).map(t => `<span class="smc-tag">${t}</span>`).join('');
+    const safeId = String(w.id || '').toLowerCase().replace(/[^a-z0-9-]/g, '-');
+    const safeName = escapeTimelineText(w.name);
+    const safeCategory = escapeTimelineText(w.cat);
+    const safeMetricValue = escapeTimelineText(w.metricVal);
+    const safeMetricLabel = escapeTimelineText(w.metricLbl);
+    const safeNumber = escapeTimelineText(w.num);
+    const safeImage = escapeTimelineText(safeTimelineImageUrl(w.img));
+    const tagsHTML = (Array.isArray(w.tags) ? w.tags : [])
+      .slice(0, 3)
+      .map(t => {
+        const safeTag = escapeTimelineText(t);
+        return `<span class="smc-tag" title="${safeTag}">${safeTag}</span>`;
+      })
+      .join('');
     const portIcon = PORT_CAT_ICON[w.cat] || DEFAULT_PORT_ICON;
     const isLive = String(w.metricVal || '').toLowerCase() === 'live';
-    return `<div class="sonic-milestone-item ${isTop ? 'top' : 'bottom'}" data-id="${w.id}">
+    return `<div class="sonic-milestone-item ${isTop ? 'top' : 'bottom'}" data-id="${safeId}">
       <div class="sonic-stem-anchor ${isTop ? 'top' : 'bottom'}">
-        ${isTop ? `<div class="sonic-stem-line jl-${w.id}"></div><div class="sonic-stem-dot jd-${w.id}"></div>` : `<div class="sonic-stem-dot jd-${w.id}"></div><div class="sonic-stem-line jl-${w.id}"></div>`}
+        ${isTop ? `<div class="sonic-stem-line jl-${safeId}"></div><div class="sonic-stem-dot jd-${safeId}"></div>` : `<div class="sonic-stem-dot jd-${safeId}"></div><div class="sonic-stem-line jl-${safeId}"></div>`}
       </div>
-      <div class="sonic-milestone-card card-${w.id}" onclick="openWorkDetail('${w.id}')">
+      <div class="sonic-milestone-card card-${safeId}" role="link" tabindex="0" aria-label="View project: ${safeName}" data-project-id="${safeId}">
         <div class="smc-top">
-          <span class="smc-num">${w.num}</span>
-          <span class="smc-cat" title="${w.cat}">${portIcon} <span>${w.cat}</span></span>
+          <span class="smc-num">${safeNumber}</span>
+          <span class="smc-cat" title="${safeCategory}">${portIcon} <span>${safeCategory}</span></span>
           <span class="smc-arrow">↗</span>
         </div>
-        <h3 class="smc-title title-${w.id}">${w.name}</h3>
+        <h3 class="smc-title title-${safeId}">${safeName}</h3>
         <div class="smc-img-box">
-          <img src="${w.img}" alt="${w.name}" loading="lazy">
-          <span class="smc-badge ${isLive ? 'live' : ''}">
+          <img src="${safeImage}" alt="${safeName}" loading="eager" fetchpriority="low" decoding="async">
+          <span class="smc-badge ${isLive ? 'live' : ''}" title="${safeMetricValue} · ${safeMetricLabel}">
             <span class="smc-badge-dot"></span>
-            ${w.metricVal} · ${w.metricLbl}
+            <span class="smc-badge-label">${safeMetricValue} · ${safeMetricLabel}</span>
           </span>
         </div>
-        <div class="smc-tags description-${w.id}">${tagsHTML}</div>
+        <div class="smc-tags description-${safeId}">${tagsHTML}</div>
       </div>
     </div>`;
+  }
+
+  function bindTimelineMilestoneInteractions() {
+    document.querySelectorAll('.sonic-timeline-section').forEach(section => {
+      if (section.dataset.cardInteractionsBound === 'true') return;
+      section.dataset.cardInteractionsBound = 'true';
+      const openCard = event => {
+        const card = event.target.closest('.sonic-milestone-card[data-project-id]');
+        if (!card || !section.contains(card)) return;
+        if (event.type === 'keydown' && event.key !== 'Enter' && event.key !== ' ') return;
+        if (event.type === 'keydown') event.preventDefault();
+        openWorkDetail(card.dataset.projectId);
+      };
+      section.addEventListener('click', openCard);
+      section.addEventListener('keydown', openCard);
+    });
   }
 
   const topMilestones = pt.works.filter((_, idx) => idx % 2 === 0).map(w => buildTimelineMilestone(w, true)).join('');
   const bottomMilestones = pt.works.filter((_, idx) => idx % 2 !== 0).map(w => buildTimelineMilestone(w, false)).join('');
 
-  setEl('portfolio-timeline-top', topMilestones);
-  setEl('portfolio-timeline-bottom', bottomMilestones);
-  setEl('home-portfolio-timeline-top', topMilestones);
-  setEl('home-portfolio-timeline-bottom', bottomMilestones);
+  // CMS requests resolve independently and each one calls renderPageData().
+  // Preserve unchanged timeline DOM so a journal/content response cannot tear
+  // down and recreate milestone branches while the visitor is mid-scroll.
+  function setTimelineMarkup(id, html) {
+    const el = document.getElementById(id);
+    if (!el || el.__sonicTimelineMarkup === html) return false;
+    el.__sonicTimelineMarkup = html;
+    el.innerHTML = html;
+    return true;
+  }
+
+  const timelineMarkupChanged = [
+    setTimelineMarkup('portfolio-timeline-top', topMilestones),
+    setTimelineMarkup('portfolio-timeline-bottom', bottomMilestones),
+    setTimelineMarkup('home-portfolio-timeline-top', topMilestones),
+    setTimelineMarkup('home-portfolio-timeline-bottom', bottomMilestones)
+  ].some(Boolean);
+  bindTimelineMilestoneInteractions();
   const countEl = document.getElementById('portfolio-timeline-count');
   if (countEl) countEl.textContent = `${pt.works.length} PROJECTS · 2023–2026`;
 
@@ -2424,8 +2495,10 @@ function renderPageData() {
   setEl('home-portfolio-list', homeWorks);
   setEl('page-portfolio-list', pageWorks);
 
-  clearTimeout(window.__sonicTimelineRenderTimer);
-  window.__sonicTimelineRenderTimer = setTimeout(initTimelineAnimations, 80);
+  if (timelineMarkupChanged) {
+    clearTimeout(window.__sonicTimelineRenderTimer);
+    window.__sonicTimelineRenderTimer = setTimeout(initTimelineAnimations, 80);
+  }
 
   /* ── CASE STUDIES ── */
   const cs = D.casestudies;
@@ -3024,19 +3097,45 @@ function applySonicLiveCustomEdits() {
       }
       return;
     }
-    const script = document.createElement('script');
-    script.id = 'sonic-cms-script';
     const isServices = window.location.pathname.includes('/services/');
-    script.src = (isServices ? '../' : '') + 'assets/js/sonic-live-cms.js';
-    script.defer = true;
-    if (autoOpen) {
-      script.onload = () => {
+    const assetBase = isServices ? '../' : '';
+
+    if (!document.getElementById('admin-dialog-styles')) {
+      const dialogStyles = document.createElement('link');
+      dialogStyles.id = 'admin-dialog-styles';
+      dialogStyles.rel = 'stylesheet';
+      dialogStyles.href = assetBase + 'assets/css/admin-dialogs.css?v=1';
+      document.head.appendChild(dialogStyles);
+    }
+
+    const loadCmsEngine = () => {
+      if (document.getElementById('sonic-cms-script')) return;
+      const script = document.createElement('script');
+      script.id = 'sonic-cms-script';
+      script.src = assetBase + 'assets/js/sonic-live-cms.js';
+      script.defer = true;
+      if (autoOpen) script.onload = () => {
         if (window._sonicCmsToggleMode && !document.body.classList.contains('sonic-cms-active')) {
           window._sonicCmsToggleMode();
         }
       };
+      document.body.appendChild(script);
+    };
+
+    if (window.AdminDialog) {
+      loadCmsEngine();
+      return;
     }
-    document.body.appendChild(script);
+
+    let dialogScript = document.getElementById('admin-dialog-script');
+    if (!dialogScript) {
+      dialogScript = document.createElement('script');
+      dialogScript.id = 'admin-dialog-script';
+      dialogScript.src = assetBase + 'assets/js/admin-dialogs.js?v=1';
+      dialogScript.defer = true;
+      document.body.appendChild(dialogScript);
+    }
+    dialogScript.addEventListener('load', loadCmsEngine, { once: true });
   }
 
   const hasAdminSession = !!(window.sessionStorage?.getItem('sonicmedia_admin_session') || window.localStorage?.getItem('sonicmedia_admin_session'));
@@ -3082,10 +3181,42 @@ function bootSonicApp() {
 function registerSonicImageCache() {
   if (!('serviceWorker' in navigator)) return;
   if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') return;
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js', { scope: '/' }).catch(err => {
+  window.addEventListener('load', async () => {
+    const workerUrl = new URL('/service-worker.js', window.location.origin);
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timeoutId = window.setTimeout(() => controller?.abort(), 6000);
+
+    try {
+      // A service-worker script must resolve directly on this origin. Probe it
+      // first so a host-level 302 loop or HTML fallback cannot leave browser
+      // registration pending for a long time.
+      const response = await fetch(workerUrl.href, {
+        cache: 'no-store',
+        credentials: 'same-origin',
+        redirect: 'follow',
+        signal: controller?.signal
+      });
+      const contentType = response.headers.get('content-type') || '';
+      const finalUrl = new URL(response.url, window.location.origin);
+      if (!response.ok || response.redirected || finalUrl.origin !== window.location.origin || !/javascript|ecmascript/i.test(contentType)) {
+        console.debug('Image cache service worker skipped: expected a direct same-origin JavaScript response.', {
+          status: response.status,
+          redirected: response.redirected,
+          url: response.url,
+          contentType
+        });
+        return;
+      }
+
+      await navigator.serviceWorker.register(workerUrl.pathname, {
+        scope: '/',
+        updateViaCache: 'none'
+      });
+    } catch (err) {
       console.debug('Image cache service worker unavailable:', err);
-    });
+    } finally {
+      window.clearTimeout(timeoutId);
+    }
   }, { once: true });
 }
 
@@ -5047,5 +5178,3 @@ body{font-family:'DM Sans',sans-serif;background:#080808;color:#F5F0EB;line-heig
     setTimeout(boot, 150);
   }
 })();
-
-

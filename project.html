@@ -33,8 +33,8 @@
     href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="assets/css/styles.css">
-  <link rel="stylesheet" href="assets/css/section-builder.css">
-  <script src="assets/js/section-registry.js"></script>
+  <link rel="stylesheet" href="assets/css/section-builder.css?v=3.0">
+  <script src="assets/js/section-registry.js?v=3.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" defer
     integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a"
     crossorigin="anonymous"></script>
@@ -301,7 +301,7 @@
       animation: fadeUp .6s .1s both;
     }
 
-    .wd-eyebrow::before {
+    #legacyHeroSection .wd-eyebrow::before {
       content: '';
       width: 26px;
       height: 2px;
@@ -1061,7 +1061,7 @@
   <!-- SUPABASE & DATA LOADER SCRIPT -->
   <script src="assets/js/supabase-config.js"></script>
   <script src="assets/js/supabase-rest.js?v=3"></script>
-  <script src="assets/js/app.js?v=7"></script>
+  <script src="assets/js/app.js?v=9"></script>
   <script>
     // 0. Standalone 6-Project Offline Fallback Matrix (0ms instant render guarantee)
     const PROJECTS_FALLBACK = {
@@ -1335,15 +1335,7 @@
       const legCta = document.getElementById('legacyCtaBand');
 
       if (dynContainer && window.SectionRegistry && Array.isArray(data.sections) && data.sections.length > 0) {
-        dynContainer.innerHTML = data.sections
-          .map((sec, secIdx) => window.SectionRegistry.renderSection(sec, { isPublic: !isPreview, index: secIdx }))
-          .join('');
-        dynContainer.style.display = 'block';
-
-        // Initialize carousel autoplay timer, navigation arrows, and dots
-        if (typeof window.SectionRegistry.initInteractive === 'function') {
-          window.SectionRegistry.initInteractive(dynContainer);
-        }
+        window.SectionRegistry.mountPageSections(dynContainer, data.sections);
 
         if (legHero) legHero.style.display = 'none';
         if (legBody) legBody.style.display = 'none';
@@ -1606,6 +1598,7 @@
     async function initProject() {
       let initialData = null;
       let hasRendered = false;
+      let hasAuthoritativeLocalPreview = false;
       let adminAccessToken = '';
       const requestedPreview = new URLSearchParams(window.location.search).get('preview') === 'true';
       try {
@@ -1623,11 +1616,26 @@
         return;
       }
 
-      // Public pages may hydrate published content from cache. Draft previews
-      // always wait for an authenticated Supabase response.
+      // 1: Check instant local draft from Visual Builder for 0ms identical sync with Live Preview
+      try {
+        const cleanSlug = currentProjectId.toLowerCase();
+        const localDraftRaw = localStorage.getItem('tsm_draft_' + cleanSlug) || localStorage.getItem('tsm_draft_' + currentProjectId);
+        if (localDraftRaw && (canPreviewDraft || requestedPreview || adminAccessToken)) {
+          const draft = JSON.parse(localDraftRaw);
+          if (draft && Array.isArray(draft.sections) && draft.sections.length > 0) {
+            initialData = Object.assign({}, draft, draft.listing_data || {}, {
+              sections: draft.sections,
+              publication_status: 'draft'
+            });
+            hasAuthoritativeLocalPreview = requestedPreview;
+          }
+        }
+      } catch (_) { }
+
+      // Public pages may hydrate published content from cache if no preview draft
       try {
         const cachedRaw = localStorage.getItem('tsm_supabase_cache');
-        if (!requestedPreview && cachedRaw) {
+        if (!initialData && !requestedPreview && cachedRaw) {
           const cached = JSON.parse(cachedRaw);
           if (cached.portfolio && Array.isArray(cached.portfolio)) {
             const row = cached.portfolio.find(p => (p.id || '').toLowerCase() === currentProjectId.toLowerCase());
@@ -1643,8 +1651,12 @@
       // Render 0ms immediately
       if (initialData) {
         hasRendered = true;
-        renderProjectDetail(initialData, false);
+        renderProjectDetail(initialData, canPreviewDraft || requestedPreview);
       }
+
+      // A preview opened by the builder must remain a pixel-faithful snapshot.
+      // Do not let a slower, older cloud draft replace the local saved state.
+      if (hasAuthoritativeLocalPreview) return;
 
       // Tier 4: Fetch live from Supabase portfolio_items table using exact slug eq. and timeout
       try {

@@ -18,6 +18,7 @@
     rel="stylesheet">
   <link rel="icon" type="image/png"
     href="https://res.cloudinary.com/dq2nrpky0/image/upload/f_auto,q_auto/v1779787887/favicon_oalxfi.png">
+  <link rel="stylesheet" href="assets/css/admin-dialogs.css?v=1">
 
   <!-- Supabase JS Client pinned to 2.49.1 with SRI integrity check -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"
@@ -25,7 +26,9 @@
     crossorigin="anonymous"></script>
 
   <!-- Central Supabase Credentials -->
+  <script src="assets/js/section-registry.js?v=3.0"></script>
   <script src="assets/js/supabase-config.js"></script>
+  <script src="assets/js/admin-dialogs.js?v=1"></script>
 
   <script>
     // Automatically strip .html from admin URL in browser address bar
@@ -3147,6 +3150,53 @@
       return data.session;
     }
 
+    // One-time, non-destructive builder schema migration. Existing content is
+    // retained while legacy customContainers are promoted to independent nodes.
+    async function migrateAllBuilderDocuments(client, userId) {
+      if (!window.SectionRegistry || typeof window.SectionRegistry.serializeSections !== 'function') return;
+      const version = Number(window.SectionRegistry.schemaVersion || 0);
+      const migrationKey = `sonic_builder_schema_${version}_${userId || 'admin'}`;
+      if (window.localStorage.getItem(migrationKey) === 'complete') return;
+
+      const tables = ['portfolio_items', 'case_studies', 'journal_posts', 'portfolio_drafts'];
+      let migratedCount = 0;
+
+      for (const table of tables) {
+        let from = 0;
+        const pageSize = 500;
+        while (true) {
+          const { data: rows, error: readError } = await client
+            .from(table)
+            .select('id,sections')
+            .range(from, from + pageSize - 1);
+          if (readError) throw new Error(`${table}: ${readError.message}`);
+          const page = rows || [];
+
+          for (let index = 0; index < page.length; index += 10) {
+            const batch = page.slice(index, index + 10);
+            await Promise.all(batch.map(async row => {
+              if (!Array.isArray(row.sections)) return;
+              const previousSchema = JSON.stringify(row.sections);
+              const migrated = window.SectionRegistry.serializeSections(row.sections);
+              if (JSON.stringify(migrated) === previousSchema) return;
+              const { error: updateError } = await client
+                .from(table)
+                .update({ sections: migrated })
+                .eq('id', row.id);
+              if (updateError) throw new Error(`${table}/${row.id}: ${updateError.message}`);
+              migratedCount += 1;
+            }));
+          }
+
+          if (page.length < pageSize) break;
+          from += pageSize;
+        }
+      }
+
+      window.localStorage.setItem(migrationKey, 'complete');
+      if (migratedCount > 0) showToast(`Builder upgraded ${migratedCount} saved project${migratedCount === 1 ? '' : 's'}`);
+    }
+
     async function persistPublicationStatus(client, table, id, newStatus, extraFields = {}) {
       const status = normalizePublicationStatus(newStatus);
       await requireActiveAdminSession(client);
@@ -3248,13 +3298,13 @@
           category: 'AUTH_SESSION',
           typeLabel: 'Authentication / Session',
           badgeIcon: '🔒',
-          badgeText: 'Admin Session Expired or Not Logged In',
+          badgeText: 'Your admin session has expired',
           isUserMistake: false,
           isConnectionIssue: false,
           isSessionIssue: true,
-          cause: 'NOT A FORM MISTAKE — Your admin login session has expired or you accessed the page without signing in. Supabase Row-Level Security (RLS) protects your website database by safely blocking unauthenticated modifications.',
-          action: 'Click the "Sign In Again" button below to log back in with your admin ID and password, and your changes can be saved immediately.',
-          buttonLabel: '🔑 Sign In Again',
+          cause: 'The secure connection to the website database is no longer authorized. Your changes were not sent.',
+          action: 'Sign in again, return to this item, and retry the action.',
+          buttonLabel: 'Sign In Again',
           buttonAction: "handleLogout(false, 'Please sign in with your admin credentials to save your changes.');",
           raw: rawMsg
         };
@@ -3266,13 +3316,13 @@
           category: 'NETWORK',
           typeLabel: 'Connection Issue',
           badgeIcon: '📡',
-          badgeText: 'Cannot Connect to Supabase Database',
+          badgeText: 'The server cannot be reached',
           isUserMistake: false,
           isConnectionIssue: true,
           isSessionIssue: false,
-          cause: 'CONNECTION ISSUE — The website was unable to establish a secure network connection to your Supabase database server. This is usually caused by an internet interruption, a browser ad-blocker or VPN blocking supabase.co, or server latency.',
-          action: 'Check your internet connection, temporarily pause any strict ad-blocker/VPN on this page, and click Save again.',
-          buttonLabel: '🔄 Try Again',
+          cause: 'The admin panel could not connect to the website database. Your current edits have not been discarded.',
+          action: 'Check your internet connection and retry. If needed, pause a strict VPN or blocker for this admin page.',
+          buttonLabel: 'Try Again',
           buttonAction: "if(window.lastSaveRetryFn){window.lastSaveRetryFn();}",
           raw: rawMsg
         };
@@ -3285,12 +3335,12 @@
           category: 'DUPLICATE_SLUG',
           typeLabel: 'Form Input Error',
           badgeIcon: '✏️',
-          badgeText: 'Unique Slug ID Already Exists',
+          badgeText: 'URL identifier already in use',
           isUserMistake: true,
           isConnectionIssue: false,
           isSessionIssue: false,
-          cause: `FORM MISTAKE — The unique slug ID "${escapeHtml(slug)}" is already used by another project/article in your database. Every card must have a distinct slug ID for its website URL.`,
-          action: 'Change the "Unique Slug ID" field at the top of the modal to a different name (for example, append a number, client name, or date) and try saving again.',
+          cause: `“${escapeHtml(slug)}” already belongs to another project or article. Each public URL needs a unique identifier.`,
+          action: 'Choose a different URL identifier and save again.',
           raw: rawMsg
         };
       }
@@ -3305,8 +3355,8 @@
           isUserMistake: true,
           isConnectionIssue: false,
           isSessionIssue: false,
-          cause: 'FORM MISTAKE — One of the mandatory fields was left empty or blank before saving.',
-          action: 'Please ensure that the Title, Category, and primary content fields are filled in, then try again.',
+          cause: 'A required field is empty, so the item cannot be saved yet.',
+          action: 'Complete the Title, Category, and primary content fields, then save again.',
           raw: rawMsg
         };
       }
@@ -3317,12 +3367,12 @@
           category: 'INVALID_CREDENTIALS',
           typeLabel: 'Login Error',
           badgeIcon: '🔑',
-          badgeText: 'Incorrect Email or Password',
+          badgeText: 'Email or password is incorrect',
           isUserMistake: true,
           isConnectionIssue: false,
           isSessionIssue: false,
-          cause: 'FORM MISTAKE — The admin email or password entered does not match your authorized account in Supabase.',
-          action: 'Please double-check your spelling, ensure Caps Lock is off, or reset your password in Supabase Dashboard.',
+          cause: 'The details entered do not match an authorized admin account.',
+          action: 'Check the email and password, ensure Caps Lock is off, then try again.',
           raw: rawMsg
         };
       }
@@ -3333,12 +3383,12 @@
           category: 'STORAGE',
           typeLabel: 'Upload Limit',
           badgeIcon: '📁',
-          badgeText: 'Image Upload Issue',
+          badgeText: 'The image could not be uploaded',
           isUserMistake: true,
           isConnectionIssue: false,
           isSessionIssue: false,
-          cause: 'FILE ISSUE — The image file could not be uploaded to Supabase Storage. File may exceed the 5 MB limit or have an unsupported format.',
-          action: 'Please select a JPG, PNG, or WebP image under 5 MB.',
+          cause: 'The selected file may be larger than 5 MB or use an unsupported format.',
+          action: 'Choose a JPG, PNG, WebP, AVIF, or GIF image smaller than 5 MB and retry.',
           raw: rawMsg
         };
       }
@@ -3346,18 +3396,32 @@
       // 7. Generic Fallback
       return {
         category: 'GENERIC',
-        typeLabel: 'Database Notice',
+        typeLabel: 'Admin Error',
         badgeIcon: '⚠️',
-        badgeText: 'Unable to Save Changes',
+        badgeText: 'The action could not be completed',
         isUserMistake: false,
         isConnectionIssue: false,
         isSessionIssue: false,
-        cause: 'DATABASE NOTICE — The database returned an unexpected response while processing this request.',
-        action: 'Please review your inputs or reload the page. If this issue persists, check your Supabase project status.',
+        cause: 'The server returned an unexpected response. No confirmation of the requested change was received.',
+        action: 'Retry once. If it still fails, refresh the admin panel and check the browser console for technical details.',
         raw: rawMsg
       };
     }
     window.formatUserFriendlyError = formatUserFriendlyError;
+
+    function showFriendlyAdminError(err, context = {}) {
+      const friendly = formatUserFriendlyError(err, context);
+      console.error(`[SonicAdmin] ${friendly.category}:`, err);
+      const cause = String(friendly.cause || '').replace(/^[A-Z /-]+—\s*/, '');
+      return showAdminMessage({
+        tone: 'danger',
+        title: friendly.badgeText,
+        message: cause,
+        recovery: friendly.action,
+        confirmLabel: 'Close'
+      });
+    }
+    window.showFriendlyAdminError = showFriendlyAdminError;
 
     function resolveAppUrl(pathWithQuery) {
       if (!pathWithQuery) return '';
@@ -3591,6 +3655,14 @@
           scheduleExpirationWatcher(session.expires_at);
           updateUserDisplay(session.user.email);
           showDashboard();
+          try {
+            await migrateAllBuilderDocuments(client, session.user.id);
+          } catch (migrationError) {
+            // Do not block the dashboard. The migration retries next login
+            // because its completion marker is only written after full success.
+            console.error('[SonicAdmin] Builder migration will retry:', migrationError);
+            showToast('Some builder projects still need migration; it will retry automatically.');
+          }
           loadAllData();
         } else {
           // No active session
@@ -4379,9 +4451,7 @@
           btn.disabled = false;
           if (btn.dataset.origHtml) btn.innerHTML = btn.dataset.origHtml;
         }
-        const friendly = formatUserFriendlyError(err);
-        showToast(`${friendly.badgeIcon} ${friendly.badgeText}`);
-        alert(`${friendly.badgeText}\n\nWhy this occurred: ${friendly.cause}\n\nWhat to do: ${friendly.action}`);
+        showFriendlyAdminError(err);
       }
     }
     window.saveSectionHeaders = saveSectionHeaders;
@@ -4912,15 +4982,21 @@
           btn.disabled = false;
           if (btn.dataset.origHtml) btn.innerHTML = btn.dataset.origHtml;
         }
-        const friendly = formatUserFriendlyError(err);
-        showToast(`${friendly.badgeIcon} ${friendly.badgeText}`);
-        alert(`${friendly.badgeText}\n\nWhy this occurred: ${friendly.cause}\n\nWhat to do: ${friendly.action}`);
+        showFriendlyAdminError(err);
       }
     }
     window.togglePortfolioStatus = togglePortfolioStatus;
 
     async function deletePortfolioItem(id, btnEl) {
-      if (!confirm(`Are you sure you want to delete portfolio project "${id}"? This cannot be undone.`)) return;
+      const shouldDelete = await confirmAdminAction({
+        tone: 'danger',
+        title: 'Delete this portfolio project?',
+        message: `“${id}” will be removed from the website and saved drafts.`,
+        detail: 'This action cannot be undone.',
+        confirmLabel: 'Delete project',
+        cancelLabel: 'Keep project'
+      });
+      if (!shouldDelete) return;
       const btn = btnEl || (typeof event !== 'undefined' && event?.currentTarget ? event.currentTarget : null);
       if (btn) {
         btn.disabled = true;
@@ -4956,9 +5032,7 @@
           btn.disabled = false;
           btn.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>Delete';
         }
-        const friendly = formatUserFriendlyError(err);
-        showToast(`${friendly.badgeIcon} ${friendly.badgeText}`);
-        alert(`${friendly.badgeText}\n\nWhy this occurred: ${friendly.cause}\n\nWhat to do: ${friendly.action}`);
+        showFriendlyAdminError(err);
       }
     }
 
@@ -5900,15 +5974,21 @@
           btn.disabled = false;
           if (btn.dataset.origHtml) btn.innerHTML = btn.dataset.origHtml;
         }
-        const friendly = formatUserFriendlyError(err);
-        showToast(`${friendly.badgeIcon} ${friendly.badgeText}`);
-        alert(`${friendly.badgeText}\n\nWhy this occurred: ${friendly.cause}\n\nWhat to do: ${friendly.action}`);
+        showFriendlyAdminError(err);
       }
     }
     window.toggleCaseStudyStatus = toggleCaseStudyStatus;
 
     async function deleteCaseStudy(id, btnEl) {
-      if (!confirm(`Are you sure you want to delete case study "${id}"? This cannot be undone.`)) return;
+      const shouldDelete = await confirmAdminAction({
+        tone: 'danger',
+        title: 'Delete this case study?',
+        message: `“${id}” will be removed from the website and saved drafts.`,
+        detail: 'This action cannot be undone.',
+        confirmLabel: 'Delete case study',
+        cancelLabel: 'Keep case study'
+      });
+      if (!shouldDelete) return;
       const btn = btnEl || (typeof event !== 'undefined' && event?.currentTarget ? event.currentTarget : null);
       if (btn) {
         btn.disabled = true;
@@ -5936,9 +6016,7 @@
           btn.disabled = false;
           btn.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>Delete';
         }
-        const friendly = formatUserFriendlyError(err);
-        showToast(`${friendly.badgeIcon} ${friendly.badgeText}`);
-        alert(`${friendly.badgeText}\n\nWhy this occurred: ${friendly.cause}\n\nWhat to do: ${friendly.action}`);
+        showFriendlyAdminError(err);
       }
     }
 
@@ -6230,15 +6308,21 @@
           btn.disabled = false;
           if (btn.dataset.origHtml) btn.innerHTML = btn.dataset.origHtml;
         }
-        const friendly = formatUserFriendlyError(err);
-        showToast(`${friendly.badgeIcon} ${friendly.badgeText}`);
-        alert(`${friendly.badgeText}\n\nWhy this occurred: ${friendly.cause}\n\nWhat to do: ${friendly.action}`);
+        showFriendlyAdminError(err);
       }
     }
     window.toggleJournalStatus = toggleJournalStatus;
 
     async function deleteJournalPost(id, btnEl) {
-      if (!confirm(`Are you sure you want to delete journal article "${id}"? This cannot be undone.`)) return;
+      const shouldDelete = await confirmAdminAction({
+        tone: 'danger',
+        title: 'Delete this journal article?',
+        message: `“${id}” will be removed from the website and saved drafts.`,
+        detail: 'This action cannot be undone.',
+        confirmLabel: 'Delete article',
+        cancelLabel: 'Keep article'
+      });
+      if (!shouldDelete) return;
       const btn = btnEl || (typeof event !== 'undefined' && event?.currentTarget ? event.currentTarget : null);
       if (btn) {
         btn.disabled = true;
@@ -6268,9 +6352,7 @@
           btn.disabled = false;
           btn.innerHTML = '<svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="vertical-align:middle;margin-right:4px;"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>Delete';
         }
-        const friendly = formatUserFriendlyError(err);
-        showToast(`${friendly.badgeIcon} ${friendly.badgeText}`);
-        alert(`${friendly.badgeText}\n\nWhy this occurred: ${friendly.cause}\n\nWhat to do: ${friendly.action}`);
+        showFriendlyAdminError(err);
       }
     }
 
@@ -6585,11 +6667,11 @@
 
       const ALLOWED = ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif'];
       if (!ALLOWED.includes(file.type)) {
-        alert('Invalid file type. Only JPG, PNG, WebP, AVIF, or GIF images are allowed.');
+        showAdminMessage({ tone: 'warning', title: 'Unsupported image format', message: 'Choose a JPG, PNG, WebP, AVIF, or GIF image.', recovery: 'Select a different file and try again.' });
         return;
       }
       if (file.size > 5 * 1024 * 1024) {
-        alert('File is too large. Maximum file size is 5 MB.');
+        showAdminMessage({ tone: 'warning', title: 'Image is too large', message: 'This file exceeds the 5 MB upload limit.', recovery: 'Compress the image or choose a smaller file.' });
         return;
       }
 
@@ -6622,9 +6704,7 @@
         }
         showToast('Asset uploaded successfully!');
       } catch (err) {
-        const friendly = formatUserFriendlyError(err);
-        showToast(`${friendly.badgeIcon} ${friendly.badgeText}`);
-        alert(`${friendly.badgeText}\n\nWhy this occurred: ${friendly.cause}\n\nWhat to do: ${friendly.action}`);
+        showFriendlyAdminError(err);
       } finally {
         try { input.value = ''; } catch (_) { }
       }
@@ -6637,12 +6717,12 @@
 
       const ALLOWED = ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/gif'];
       if (!ALLOWED.includes(file.type)) {
-        alert('Invalid file type. Only JPG, PNG, WebP, AVIF, or GIF images are allowed.');
+        showAdminMessage({ tone: 'warning', title: 'Unsupported image format', message: 'Choose a JPG, PNG, WebP, AVIF, or GIF image.', recovery: 'Select a different file and try again.' });
         try { input.value = ''; } catch (_) { }
         return;
       }
       if (file.size > 5 * 1024 * 1024) {
-        alert('File is too large. Maximum file size is 5 MB.');
+        showAdminMessage({ tone: 'warning', title: 'Image is too large', message: 'This file exceeds the 5 MB upload limit.', recovery: 'Compress the image or choose a smaller file.' });
         try { input.value = ''; } catch (_) { }
         return;
       }
@@ -6666,9 +6746,7 @@
         document.getElementById(targetInputId).value = publicUrl;
         showToast('Image uploaded successfully!');
       } catch (err) {
-        const friendly = formatUserFriendlyError(err);
-        showToast(`${friendly.badgeIcon} ${friendly.badgeText}`);
-        alert(`${friendly.badgeText}\n\nWhy this occurred: ${friendly.cause}\n\nWhat to do: ${friendly.action}`);
+        showFriendlyAdminError(err);
       } finally {
         try { input.value = ''; } catch (_) { }
       }
@@ -6757,12 +6835,14 @@
           alertEl.style.display = 'none';
         }, 1800);
       } catch (err) {
+        const friendly = formatUserFriendlyError(err);
+        console.error('[SonicAdmin] Password update failed:', err);
         alertEl.className = 'alert-box alert-danger';
         alertEl.style.display = 'block';
         alertEl.style.background = 'rgba(239, 68, 68, 0.15)';
         alertEl.style.borderColor = '#ef4444';
         alertEl.style.color = '#f87171';
-        alertEl.textContent = 'Failed to update password: ' + (err.message || err);
+        alertEl.textContent = `${friendly.badgeText}. ${friendly.action}`;
         btn.disabled = false;
         btn.textContent = 'Update Password';
       }

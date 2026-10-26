@@ -94,6 +94,95 @@
     }
   }
 
+  function normalizeCssDimension(value, fallbackUnit = 'px') {
+    if (value === null || value === undefined || value === '') return '';
+    const raw = String(value).trim();
+    const match = raw.match(/^(\d+(?:\.\d+)?)(px|%)?$/i);
+    if (!match) return '';
+    return match[1] + (match[2] || fallbackUnit);
+  }
+
+  const BUILDER_SCHEMA_VERSION = 3;
+
+  function normalizeBuilderNode(node, sectionId, index) {
+    const source = node && typeof node === 'object' ? node : {};
+    const legacyType = source.elementType || source.type || 'card';
+    return Object.assign({}, source, {
+      id: source.id || generateId('node'),
+      kind: source.kind || 'element',
+      elementType: legacyType,
+      type: legacyType,
+      parentId: sectionId,
+      order: Number.isFinite(source.order) ? source.order : index
+    });
+  }
+
+  function attachLegacyNodeAlias(section) {
+    if (!section || typeof section !== 'object') return section;
+    section.settings = section.settings && typeof section.settings === 'object' ? section.settings : {};
+    section.nodes = Array.isArray(section.nodes) ? section.nodes : [];
+    try {
+      Object.defineProperty(section.settings, 'customContainers', {
+        configurable: true,
+        enumerable: false,
+        get() { return section.nodes; },
+        set(value) {
+          section.nodes = Array.isArray(value)
+            ? value.map((node, index) => normalizeBuilderNode(node, section.id, index))
+            : [];
+        }
+      });
+    } catch (_) {
+      section.settings.customContainers = section.nodes;
+    }
+    return section;
+  }
+
+  function migrateSection(section) {
+    if (!section || typeof section !== 'object') return section;
+    section.id = section.id || generateId(section.type || 'section');
+    section.kind = 'section';
+    section.schemaVersion = BUILDER_SCHEMA_VERSION;
+    section.settings = section.settings && typeof section.settings === 'object' ? section.settings : {};
+
+    const legacyNodes = Array.isArray(section.nodes)
+      ? section.nodes
+      : (Array.isArray(section.settings.customContainers) ? section.settings.customContainers : []);
+    section.nodes = legacyNodes.map((node, index) => normalizeBuilderNode(node, section.id, index));
+
+    const hasFreeformGeometry = section.nodes.some(node =>
+      parseFloat(node.offsetX || 0) !== 0 || parseFloat(node.offsetY || 0) !== 0
+    );
+    const existingLayout = section.layout && typeof section.layout === 'object' ? section.layout : {};
+    const declaredLayout = section.settings.semanticLayout && typeof section.settings.semanticLayout === 'object'
+      ? section.settings.semanticLayout
+      : {};
+    section.layout = Object.assign({
+      mode: hasFreeformGeometry || section.nodes.length > 0 ? 'freeform' : 'structured',
+      type: hasFreeformGeometry || section.nodes.length > 0 ? 'freeform' : 'stack',
+      columns: 1,
+      gap: 20
+    }, declaredLayout, existingLayout);
+
+    return attachLegacyNodeAlias(section);
+  }
+
+  function migrateSections(sections) {
+    return Array.isArray(sections) ? sections.filter(Boolean).map(migrateSection) : [];
+  }
+
+  function serializeSections(sections) {
+    const migrated = migrateSections(sections);
+    return JSON.parse(JSON.stringify(migrated));
+  }
+
+  function getSectionNodes(section) {
+    if (!section) return [];
+    if (Array.isArray(section.nodes)) return section.nodes;
+    const settings = section.settings || {};
+    return Array.isArray(settings.customContainers) ? settings.customContainers : [];
+  }
+
   function hexToRgba(hex, alpha) {
     if (!hex) return `rgba(255,92,0,${alpha})`;
     let c = String(hex).replace('#', '').trim();
@@ -326,6 +415,165 @@
     `;
   }
 
+  // ── Scoped Responsive Media Query Generator (Tablet & Mobile) ──
+  function generateSectionResponsiveCss(secId, resp) {
+    if (!resp || (!resp.tablet && !resp.mobile)) return '';
+    const rules = [];
+
+    // Tablet Rules (max-width: 991px and .tablet-view)
+    if (resp.tablet && typeof resp.tablet === 'object') {
+      const t = resp.tablet;
+      const tCss = [];
+      if (t.elementOffsets) {
+        for (const [elKey, pos] of Object.entries(t.elementOffsets)) {
+          if (pos && (pos.x !== undefined || pos.y !== undefined)) {
+            tCss.push(`--el-${elKey}-ox: ${parseInt(pos.x || 0)}px; --el-${elKey}-oy: ${parseInt(pos.y || 0)}px;`);
+          }
+        }
+      }
+      if (t.gap !== undefined && t.gap !== '') {
+        tCss.push(`--sec-gap: ${parseInt(t.gap)}px;`);
+      }
+      if (t.columns !== undefined) {
+        const cVal = t.columns === 'all' ? '12' : (t.columns === 'auto' ? 'auto' : parseInt(t.columns));
+        if (cVal) {
+          rules.push(`
+            @media (max-width: 991px) {
+              [data-section-id="${secId}"] .wd-narrative-grid,
+              [data-section-id="${secId}"] .cards-grid-wrap,
+              [data-section-id="${secId}"] .sec-gallery-grid,
+              [data-section-id="${secId}"] .sec-list-grid {
+                grid-template-columns: repeat(${cVal}, minmax(0, 1fr)) !important;
+              }
+            }
+            .tablet-view [data-section-id="${secId}"] .wd-narrative-grid,
+            .tablet-view [data-section-id="${secId}"] .cards-grid-wrap,
+            .tablet-view [data-section-id="${secId}"] .sec-gallery-grid,
+            .tablet-view [data-section-id="${secId}"] .sec-list-grid {
+              grid-template-columns: repeat(${cVal}, minmax(0, 1fr)) !important;
+            }
+          `);
+        }
+      }
+      if (tCss.length > 0) {
+        rules.push(`
+          @media (max-width: 991px) {
+            [data-section-id="${secId}"] {
+              ${tCss.join(' ')}
+            }
+          }
+          .tablet-view [data-section-id="${secId}"] {
+            ${tCss.join(' ')}
+          }
+        `);
+      }
+    }
+
+    // Mobile Rules (max-width: 767px and .mobile-view)
+    if (resp.mobile && typeof resp.mobile === 'object') {
+      const m = resp.mobile;
+      const mCss = [];
+      if (m.elementOffsets) {
+        for (const [elKey, pos] of Object.entries(m.elementOffsets)) {
+          if (pos && (pos.x !== undefined || pos.y !== undefined)) {
+            mCss.push(`--el-${elKey}-ox: ${parseInt(pos.x || 0)}px; --el-${elKey}-oy: ${parseInt(pos.y || 0)}px;`);
+          }
+        }
+      }
+      if (m.gap !== undefined && m.gap !== '') {
+        mCss.push(`--sec-gap: ${parseInt(m.gap)}px;`);
+      }
+      if (m.columns !== undefined) {
+        const cVal = m.columns === 'all' ? '12' : (m.columns === 'auto' ? 'auto' : parseInt(m.columns));
+        if (cVal) {
+          rules.push(`
+            @media (max-width: 767px) {
+              [data-section-id="${secId}"] .wd-narrative-grid,
+              [data-section-id="${secId}"] .cards-grid-wrap,
+              [data-section-id="${secId}"] .sec-gallery-grid,
+              [data-section-id="${secId}"] .sec-list-grid {
+                grid-template-columns: repeat(${cVal}, minmax(0, 1fr)) !important;
+              }
+            }
+            .mobile-view [data-section-id="${secId}"] .wd-narrative-grid,
+            .mobile-view [data-section-id="${secId}"] .cards-grid-wrap,
+            .mobile-view [data-section-id="${secId}"] .sec-gallery-grid,
+            .mobile-view [data-section-id="${secId}"] .sec-list-grid {
+              grid-template-columns: repeat(${cVal}, minmax(0, 1fr)) !important;
+            }
+          `);
+        }
+      }
+      if (m.direction === 'column' || m.direction === 'vertical' || m.columns === 1) {
+        rules.push(`
+          @media (max-width: 767px) {
+            [data-section-id="${secId}"] .wd-narrative-grid,
+            [data-section-id="${secId}"] .sec-list-grid {
+              display: flex !important;
+              flex-direction: column !important;
+            }
+          }
+          .mobile-view [data-section-id="${secId}"] .wd-narrative-grid,
+          .mobile-view [data-section-id="${secId}"] .sec-list-grid {
+            display: flex !important;
+            flex-direction: column !important;
+          }
+        `);
+      }
+      if (mCss.length > 0) {
+        rules.push(`
+          @media (max-width: 767px) {
+            [data-section-id="${secId}"] {
+              ${mCss.join(' ')}
+            }
+          }
+          .mobile-view [data-section-id="${secId}"] {
+            ${mCss.join(' ')}
+          }
+        `);
+      }
+    }
+
+    if (rules.length === 0) return '';
+    return `<style class="sec-responsive-style" data-sec-id="${secId}">${rules.join('\n')}</style>`;
+  }
+
+  // Universal Prebuilt Empty Image Upload Zone (Matches Custom Container UX)
+  function renderEmptyImageUploadZone(opts) {
+    const secId = opts.secId || '';
+    const elKey = opts.elKey || 'image';
+    const title = opts.title || 'Upload Image';
+    const sub = opts.sub || 'Click to browse or drag & drop photo';
+    const btnText = opts.btnText || 'Browse Photo';
+    const minH = opts.minHeight || '80px';
+    const radius = opts.borderRadius || '14px';
+    const extraStyle = opts.extraStyle || '';
+    const imgIndex = opts.imgIndex !== undefined ? `data-img-index="${opts.imgIndex}"` : '';
+
+    return `
+      <div class="sec-image-upload-zone custom-container-upload-zone"
+           data-sec-id="${escapeHtml(secId)}"
+           data-el-key="${escapeHtml(elKey)}"
+           ${imgIndex}
+           onclick="window.triggerImageElementUpload && window.triggerImageElementUpload('${escapeHtml(secId)}', '${escapeHtml(elKey)}', this, event)"
+           style="position:relative;width:100%;min-height:${minH};height:100%;border:2px dashed rgba(255,92,0,0.45);border-radius:${radius};background:rgba(255,92,0,0.03);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 20px;text-align:center;box-sizing:border-box;cursor:pointer !important;transition:all 0.2s ease;${extraStyle}">
+        <div class="custom-upload-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#FF5C00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+        </div>
+        <div class="custom-upload-title" style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#F5F0EB;margin-bottom:4px;">${escapeHtml(title)}</div>
+        <div class="custom-upload-sub" style="font-size:12.5px;color:rgba(245,240,235,0.6);margin-bottom:12px;">${escapeHtml(sub)}</div>
+        <button type="button" class="btn btn-primary btn-sm custom-upload-btn" onclick="window.triggerImageElementUpload && window.triggerImageElementUpload('${escapeHtml(secId)}', '${escapeHtml(elKey)}', this.closest('.sec-image-upload-zone'), event)" style="padding:7px 18px;font-size:12px;font-weight:600;border-radius:20px;background:#FF5C00;color:#fff;border:none;cursor:pointer !important;display:inline-flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(255,92,0,0.35);">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          ${escapeHtml(btnText)}
+        </button>
+      </div>
+    `;
+  }
+
   // Universal Section Wrapper
   function renderUniversalWrap(section, innerHtml, extraClasses = '') {
     const s = section.settings || {};
@@ -410,13 +658,13 @@
     if (s.headingMarginBottom !== undefined && s.headingMarginBottom !== '') styleParts.push(`--sec-h-mb:${parseInt(s.headingMarginBottom)}px`);
     if (s.headingPaddingLeft !== undefined && s.headingPaddingLeft !== '') styleParts.push(`--sec-h-pl:${parseInt(s.headingPaddingLeft)}px`);
     if (s.headingPaddingRight !== undefined && s.headingPaddingRight !== '') styleParts.push(`--sec-h-pr:${parseInt(s.headingPaddingRight)}px`);
-    if (s.headingAlign) styleParts.push(`--sec-h-align:${s.headingAlign}`);
-    const hox = parseInt(s.headingOffsetX || 0);
-    const hoy = parseInt(s.headingOffsetY || 0);
-    if (hox !== 0 || hoy !== 0) {
-      styleParts.push(`--sec-h-ox:${hox}px`);
-      styleParts.push(`--sec-h-oy:${hoy}px`);
+    if (s.headingAlign) {
+      styleParts.push(`--sec-h-align:${s.headingAlign}`);
+      const hJust = s.headingAlign === 'center' ? 'center' : (s.headingAlign === 'right' ? 'flex-end' : 'flex-start');
+      styleParts.push(`--sec-h-justify:${hJust}`);
     }
+    if (s.headingOffsetX !== undefined && s.headingOffsetX !== '') styleParts.push(`--sec-h-ox:${parseInt(s.headingOffsetX)}px`);
+    if (s.headingOffsetY !== undefined && s.headingOffsetY !== '') styleParts.push(`--sec-h-oy:${parseInt(s.headingOffsetY)}px`);
 
     // Text & Description Spacing, Alignment & Positioning Overrides
     if (s.textMarginTop !== undefined && s.textMarginTop !== '') styleParts.push(`--sec-t-mt:${parseInt(s.textMarginTop)}px`);
@@ -468,9 +716,11 @@
     }
 
     // Section Minimum Height (supports canvas drag resize handle & sidebar inputs)
-    const customHVal = parseInt(s.customHeight || s.bannerHeight);
+    // Section frame height must not inherit a media/banner height. The visual
+    // builder exposes separate controls for those two independent dimensions.
+    const customHVal = parseInt(s.customHeight);
     if (customHVal && customHVal > 0) {
-      styleParts.push(`min-height:${customHVal}px !important`);
+      styleParts.push(`min-height:${customHVal}px`);
       if (extraClasses.includes('sec-hero') || section.type === 'hero') {
         styleParts.push('display:flex;flex-direction:column;justify-content:center');
       }
@@ -480,8 +730,9 @@
     if (s.borderRadius) styleParts.push(`border-radius:${parseInt(s.borderRadius)}px`);
     
     // Custom Width (supports canvas drag resize handle & sidebar inputs)
-    const customWVal = (s.customWidth && parseInt(s.customWidth) > 0) ? parseInt(s.customWidth) : null;
-    const maxW = customWVal ? `${customWVal}px` : 
+    const normalizedCustomWidth = normalizeCssDimension(s.customWidth);
+    const customWVal = normalizedCustomWidth ? parseFloat(normalizedCustomWidth) : null;
+    const maxW = customWVal ? normalizedCustomWidth :
                  (s.containerWidth === 'full' ? '100%' : 
                  (s.containerWidth === 'wide' ? '1400px' : 
                  (s.containerWidth === 'narrow' ? '800px' : '1200px')));
@@ -500,8 +751,6 @@
     if (s.paddingLeft !== undefined && s.paddingLeft !== '') innerStyleParts.push(`padding-left:${parseInt(s.paddingLeft)}px !important`);
     if (s.paddingRight !== undefined && s.paddingRight !== '') innerStyleParts.push(`padding-right:${parseInt(s.paddingRight)}px !important`);
 
-    const customStyleStr = styleParts.length ? `style="${styleParts.join(';')}"` : '';
-
     // Check if universal button is enabled for this section (when not already rendered inside section)
     const hasInlineBtn = ['hero', 'text_image', 'cta', 'button_block'].includes(section.type);
     let universalBtnHtml = '';
@@ -516,11 +765,41 @@
     // Custom containers added dynamically by user (Image, Text, Button, Card)
     const customContainersHtml = renderCustomContainersHtml(section);
 
+    // Scoped responsive style block for mobile/tablet overrides
+    const origSec = section._originalSection || section;
+    const resp = (origSec.settings && origSec.settings.responsive) || (section.settings && section.settings.responsive);
+    let responsiveStyleBlock = '';
+    if (resp && (resp.tablet || resp.mobile)) {
+      responsiveStyleBlock = generateSectionResponsiveCss(section.id, resp);
+    }
+
+    const isTemplateCardHidden = s.hideTemplateCard === true;
+    const actualInnerHtml = isTemplateCardHidden ? '' : innerHtml;
+    const containersOnlyClass = isTemplateCardHidden ? 'sec-containers-only' : '';
+
+    // Responsive Hybrid Row Flow & Side-by-Side Sizing
+    const hasCustomWidth = !!normalizedCustomWidth && normalizedCustomWidth !== '100%' &&
+                           (normalizedCustomWidth.endsWith('%') || (customWVal > 0 && customWVal < 1400));
+    const isRowFlow = s.rowFlow === true || hasCustomWidth;
+    const rowFlowClass = isRowFlow ? 'has-row-flow' : '';
+
+    if (isRowFlow) {
+      const outerW = normalizedCustomWidth || '50%';
+      styleParts.push(`max-width:${outerW}`);
+      styleParts.push(`flex:0 1 ${outerW}`);
+      styleParts.push('width:100%');
+      styleParts.push('box-sizing:border-box');
+      styleParts.push('margin:0 auto');
+    }
+
+    const customStyleStr = styleParts.length ? `style="${styleParts.join(';')}"` : '';
+
     return `
-      <section class="sec-block ${spacingClass} ${extraClasses} ${visibilityClass}" ${animAttr} ${customStyleStr} data-section-id="${section.id}">
+      <section class="sec-block ${spacingClass} ${extraClasses} ${containersOnlyClass} ${rowFlowClass} ${visibilityClass}" ${animAttr} ${customStyleStr} data-section-id="${section.id}">
+        ${responsiveStyleBlock}
         <div class="sec-inner" style="${innerStyleParts.join(';')}">
-          ${innerHtml}
-          ${universalBtnHtml}
+          ${actualInnerHtml}
+          ${isTemplateCardHidden ? '' : universalBtnHtml}
           ${customContainersHtml}
         </div>
       </section>
@@ -531,7 +810,11 @@
   function renderCustomContainersHtml(section) {
     if (!section) return '';
     const s = section.settings || {};
-    const containers = Array.isArray(s.customContainers) ? s.customContainers : [];
+    // Responsive settings may intentionally provide a mode-specific node list.
+    // Otherwise the canonical section.nodes collection is the single source of truth.
+    const containers = Array.isArray(s.customContainers)
+      ? s.customContainers
+      : getSectionNodes(section);
     if (containers.length === 0) return '';
 
     const itemsHtml = containers.map((c, idx) => {
@@ -553,6 +836,9 @@
           innerContent = `
             <div class="custom-image-wrapper" style="width:100%;height:100%;overflow:hidden;border-radius:inherit;display:flex;align-items:center;justify-content:center;position:relative;">
               <img src="${escapeHtml(c.imageUrl)}" alt="${escapeHtml(c.alt || 'Custom Image')}" style="width:100%;height:100%;object-fit:${escapeHtml(c.objectFit || 'cover')};transform:rotate(${rot}deg);display:block;border-radius:inherit;pointer-events:none;transition:transform 0.25s cubic-bezier(0.16,1,0.3,1);">
+              <div class="custom-image-drop-overlay" style="position:absolute;inset:0;background:rgba(255,92,0,0.25);display:none;align-items:center;justify-content:center;border-radius:inherit;border:2px dashed #FF5C00;z-index:2;pointer-events:none;">
+                <span style="background:#111;color:#FF5C00;font-weight:700;font-size:13px;padding:6px 16px;border-radius:20px;border:1px solid #FF5C00;box-shadow:0 4px 15px rgba(0,0,0,0.5);">Drop to Replace Photo</span>
+              </div>
             </div>
           `;
         } else {
@@ -567,8 +853,11 @@
               </div>
               <div class="custom-upload-title">Upload Image</div>
               <div class="custom-upload-sub">Click to browse or drag & drop photo</div>
-              <button type="button" class="btn btn-primary btn-sm custom-upload-btn" style="margin-top:10px;padding:6px 16px;font-size:12px;border-radius:20px;pointer-events:none;background:#FF5C00;color:#fff;border:none;">⇪ Browse Photo</button>
-              <input type="file" accept="image/*" class="custom-container-file-input" style="display:none;" onchange="window.handleCustomContainerFile && window.handleCustomContainerFile(this, '${section.id}', '${cId}')">
+              <button type="button" class="btn btn-primary btn-sm custom-upload-btn" onclick="window.triggerCustomContainerUpload && window.triggerCustomContainerUpload('${section.id}', '${cId}', event)" style="margin-top:10px;padding:7px 18px;font-size:12px;font-weight:600;border-radius:20px;background:#FF5C00;color:#fff;border:none;cursor:pointer !important;display:inline-flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(255,92,0,0.35);">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                Browse Photo
+              </button>
+              <input type="file" id="custom_file_${cId}" accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif,image/avif" class="custom-container-file-input" style="display:none;" onclick="event.stopPropagation();" onchange="window.handleCustomContainerFile && window.handleCustomContainerFile(this, '${section.id}', '${cId}')">
             </div>
           `;
         }
@@ -599,6 +888,13 @@
         `;
       }
 
+      const bRadius = c.borderRadius ? (String(c.borderRadius).endsWith('px') || String(c.borderRadius).endsWith('%') ? c.borderRadius : `${c.borderRadius}px`) : '18px';
+      const bgStyle = c.background ? `background:${c.background};` : '';
+      const borderStyle = c.border ? `border:${c.border};` : '';
+      const shadowStyle = c.boxShadow ? `box-shadow:${c.boxShadow};` : '';
+      const opacityStyle = (c.opacity !== undefined && c.opacity !== '') ? `opacity:${c.opacity};` : '';
+      const zIndexStyle = c.zIndex ? `z-index:${c.zIndex};` : '';
+
       return `
         <div class="custom-container-item custom-container-${cType} ${c.imageUrl ? 'has-uploaded-image' : 'is-empty-upload'}"
              id="ccont_${cId}"
@@ -606,14 +902,24 @@
              data-container-type="${cType}"
              data-sec-id="${section.id}"
              data-rotation="${rot}"
-             style="position:relative;width:${cWidth};height:${cHeight};max-width:100%;box-sizing:border-box;border-radius:18px;overflow:visible;${transformStyle}">
+             style="position:relative;width:${cWidth};height:${cHeight};max-width:100%;box-sizing:border-box;border-radius:${bRadius};overflow:visible;${bgStyle}${borderStyle}${shadowStyle}${opacityStyle}${zIndexStyle}${transformStyle}">
           ${innerContent}
         </div>
       `;
     }).join('');
 
+    const layout = section.layout && typeof section.layout === 'object' ? section.layout : {};
+    const layoutMode = layout.mode === 'structured' ? 'structured' : 'freeform';
+    const layoutType = ['grid', 'row', 'stack', 'freeform'].includes(layout.type) ? layout.type : layoutMode;
+    const layoutColumns = Math.max(1, Math.min(12, parseInt(layout.columns) || 1));
+    const layoutGap = Math.max(0, Math.min(160, parseInt(layout.gap) || 20));
+
     return `
-      <div class="sec-custom-containers-layer" data-sec-id="${section.id}">
+      <div class="sec-custom-containers-layer sec-layout-${layoutMode} sec-layout-${layoutType}"
+           data-sec-id="${section.id}"
+           data-layout-mode="${layoutMode}"
+           data-layout-type="${layoutType}"
+           style="--layout-columns:${layoutColumns};--layout-gap:${layoutGap}px;">
         ${itemsHtml}
       </div>
     `;
@@ -662,11 +968,17 @@
       const def = this.get(type);
       if (!def) throw new Error('Unknown section type: ' + type);
       const defaults = def.createDefault();
-      return {
+      return migrateSection({
         id: generateId(type),
         type: type,
         version: 1,
+        schemaVersion: BUILDER_SCHEMA_VERSION,
         visible: true,
+        nodes: Array.isArray(defaults.nodes)
+          ? defaults.nodes
+          : (Array.isArray(defaults.settings && defaults.settings.customContainers)
+            ? defaults.settings.customContainers
+            : []),
         content: Object.assign({}, defaults.content || {}, customContent || {}),
         settings: Object.assign({
           spacing: 'standard',
@@ -674,7 +986,56 @@
           responsiveVisibility: 'all',
           animation: 'none'
         }, defaults.settings || {}, customSettings || {})
+      });
+    },
+
+    // ── Responsive Viewport Settings Resolver ──
+    resolveSettings(section, viewport = 'desktop') {
+      if (!section) return {};
+      const base = section.settings || {};
+      if (viewport === 'desktop' || !base.responsive) {
+        return base;
+      }
+      const tabletOverrides = (base.responsive && base.responsive.tablet) || {};
+      const mobileOverrides = (base.responsive && base.responsive.mobile) || {};
+      const mergeElementMap = (...maps) => {
+        const merged = {};
+        maps.forEach(map => {
+          if (!map || typeof map !== 'object') return;
+          Object.entries(map).forEach(([key, value]) => {
+            merged[key] = (value && typeof value === 'object' && !Array.isArray(value))
+              ? { ...(merged[key] || {}), ...value }
+              : value;
+          });
+        });
+        return merged;
       };
+
+      if (viewport === 'tablet') {
+        return {
+          ...base,
+          ...tabletOverrides,
+          elementOffsets: mergeElementMap(base.elementOffsets, tabletOverrides.elementOffsets),
+          elementStyles: mergeElementMap(base.elementStyles, tabletOverrides.elementStyles),
+          customContainers: Array.isArray(tabletOverrides.customContainers) ? tabletOverrides.customContainers : base.customContainers
+        };
+      }
+
+      if (viewport === 'mobile') {
+        // Mobile cascades: Desktop -> Tablet -> Mobile
+        return {
+          ...base,
+          ...tabletOverrides,
+          ...mobileOverrides,
+          elementOffsets: mergeElementMap(base.elementOffsets, tabletOverrides.elementOffsets, mobileOverrides.elementOffsets),
+          elementStyles: mergeElementMap(base.elementStyles, tabletOverrides.elementStyles, mobileOverrides.elementStyles),
+          customContainers: Array.isArray(mobileOverrides.customContainers)
+            ? mobileOverrides.customContainers
+            : (Array.isArray(tabletOverrides.customContainers) ? tabletOverrides.customContainers : base.customContainers)
+        };
+      }
+
+      return base;
     },
 
     renderSection(section, options) {
@@ -687,7 +1048,27 @@
       if (options && typeof options.index === 'number') {
         section._renderIndex = options.index;
       }
-      return def.render(section, options || {});
+
+      // Determine viewport mode: options.viewport > builder mode > 'desktop'
+      let targetViewport = 'desktop';
+      if (options && options.viewport) {
+        targetViewport = options.viewport;
+      } else if (typeof window !== 'undefined' && typeof window.getBuilderViewportMode === 'function') {
+        targetViewport = window.getBuilderViewportMode();
+      }
+
+      const effectiveSettings = this.resolveSettings(section, targetViewport);
+      const effectiveSection = {
+        ...section,
+        settings: effectiveSettings,
+        layout: effectiveSettings.semanticLayout && typeof effectiveSettings.semanticLayout === 'object'
+          ? effectiveSettings.semanticLayout
+          : section.layout,
+        _activeViewport: targetViewport,
+        _originalSection: section
+      };
+
+      return def.render(effectiveSection, options || {});
     }
   };
 
@@ -853,7 +1234,14 @@
       const c = section.content || {};
       const s = section.settings || {};
       const items = Array.isArray(c.items) ? c.items : [];
-      const cols = s.columns === 2 ? 'grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));' : 'grid-template-columns: 1fr;';
+      const direction = s.direction || (s.columns === 1 ? 'vertical' : 'horizontal');
+      let gridStyle;
+      if (direction === 'vertical' || s.columns === 1) {
+        gridStyle = 'display:flex;flex-direction:column;gap:16px;';
+      } else {
+        const colCount = (s.columns && !isNaN(parseInt(s.columns))) ? parseInt(s.columns) : 2;
+        gridStyle = `display:grid;grid-template-columns:repeat(${colCount}, minmax(0, 1fr));gap:16px;`;
+      }
 
       const itemsHtml = items.map((item, idx) => {
         let badge = '';
@@ -876,7 +1264,7 @@
       const inner = `
         <div class="${s.cardStyle ? 'wd-full-card' : ''}" style="${s.cardStyle ? 'padding:36px;' : ''}">
           ${c.heading ? `<h3 class="sec-heading" style="margin-bottom:24px;">${renderFormattedText(c.heading)}</h3>` : ''}
-          <div class="sec-list-grid" style="display:grid;${cols}gap:16px;">
+          <div class="sec-list-grid" style="${gridStyle}">
             ${itemsHtml}
           </div>
         </div>
@@ -1017,37 +1405,57 @@
       const align = s.alignment || 'center';
       const marginAuto = align === 'left' ? 'margin-right:auto;margin-left:0;' : (align === 'right' ? 'margin-left:auto;margin-right:0;' : 'margin:0 auto;');
 
-      // Height priority: s.bannerHeight or s.customHeight (when aspectRatio is 'banner-h' or 'custom-h' or whenever height is specified)
-      const hasCustomH = s.aspectRatio === 'banner-h' || s.aspectRatio === 'custom-h' || (s.bannerHeight && parseInt(s.bannerHeight) > 0) || (s.customHeight && parseInt(s.customHeight) > 0);
-      const bh = parseInt(s.bannerHeight || s.customHeight) || 450;
+      // Media height is intentionally independent from the outer section height.
+      const hasCustomH = (s.aspectRatio === 'banner-h' || s.aspectRatio === 'custom-h') && parseInt(s.bannerHeight) > 0;
+      const bh = parseInt(s.bannerHeight) || 450;
       
+      const hasUrl = c.url && c.url.trim();
       let imgTag = '';
-      if (hasCustomH) {
+      if (!hasUrl) {
+        imgTag = renderEmptyImageUploadZone({
+          secId: section.id,
+          elKey: 'image',
+          title: 'Single Image',
+          sub: 'Click to browse or drag & drop photo',
+          btnText: 'Browse Photo',
+          minHeight: hasCustomH ? bh + 'px' : '320px',
+          borderRadius: radius
+        });
+      } else if (hasCustomH) {
         imgTag = `
-          <div class="sec-img-holder" style="position:relative;width:100%;height:${bh}px;overflow:hidden;border-radius:${radius};background:#121212;">
+          <div class="sec-img-holder sec-prebuilt-img-holder" data-sec-id="${section.id}" data-el-key="image" style="position:relative;width:100%;height:${bh}px;overflow:hidden;border-radius:${radius};background:#121212;">
             <img src="${escapeHtml(c.url || '')}" 
                  alt="${escapeHtml(c.alt || 'Deliverable Asset')}" 
                  style="width:100%;height:100%;object-fit:${fit};object-position:${objPos};border-radius:${radius};display:block;" 
                  loading="eager" decoding="async">
+            <div class="custom-image-drop-overlay sec-image-drop-overlay" style="position:absolute;inset:0;background:rgba(255,92,0,0.25);display:none;align-items:center;justify-content:center;border-radius:inherit;border:2px dashed #FF5C00;z-index:4;pointer-events:none;">
+              <span style="background:#111;color:#FF5C00;font-weight:700;font-size:13px;padding:6px 16px;border-radius:20px;border:1px solid #FF5C00;box-shadow:0 4px 15px rgba(0,0,0,0.5);">Drop to Replace Photo</span>
+            </div>
           </div>
         `;
       } else if (arPadding) {
         imgTag = `
-          <div class="sec-img-holder" style="position:relative;width:100%;overflow:hidden;border-radius:${radius};padding-top:${arPadding};background:#121212;">
+          <div class="sec-img-holder sec-prebuilt-img-holder" data-sec-id="${section.id}" data-el-key="image" style="position:relative;width:100%;overflow:hidden;border-radius:${radius};padding-top:${arPadding};background:#121212;">
             <img src="${escapeHtml(c.url || '')}" 
                  alt="${escapeHtml(c.alt || 'Deliverable Asset')}" 
                  style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:${fit};object-position:${objPos};border-radius:${radius};display:block;" 
                  loading="eager" decoding="async">
+            <div class="custom-image-drop-overlay sec-image-drop-overlay" style="position:absolute;inset:0;background:rgba(255,92,0,0.25);display:none;align-items:center;justify-content:center;border-radius:inherit;border:2px dashed #FF5C00;z-index:4;pointer-events:none;">
+              <span style="background:#111;color:#FF5C00;font-weight:700;font-size:13px;padding:6px 16px;border-radius:20px;border:1px solid #FF5C00;box-shadow:0 4px 15px rgba(0,0,0,0.5);">Drop to Replace Photo</span>
+            </div>
           </div>
         `;
       } else {
         // Natural Auto aspect ratio (crisp full banner)
         imgTag = `
-          <div class="sec-img-holder" style="position:relative;width:100%;overflow:hidden;border-radius:${radius};">
+          <div class="sec-img-holder sec-prebuilt-img-holder" data-sec-id="${section.id}" data-el-key="image" style="position:relative;width:100%;overflow:hidden;border-radius:${radius};">
             <img src="${escapeHtml(c.url || '')}" 
                  alt="${escapeHtml(c.alt || 'Deliverable Asset')}" 
                  style="width:100%;height:auto;max-width:100%;object-position:${objPos};display:block;border-radius:${radius};" 
                  loading="eager" decoding="async">
+            <div class="custom-image-drop-overlay sec-image-drop-overlay" style="position:absolute;inset:0;background:rgba(255,92,0,0.25);display:none;align-items:center;justify-content:center;border-radius:inherit;border:2px dashed #FF5C00;z-index:4;pointer-events:none;">
+              <span style="background:#111;color:#FF5C00;font-weight:700;font-size:13px;padding:6px 16px;border-radius:20px;border:1px solid #FF5C00;box-shadow:0 4px 15px rgba(0,0,0,0.5);">Drop to Replace Photo</span>
+            </div>
           </div>
         `;
       }
@@ -1103,7 +1511,9 @@
       const c = section.content || {};
       const s = section.settings || {};
       const items = Array.isArray(c.items) ? c.items : [];
-      const cols = Math.min(6, Math.max(1, parseInt(s.columns) || 3));
+      const cols = s.columns === 'all'
+        ? (items.length || 1)
+        : Math.min(12, Math.max(1, parseInt(s.columns) || 3));
       const gap = s.gap !== undefined && s.gap !== '' ? parseInt(s.gap) : 20;
       const radius = s.borderRadius !== undefined ? `${parseInt(s.borderRadius)}px` : '12px';
       const fit = s.imageObjectFit || s.objectFit || 'cover';
@@ -1119,35 +1529,56 @@
       };
       const arPadding = arMap[s.aspectRatio] || (s.aspectRatio === 'auto' ? '' : '75%');
 
-      const itemsHtml = items.map(img => {
+      const itemsHtml = items.map((img, idx) => {
         const itemImg = typeof img === 'string' ? img : (img.url || '');
         const itemCap = typeof img === 'object' ? (img.caption || '') : '';
         const itemPos = (img && img.objectPosition) || objPos;
+        const hasUrl = itemImg && itemImg.trim();
 
         let imgMarkup = '';
-        if (s.cardHeight && parseInt(s.cardHeight) > 0) {
+        if (!hasUrl) {
+          imgMarkup = renderEmptyImageUploadZone({
+            secId: section.id,
+            elKey: `grid-img-${idx}`,
+            imgIndex: idx,
+            title: `Grid Image ${idx + 1}`,
+            sub: 'Click to browse or drag & drop photo',
+            btnText: 'Browse Photo',
+            minHeight: s.cardHeight && parseInt(s.cardHeight) > 0 ? parseInt(s.cardHeight) + 'px' : '220px',
+            borderRadius: radius
+          });
+        } else if (s.cardHeight && parseInt(s.cardHeight) > 0) {
           const ch = parseInt(s.cardHeight);
           imgMarkup = `
-            <div style="position:relative;width:100%;height:${ch}px;border-radius:${radius};overflow:hidden;background:#121212;">
+            <div class="sec-img-holder sec-prebuilt-img-holder" data-sec-id="${section.id}" data-el-key="grid-img-${idx}" data-img-index="${idx}" style="position:relative;width:100%;height:${ch}px;border-radius:${radius};overflow:hidden;background:#121212;">
               <img src="${escapeHtml(itemImg)}" alt="${escapeHtml(itemCap || 'Grid item')}" style="width:100%;height:100%;object-fit:${fit};object-position:${itemPos};border-radius:${radius};display:block;" loading="lazy">
+              <div class="custom-image-drop-overlay sec-image-drop-overlay" style="position:absolute;inset:0;background:rgba(255,92,0,0.25);display:none;align-items:center;justify-content:center;border-radius:inherit;border:2px dashed #FF5C00;z-index:4;pointer-events:none;">
+                <span style="background:#111;color:#FF5C00;font-weight:700;font-size:13px;padding:6px 16px;border-radius:20px;border:1px solid #FF5C00;box-shadow:0 4px 15px rgba(0,0,0,0.5);">Drop to Replace Photo</span>
+              </div>
             </div>
           `;
         } else if (arPadding) {
           imgMarkup = `
-            <div style="position:relative;width:100%;padding-top:${arPadding};border-radius:${radius};overflow:hidden;background:#121212;">
+            <div class="sec-img-holder sec-prebuilt-img-holder" data-sec-id="${section.id}" data-el-key="grid-img-${idx}" data-img-index="${idx}" style="position:relative;width:100%;padding-top:${arPadding};border-radius:${radius};overflow:hidden;background:#121212;">
               <img src="${escapeHtml(itemImg)}" alt="${escapeHtml(itemCap || 'Grid item')}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:${fit};object-position:${itemPos};border-radius:${radius};display:block;" loading="lazy">
+              <div class="custom-image-drop-overlay sec-image-drop-overlay" style="position:absolute;inset:0;background:rgba(255,92,0,0.25);display:none;align-items:center;justify-content:center;border-radius:inherit;border:2px dashed #FF5C00;z-index:4;pointer-events:none;">
+                <span style="background:#111;color:#FF5C00;font-weight:700;font-size:13px;padding:6px 16px;border-radius:20px;border:1px solid #FF5C00;box-shadow:0 4px 15px rgba(0,0,0,0.5);">Drop to Replace Photo</span>
+              </div>
             </div>
           `;
         } else {
           imgMarkup = `
-            <div style="position:relative;width:100%;border-radius:${radius};overflow:hidden;">
+            <div class="sec-img-holder sec-prebuilt-img-holder" data-sec-id="${section.id}" data-el-key="grid-img-${idx}" data-img-index="${idx}" style="position:relative;width:100%;border-radius:${radius};overflow:hidden;">
               <img src="${escapeHtml(itemImg)}" alt="${escapeHtml(itemCap || 'Grid item')}" style="width:100%;height:auto;object-position:${itemPos};border-radius:${radius};display:block;" loading="lazy">
+              <div class="custom-image-drop-overlay sec-image-drop-overlay" style="position:absolute;inset:0;background:rgba(255,92,0,0.25);display:none;align-items:center;justify-content:center;border-radius:inherit;border:2px dashed #FF5C00;z-index:4;pointer-events:none;">
+                <span style="background:#111;color:#FF5C00;font-weight:700;font-size:13px;padding:6px 16px;border-radius:20px;border:1px solid #FF5C00;box-shadow:0 4px 15px rgba(0,0,0,0.5);">Drop to Replace Photo</span>
+              </div>
             </div>
           `;
         }
 
         return `
-          <div class="sec-grid-item" style="display:flex;flex-direction:column;">
+          <div class="sec-grid-item" data-el-key="grid-img-${idx}" style="display:flex;flex-direction:column;min-width:0;">
             ${imgMarkup}
             ${itemCap ? `<div style="font-size:12px;color:rgba(245,240,235,0.6);margin-top:8px;text-align:center;">${escapeHtml(itemCap)}</div>` : ''}
           </div>
@@ -1156,7 +1587,7 @@
 
       const inner = `
         ${c.heading ? `<h3 class="sec-heading" style="margin-bottom:24px;text-align:center;">${renderFormattedText(c.heading)}</h3>` : ''}
-        <div class="sec-img-grid-container sec-grid-cols-${cols}" style="display:grid;gap:${gap}px;">
+        <div class="sec-img-grid-container sec-grid-cols-${cols}" style="display:grid;grid-template-columns:repeat(${cols}, minmax(0, 1fr));gap:${gap}px;width:100%;box-sizing:border-box;">
           ${itemsHtml}
         </div>
       `;
@@ -1196,23 +1627,48 @@
       const c = section.content || {};
       const s = section.settings || {};
       const items = Array.isArray(c.items) ? c.items : [];
-      const cols = Math.min(6, Math.max(1, parseInt(s.columns) || 2));
+      const cols = s.columns === 'all'
+        ? (items.length || 1)
+        : Math.min(12, Math.max(1, parseInt(s.columns) || 2));
       const gap = s.gap !== undefined && s.gap !== '' ? parseInt(s.gap) : 24;
 
-      const itemsHtml = items.map(img => `
-        <div class="wd-gallery-card" style="display:flex;flex-direction:column;min-width:0;">
-          <div class="wd-gallery-img-wrap" style="position:relative;width:100%;flex:1 1 auto;min-height:100px;overflow:hidden;border-radius:12px;display:flex;">
-            <img src="${escapeHtml(img.url || '')}" alt="${escapeHtml(img.title || 'Deliverable Asset')}" class="wd-gallery-img" style="width:100%;height:100%;object-fit:cover;display:block;object-position:${img.objectPosition || s.objectPosition || 'center center'};" loading="lazy" decoding="async">
+      const itemsHtml = items.map((img, idx) => {
+        const imgObj = typeof img === 'object' && img !== null ? img : { url: String(img || '') };
+        const itemPos = imgObj.objectPosition || s.objectPosition || 'center center';
+        const imgUrl = (imgObj.url || imgObj.imageUrl || '').trim();
+        const hasUrl = !!imgUrl;
+        const mediaHtml = hasUrl ? `
+          <div class="sec-prebuilt-img-holder" data-sec-id="${section.id}" data-el-key="gallery-img-${idx}" data-gallery-idx="${idx}" style="position:relative;width:100%;height:100%;min-height:180px;overflow:hidden;border-radius:12px;">
+            <img src="${escapeHtml(imgUrl)}" alt="${escapeHtml(imgObj.title || 'Deliverable Asset')}" class="wd-gallery-img" style="width:100%;height:100%;object-fit:cover;display:block;object-position:${itemPos};border-radius:12px;" loading="lazy" decoding="async">
+            <div class="custom-image-drop-overlay sec-image-drop-overlay" style="position:absolute;inset:0;background:rgba(255,92,0,0.25);display:none;align-items:center;justify-content:center;border-radius:inherit;border:2px dashed #FF5C00;z-index:4;pointer-events:none;">
+              <span style="background:#111;color:#FF5C00;font-weight:700;font-size:13px;padding:6px 16px;border-radius:20px;border:1px solid #FF5C00;box-shadow:0 4px 15px rgba(0,0,0,0.5);">Drop to Replace Photo</span>
+            </div>
           </div>
-          ${img.title ? `<div class="wd-gallery-title" style="margin-top:14px;flex-shrink:0;">${escapeHtml(img.title)}</div>` : ''}
-          ${img.desc ? `<div class="wd-gallery-desc" style="margin-top:4px;flex-shrink:0;">${escapeHtml(img.desc)}</div>` : ''}
-        </div>
-      `).join('');
+        ` : renderEmptyImageUploadZone({
+          secId: section.id,
+          elKey: `gallery-img-${idx}`,
+          imgIndex: idx,
+          title: imgObj.title || `Showcase Image ${idx + 1}`,
+          sub: 'Click to browse or drag & drop photo',
+          btnText: 'Browse Photo',
+          minHeight: '180px',
+          borderRadius: '12px'
+        });
+        return `
+          <div class="wd-gallery-card" data-gallery-idx="${idx}" data-el-key="gallery-card-${idx}" style="display:flex;flex-direction:column;min-width:0;position:relative;">
+            <div class="wd-gallery-img-wrap" data-gallery-idx="${idx}" data-el-key="gallery-img-${idx}" style="position:relative;width:100%;flex:1 1 auto;min-height:180px;border-radius:12px;display:flex;">
+              ${mediaHtml}
+            </div>
+            ${imgObj.title ? `<div class="wd-gallery-title" style="margin-top:14px;flex-shrink:0;">${escapeHtml(imgObj.title)}</div>` : ''}
+            ${imgObj.desc ? `<div class="wd-gallery-desc" style="margin-top:4px;flex-shrink:0;">${escapeHtml(imgObj.desc)}</div>` : ''}
+          </div>
+        `;
+      }).join('');
 
       const inner = `
         <div class="wd-full-card" style="padding:36px;">
           ${c.heading ? `<h3 class="sec-heading" style="margin-bottom:24px;">${renderFormattedText(c.heading)}</h3>` : ''}
-          <div class="sec-img-grid-container sec-grid-cols-${cols}" style="display:grid;gap:${gap}px;">
+          <div class="sec-img-grid-container sec-grid-cols-${cols}" style="display:grid;grid-template-columns:repeat(${cols}, minmax(0, 1fr));gap:${gap}px;width:100%;box-sizing:border-box;">
             ${itemsHtml}
           </div>
         </div>
@@ -1283,33 +1739,61 @@
 
       const slidesHtml = slides.map((sl, idx) => {
         const itemPos = sl.objectPosition || s.objectPosition || 'center center';
+        const itemRotation = parseInt(sl.rotation ?? s.elementStyles?.[`slide-${idx + 1}`]?.rotation ?? 0);
+        const itemTransform = itemRotation ? `transform:rotate(${itemRotation}deg);` : '';
+        const hasUrl = sl.url && sl.url.trim();
         let mediaHtml = '';
-        if (customSlideH) {
+        if (!hasUrl) {
+          mediaHtml = renderEmptyImageUploadZone({
+            secId: section.id,
+            elKey: `slide-${idx + 1}`,
+            imgIndex: idx,
+            title: sl.title || `Slide ${idx + 1}`,
+            sub: 'Click to browse or drag & drop photo',
+            btnText: 'Browse Slide Photo',
+            minHeight: customSlideH ? customSlideH + 'px' : '260px',
+            borderRadius: slideRadius
+          });
+        } else if (customSlideH) {
           mediaHtml = `
-            <div style="position:relative;width:100%;height:${customSlideH}px;overflow:hidden;background:#121212;">
-              <img src="${escapeHtml(sl.url || '')}" alt="${escapeHtml(sl.title || 'Slide')}" style="width:100%;height:100%;object-fit:cover;object-position:${itemPos};display:block;" loading="lazy">
+            <div class="sec-prebuilt-img-holder" data-sec-id="${section.id}" data-el-key="slide-${idx + 1}" data-img-index="${idx}" style="position:relative;width:100%;height:${customSlideH}px;overflow:hidden;background:#121212;">
+              <img src="${escapeHtml(sl.url)}" alt="${escapeHtml(sl.title || 'Slide')}" style="width:100%;height:100%;object-fit:cover;object-position:${itemPos};display:block;${itemTransform}" loading="lazy">
+              <div class="custom-image-drop-overlay sec-image-drop-overlay" style="position:absolute;inset:0;background:rgba(255,92,0,0.25);display:none;align-items:center;justify-content:center;border-radius:inherit;border:2px dashed #FF5C00;z-index:4;pointer-events:none;">
+                <span style="background:#111;color:#FF5C00;font-weight:700;font-size:13px;padding:6px 16px;border-radius:20px;border:1px solid #FF5C00;box-shadow:0 4px 15px rgba(0,0,0,0.5);">Drop to Replace Photo</span>
+              </div>
             </div>
           `;
         } else {
           mediaHtml = `
-            <div style="position:relative;width:100%;padding-top:56.25%;overflow:hidden;background:#121212;">
-              <img src="${escapeHtml(sl.url || '')}" alt="${escapeHtml(sl.title || 'Slide')}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:${itemPos};display:block;" loading="lazy">
+            <div class="sec-prebuilt-img-holder" data-sec-id="${section.id}" data-el-key="slide-${idx + 1}" data-img-index="${idx}" style="position:relative;width:100%;padding-top:56.25%;overflow:hidden;background:#121212;">
+              <img src="${escapeHtml(sl.url)}" alt="${escapeHtml(sl.title || 'Slide')}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:${itemPos};display:block;${itemTransform}" loading="lazy">
+              <div class="custom-image-drop-overlay sec-image-drop-overlay" style="position:absolute;inset:0;background:rgba(255,92,0,0.25);display:none;align-items:center;justify-content:center;border-radius:inherit;border:2px dashed #FF5C00;z-index:4;pointer-events:none;">
+                <span style="background:#111;color:#FF5C00;font-weight:700;font-size:13px;padding:6px 16px;border-radius:20px;border:1px solid #FF5C00;box-shadow:0 4px 15px rgba(0,0,0,0.5);">Drop to Replace Photo</span>
+              </div>
             </div>
           `;
         }
 
         return `
           <div class="sec-carousel-slide ${isTwoSlide ? 'cols-2' : (isThreeSlide ? 'cols-3' : (isFourSlide ? 'cols-4' : ''))}" 
+               data-builder-layer="carousel-slide"
+               data-el-key="slide-${idx + 1}"
+               data-el-label="Slide ${idx + 1}"
+               data-img-index="${idx}"
                data-slide-index="${idx}" 
                style="flex:${slideFlex};min-width:${slideMaxW};max-width:${slideMaxW};width:${slideMaxW};scroll-snap-align:${isFullSlide ? 'start' : 'center'};scroll-snap-stop:always;border-radius:${slideRadius};overflow:hidden;background:#141414;border:1px solid rgba(255,255,255,0.08);box-sizing:border-box;">
             ${mediaHtml}
-            ${sl.title ? `<div style="font-size:13px;color:#F5F0EB;font-weight:600;padding:12px 18px;text-align:center;background:#141414;letter-spacing:0.02em;border-top:1px solid rgba(255,255,255,0.06);">${escapeHtml(sl.title)}</div>` : ''}
+            ${sl.title ? `<div class="sec-carousel-title" style="font-size:13px;color:#F5F0EB;font-weight:600;padding:12px 18px;text-align:center;background:#141414;letter-spacing:0.02em;border-top:1px solid rgba(255,255,255,0.06);">${escapeHtml(sl.title)}</div>` : ''}
           </div>
         `;
       }).join('');
 
       // Autoplay & Timer configuration
       const isAutoplay = s.autoplay !== false;
+      // Keep the editing canvas stable. Live Preview and published output still
+      // use the configured autoplay value, while edit mode only moves when the
+      // admin explicitly uses the carousel controls.
+      const runtimeAutoplay = !!opts?.isPublic && isAutoplay;
       const speedSec = Math.max(1, parseFloat(s.autoplaySpeed) || 4);
       const pauseOnHover = s.pauseOnHover !== false;
       const showArrows = s.showArrows !== false && slides.length > 1;
@@ -1327,19 +1811,19 @@
       }
 
       const inner = `
-        <div class="sec-carousel-container" 
+        <div class="sec-carousel-container" data-builder-layer="internal"
              data-carousel="true" 
-             data-autoplay="${isAutoplay ? 'true' : 'false'}" 
+             data-autoplay="${runtimeAutoplay ? 'true' : 'false'}"
              data-interval="${Math.round(speedSec * 1000)}" 
              data-pause-hover="${pauseOnHover ? 'true' : 'false'}">
           ${c.heading ? `<h3 class="sec-heading" style="margin-bottom:20px;text-align:center;">${renderFormattedText(c.heading)}</h3>` : ''}
           
-          <div class="sec-carousel-wrap" style="position:relative;width:100%;overflow:hidden;border-radius:${slideRadius};">
+          <div class="sec-carousel-wrap" data-builder-layer="internal" style="position:relative;width:100%;overflow:hidden;border-radius:${slideRadius};">
             ${showArrows ? `
               <button type="button" class="sec-carousel-nav-btn prev-btn" aria-label="Previous Slide">‹</button>
               <button type="button" class="sec-carousel-nav-btn next-btn" aria-label="Next Slide">›</button>
             ` : ''}
-            <div class="sec-carousel-track" style="display:flex;gap:${isFullSlide ? '0px' : '18px'};overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;width:100%;">
+            <div class="sec-carousel-track" data-builder-layer="internal" style="display:flex;gap:${isFullSlide ? '0px' : '18px'};overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;width:100%;">
               ${slidesHtml}
             </div>
           </div>
@@ -1375,8 +1859,8 @@
       const s = section.settings || {};
 
       const customW = s.customWidth ? (String(s.customWidth).endsWith('%') || String(s.customWidth).endsWith('px') ? s.customWidth : `${s.customWidth}px`) : '960px';
-      const hasCustomH = s.customHeight && parseInt(s.customHeight) > 0;
-      const customH = hasCustomH ? parseInt(s.customHeight) : null;
+      const hasCustomH = s.comparisonHeight && parseInt(s.comparisonHeight) > 0;
+      const customH = hasCustomH ? parseInt(s.comparisonHeight) : null;
       const isBuilderSelected = !opts?.isPublic && opts?.isSelected;
       const imgHandles = isBuilderSelected ? `
         <div class="canvas-img-size-badge" title="Image Dimensions"><span>⚖️</span> <span class="badge-dim">${customW} × ${hasCustomH ? customH + 'px' : (s.aspectRatio || '16:9')}</span></div>
@@ -1528,31 +2012,36 @@
       const gap = s.gap !== undefined ? s.gap : 24;
       const vAlign = s.verticalAlign || 'top';
 
-      let gridCols = '1fr 1fr 1fr';
+      let gridCols = 'repeat(3, minmax(0, 1fr))';
       if (cols === 2) {
         if (s.ratio === '25:75') gridCols = '1fr 3fr';
         else if (s.ratio === '75:25') gridCols = '3fr 1fr';
         else if (s.ratio === '33:66') gridCols = '1fr 2fr';
         else if (s.ratio === '66:33') gridCols = '2fr 1fr';
         else gridCols = '1fr 1fr';
+      } else if (cols === 4) {
+        gridCols = 'repeat(4, minmax(0, 1fr))';
       }
 
       function renderColContent(col, colNum) {
         if (!col) return '';
         const cardClass = s.cardStyle ? 'wd-full-card sec-col-card' : 'sec-col-card';
         return `
-          <div class="${cardClass}" data-el-key="col-card-${colNum || 1}" style="${s.cardStyle ? 'padding:32px;' : ''}height:100%;">
+          <div class="${cardClass}" data-el-key="col-card-${colNum || 1}" style="${s.cardStyle ? 'padding:32px;' : ''}height:100%;min-width:0;">
             ${col.title ? `<h4 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:#F5F0EB;margin:0 0 12px;">${renderFormattedText(col.title)}</h4>` : ''}
             ${col.body ? `<div style="font-size:14px;line-height:1.6;color:rgba(245,240,235,0.7);">${sanitizeRichText(col.body)}</div>` : ''}
           </div>
         `;
       }
 
+      const col4Fallback = { title: '04. Deployment & Scale', body: 'Ongoing performance telemetry, iterations, and brand evolution.' };
+
       const inner = `
-        <div class="sec-columns-grid" data-el-key="columns-grid" style="display:grid;grid-template-columns:${gridCols};gap:${gap}px;align-items:${vAlign === 'center' ? 'center' : (vAlign === 'bottom' ? 'flex-end' : 'start')};">
+        <div class="sec-columns-grid" data-el-key="columns-grid" style="display:grid;grid-template-columns:${gridCols};gap:${gap}px;align-items:${vAlign === 'center' ? 'center' : (vAlign === 'bottom' ? 'flex-end' : 'start')};width:100%;box-sizing:border-box;">
           <div class="sec-col" data-el-key="col-1">${renderColContent(c.col1, 1)}</div>
           <div class="sec-col" data-el-key="col-2">${renderColContent(c.col2, 2)}</div>
-          ${cols === 3 ? `<div class="sec-col" data-el-key="col-3">${renderColContent(c.col3, 3)}</div>` : ''}
+          ${cols >= 3 ? `<div class="sec-col" data-el-key="col-3">${renderColContent(c.col3, 3)}</div>` : ''}
+          ${cols >= 4 ? `<div class="sec-col" data-el-key="col-4">${renderColContent(c.col4 || col4Fallback, 4)}</div>` : ''}
         </div>
       `;
       return renderUniversalWrap(section, inner);
@@ -1630,11 +2119,27 @@
         </div>
       `;
 
-      const imgCol = `
-        <div class="sec-img-col" style="${imgMargin}width:100%;max-width:${imgW};position:relative;border-radius:${imgRadius};box-shadow:0 12px 40px rgba(0,0,0,0.6);${imgH ? `height:${imgH};` : ''}">
-          <div class="sec-img-holder" style="width:100%;height:${imgH ? '100%' : 'auto'};overflow:hidden;border-radius:${imgRadius};background:#121212;">
-            <img src="${escapeHtml(c.imageUrl || '')}" alt="${escapeHtml(c.heading || 'Project visual')}" style="width:100%;height:${imgH ? '100%' : 'auto'};max-height:100%;object-fit:${imgFit};object-position:${objPos};display:block;border-radius:${imgRadius};" loading="lazy">
+      const hasUrl = c.imageUrl && c.imageUrl.trim();
+      const imgHolderHtml = hasUrl ? `
+        <div class="sec-img-holder sec-prebuilt-img-holder" data-sec-id="${section.id}" data-el-key="split-image" style="width:100%;height:${imgH ? '100%' : 'auto'};overflow:hidden;border-radius:${imgRadius};background:#121212;position:relative;">
+          <img src="${escapeHtml(c.imageUrl || '')}" alt="${escapeHtml(c.heading || 'Project visual')}" style="width:100%;height:${imgH ? '100%' : 'auto'};max-height:100%;object-fit:${imgFit};object-position:${objPos};display:block;border-radius:${imgRadius};" loading="lazy">
+          <div class="custom-image-drop-overlay sec-image-drop-overlay" style="position:absolute;inset:0;background:rgba(255,92,0,0.25);display:none;align-items:center;justify-content:center;border-radius:inherit;border:2px dashed #FF5C00;z-index:4;pointer-events:none;">
+            <span style="background:#111;color:#FF5C00;font-weight:700;font-size:13px;padding:6px 16px;border-radius:20px;border:1px solid #FF5C00;box-shadow:0 4px 15px rgba(0,0,0,0.5);">Drop to Replace Photo</span>
           </div>
+        </div>
+      ` : renderEmptyImageUploadZone({
+        secId: section.id,
+        elKey: 'split-image',
+        title: 'Split Image',
+        sub: 'Click to browse or drag & drop photo',
+        btnText: 'Browse Photo',
+        minHeight: imgH || '80px',
+        borderRadius: imgRadius
+      });
+
+      const imgCol = `
+        <div class="sec-img-col" data-el-key="split-image" style="${imgMargin}width:100%;max-width:${imgW};position:relative;border-radius:${imgRadius};box-shadow:0 12px 40px rgba(0,0,0,0.6);${imgH ? `height:${imgH};` : ''}">
+          ${imgHolderHtml}
           ${imgHandles}
         </div>
       `;
@@ -1677,10 +2182,18 @@
       const c = section.content || {};
       const s = section.settings || {};
       const items = Array.isArray(c.items) ? c.items : [];
-      const cols = s.columns || Math.min(items.length, 4);
+      let cols;
+      if (s.columns === 'all') {
+        cols = items.length || 1;
+      } else if (s.columns !== undefined && s.columns !== '' && !isNaN(parseInt(s.columns))) {
+        cols = Math.min(12, Math.max(1, parseInt(s.columns)));
+      } else {
+        cols = Math.min(items.length, 4) || 1;
+      }
+      const gap = s.gap !== undefined && s.gap !== '' ? parseInt(s.gap) : (s.cardStyle ? 0 : 20);
 
       const itemsHtml = items.map(m => `
-        <div class="wd-meta-cell">
+        <div class="wd-meta-cell" style="min-width:0;">
           <div class="wd-meta-label">${escapeHtml(m.label || '')}</div>
           <div class="wd-meta-val">${escapeHtml(m.value || '')}</div>
           ${m.desc ? `<div style="font-size:11px;color:rgba(245,240,235,0.4);margin-top:4px;">${escapeHtml(m.desc)}</div>` : ''}
@@ -1688,7 +2201,7 @@
       `).join('');
 
       const inner = `
-        <div class="${s.cardStyle ? 'wd-meta-grid' : 'sec-metrics-transparent'}" style="display:grid;grid-template-columns:repeat(${cols}, 1fr);">
+        <div class="${s.cardStyle ? 'wd-meta-grid' : 'sec-metrics-transparent'}" style="display:grid;grid-template-columns:repeat(${cols}, minmax(0, 1fr));gap:${gap}px;width:100%;box-sizing:border-box;">
           ${itemsHtml}
         </div>
       `;
@@ -1711,7 +2224,7 @@
         ]
       },
       settings: {
-        columns: 3, // 1, 2, or 3
+        columns: 3, // 1 to 6, or 'all'
         spacing: 'standard'
       }
     }),
@@ -1719,7 +2232,15 @@
       const c = section.content || {};
       const s = section.settings || {};
       const cards = Array.isArray(c.cards) ? c.cards : [];
-      const cols = s.columns || Math.min(cards.length, 3);
+      let cols;
+      if (s.columns === 'all') {
+        cols = cards.length || 1;
+      } else if (s.columns !== undefined && s.columns !== '' && !isNaN(parseInt(s.columns))) {
+        cols = Math.min(12, Math.max(1, parseInt(s.columns)));
+      } else {
+        cols = cards.length === 4 ? 4 : (Math.min(cards.length, 3) || 1);
+      }
+      const gap = s.gap !== undefined && s.gap !== '' ? parseInt(s.gap) : 24;
 
       const iconSvgs = {
         building: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 7v14M21 7v14M6 11h4M6 15h4M14 11h4M14 15h4M9 21v-4h6v4M3 7l9-4 9 4"/></svg>',
@@ -1728,7 +2249,7 @@
       };
 
       const cardsHtml = cards.map((card, idx) => `
-        <div class="wd-narrative-card" data-el-key="card-${idx}" style="transform:translate3d(var(--el-card-${idx}-ox, 0px), var(--el-card-${idx}-oy, 0px), 0);">
+        <div class="wd-narrative-card" data-el-key="card-${idx}" style="transform:translate3d(var(--el-card-${idx}-ox, 0px), var(--el-card-${idx}-oy, 0px), 0);min-width:0;">
           <div class="wd-narrative-card-header">
             <span class="wd-narrative-card-icon">${iconSvgs[card.icon] || iconSvgs.building}</span>
             <span class="wd-narrative-card-title">${escapeHtml(card.title || '')}</span>
@@ -1737,8 +2258,16 @@
         </div>
       `).join('');
 
+      const direction = s.direction || (s.columns === 1 ? 'column' : 'row');
+      let layoutStyle;
+      if (direction === 'column' || cols === 1) {
+        layoutStyle = `display:flex;flex-direction:column;gap:${gap}px;width:100%;box-sizing:border-box;`;
+      } else {
+        layoutStyle = `display:grid;grid-template-columns:repeat(${cols}, minmax(0, 1fr));gap:${gap}px;width:100%;box-sizing:border-box;`;
+      }
+
       const inner = `
-        <div class="wd-narrative-grid" style="display:grid;grid-template-columns:repeat(${cols}, 1fr);gap:24px;">
+        <div class="wd-narrative-grid" style="${layoutStyle}">
           ${cardsHtml}
         </div>
       `;
@@ -1768,10 +2297,20 @@
     }),
     render(section, opts) {
       const c = section.content || {};
+      const s = section.settings || {};
       const items = Array.isArray(c.items) ? c.items : [];
+      let gridColsStyle = 'repeat(auto-fit, minmax(260px, 1fr))';
+      if (s.columns === 'all') {
+        gridColsStyle = `repeat(${items.length || 1}, minmax(0, 1fr))`;
+      } else if (s.columns === 'auto') {
+        gridColsStyle = 'repeat(auto-fit, minmax(260px, 1fr))';
+      } else if (s.columns !== undefined && s.columns !== '' && !isNaN(parseInt(s.columns))) {
+        gridColsStyle = `repeat(${parseInt(s.columns)}, minmax(0, 1fr))`;
+      }
+      const gap = s.gap !== undefined && s.gap !== '' ? parseInt(s.gap) : 16;
 
       const itemsHtml = items.map((d, idx) => `
-        <div class="wd-deliverable-item" data-el-key="deliv-${idx}" style="transform:translate3d(var(--el-deliv-${idx}-ox, 0px), var(--el-deliv-${idx}-oy, 0px), 0);">
+        <div class="wd-deliverable-item" data-el-key="deliv-${idx}" style="transform:translate3d(var(--el-deliv-${idx}-ox, 0px), var(--el-deliv-${idx}-oy, 0px), 0);min-width:0;">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#FF5C00" stroke-width="2.5">
             <polyline points="20 6 9 17 4 12"/>
           </svg>
@@ -1779,10 +2318,18 @@
         </div>
       `).join('');
 
+      const direction = s.direction || (s.columns === 1 ? 'column' : 'grid');
+      let layoutStyle;
+      if (direction === 'column' || s.columns === 1) {
+        layoutStyle = `display:flex;flex-direction:column;gap:${gap}px;width:100%;box-sizing:border-box;`;
+      } else {
+        layoutStyle = `display:grid;grid-template-columns:${gridColsStyle};gap:${gap}px;width:100%;box-sizing:border-box;`;
+      }
+
       const inner = `
         <div class="wd-full-card" style="padding:36px;">
           ${c.heading ? `<h3 class="sec-heading" style="margin-bottom:20px;">${renderFormattedText(c.heading)}</h3>` : ''}
-          <div class="wd-deliverables-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:16px;">
+          <div class="wd-deliverables-grid" style="${layoutStyle}">
             ${itemsHtml}
           </div>
         </div>
@@ -1815,10 +2362,18 @@
       const c = section.content || {};
       const s = section.settings || {};
       const cards = Array.isArray(c.cards) ? c.cards : [];
-      const cols = s.columns || 3;
+      let gridColsStyle = 'repeat(auto-fit, minmax(280px, 1fr))';
+      if (s.columns === 'all') {
+        gridColsStyle = `repeat(${cards.length || 1}, minmax(0, 1fr))`;
+      } else if (s.columns === 'auto') {
+        gridColsStyle = 'repeat(auto-fit, minmax(280px, 1fr))';
+      } else if (s.columns !== undefined && s.columns !== '' && !isNaN(parseInt(s.columns))) {
+        gridColsStyle = `repeat(${parseInt(s.columns)}, minmax(0, 1fr))`;
+      }
+      const gap = s.gap !== undefined && s.gap !== '' ? parseInt(s.gap) : 24;
 
       const cardsHtml = cards.map(cd => `
-        <div class="wd-full-card sec-hover-card" style="padding:32px;display:flex;flex-direction:column;">
+        <div class="wd-full-card sec-hover-card" style="padding:32px;display:flex;flex-direction:column;min-width:0;">
           <h4 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:#F5F0EB;margin:0 0 10px;">${escapeHtml(cd.title || '')}</h4>
           <p style="font-size:13.5px;line-height:1.6;color:rgba(245,240,235,0.7);margin:0 0 16px;flex:1;">${escapeHtml(cd.desc || '')}</p>
           ${cd.link ? `<a href="${escapeHtml(cd.link)}" style="color:#FF5C00;font-size:12px;font-weight:700;text-decoration:none;">Learn More →</a>` : ''}
@@ -1827,7 +2382,7 @@
 
       const inner = `
         ${c.heading ? `<h3 class="sec-heading" style="margin-bottom:24px;text-align:center;">${renderFormattedText(c.heading)}</h3>` : ''}
-        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:24px;">
+        <div class="wd-cards-grid-inner" style="display:grid;grid-template-columns:${gridColsStyle};gap:${gap}px;width:100%;box-sizing:border-box;">
           ${cardsHtml}
         </div>
       `;
@@ -1859,7 +2414,7 @@
 
       const inner = `
         <div style="max-width:880px;margin:0 auto;">
-          <div class="wd-full-card" style="padding:40px;position:relative;border:1px solid rgba(255,92,0,0.25);">
+          <div class="wd-full-card testimonial-card" style="padding:40px;position:relative;border:1px solid rgba(255,92,0,0.25);">
             <div style="color:#FF5C00;font-size:18px;margin-bottom:14px;letter-spacing:2px;">${ratingStars}</div>
             <p style="font-family:'Syne',sans-serif;font-size:20px;font-weight:600;line-height:1.5;color:#F5F0EB;margin:0 0 24px;">
               “${escapeHtml(c.quote || '')}”
@@ -1900,17 +2455,25 @@
     }),
     render(section, opts) {
       const c = section.content || {};
+      const s = section.settings || {};
       const logos = Array.isArray(c.logos) ? c.logos : [];
+      const gap = s.gap !== undefined && s.gap !== '' ? parseInt(s.gap) : 36;
 
-      const logosHtml = logos.map(l => `
-        <div style="display:flex;align-items:center;justify-content:center;padding:12px;filter:grayscale(100%) brightness(1.2);opacity:0.75;transition:all 0.2s;">
-          <img src="${escapeHtml(l.url || '')}" alt="${escapeHtml(l.name || 'Client Logo')}" style="max-height:42px;max-width:140px;object-fit:contain;" loading="lazy">
+      const logosHtml = logos.map((l, i) => `
+        <div data-el="logo-item-${i}" class="sec-logo-item client-logo-item" style="display:flex;align-items:center;justify-content:center;padding:12px;filter:grayscale(100%) brightness(1.2);opacity:0.75;transition:all 0.2s;">
+          ${l.url ? `<img src="${escapeHtml(l.url)}" alt="${escapeHtml(l.name || 'Client Logo')}" style="max-height:42px;max-width:140px;object-fit:contain;" loading="lazy">` : `<div style="font-size:12px;color:rgba(255,255,255,0.4);border:1px dashed rgba(255,255,255,0.2);padding:8px 14px;border-radius:4px;">${escapeHtml(l.name || 'Empty Logo')}</div>`}
         </div>
       `).join('');
 
+      let layoutStyle = `display:flex;align-items:center;justify-content:center;gap:${gap}px;flex-wrap:wrap;`;
+      if (s.columns && s.columns !== 'auto') {
+        const cols = s.columns === 'all' ? (logos.length || 1) : Math.min(12, Math.max(1, parseInt(s.columns)));
+        layoutStyle = `display:grid;grid-template-columns:repeat(${cols}, minmax(0, 1fr));gap:${gap}px;align-items:center;justify-items:center;width:100%;box-sizing:border-box;`;
+      }
+
       const inner = `
         ${c.heading ? `<div style="font-size:12px;font-family:'Syne',sans-serif;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:rgba(245,240,235,0.45);text-align:center;margin-bottom:20px;">${renderFormattedText(c.heading)}</div>` : ''}
-        <div style="display:flex;align-items:center;justify-content:center;gap:36px;flex-wrap:wrap;">
+        <div style="${layoutStyle}">
           ${logosHtml}
         </div>
       `;
@@ -1948,17 +2511,33 @@
         btnsHtml = buttons.map((b, idx) => renderCustomBtnMarkup(b, idx)).join('');
       }
 
+      const cardStyle = s.elementStyles?.['cta-card'] || {};
+      const cardW = cardStyle.width || (s.cardWidth ? (String(s.cardWidth).endsWith('px') || String(s.cardWidth).endsWith('%') ? s.cardWidth : `${s.cardWidth}px`) : null);
+      const cardH = cardStyle.height || null;
+      const cardWidthStyle = cardW ? `width:${cardW} !important;max-width:${cardW} !important;` : 'width:100%;max-width:1000px;';
+      const cardHeightStyle = cardH ? `height:${cardH} !important;min-height:${cardH} !important;` : '';
+      const cardBg = cardStyle.background ? `background:${cardStyle.background} !important;` : 'background:radial-gradient(circle at 50% 50%, rgba(255,92,0,0.12), transparent 70%), #0D0D0D;';
+      const cardBorder = cardStyle.border ? `border:${cardStyle.border} !important;` : 'border:1px solid rgba(255,92,0,0.3);';
+      const cardRadius = cardStyle.borderRadius ? `border-radius:${cardStyle.borderRadius} !important;` : 'border-radius:24px;';
+      const cardShadow = cardStyle.boxShadow ? `box-shadow:${cardStyle.boxShadow} !important;` : 'box-shadow:0 16px 50px rgba(0,0,0,0.8), 0 0 30px rgba(255,92,0,0.15);';
+      const cardOpacity = (cardStyle.opacity !== undefined && cardStyle.opacity !== '') ? `opacity:${cardStyle.opacity};` : '';
+
+      const cardPos = s.elementOffsets?.['cta-card'];
+      const cardTransform = (cardPos && (cardPos.x || cardPos.y))
+        ? `transform:translate3d(${parseInt(cardPos.x || 0)}px, ${parseInt(cardPos.y || 0)}px, 0);`
+        : '';
+
       const inner = `
-        <div class="sec-cta-card" style="position:relative;width:100%;max-width:1000px;margin:0 auto;box-sizing:border-box;padding:clamp(40px, 6vw, 64px) clamp(24px, 4vw, 40px);text-align:center;background:radial-gradient(circle at 50% 50%, rgba(255,92,0,0.12), transparent 70%), #0D0D0D;border:1px solid rgba(255,92,0,0.3);border-radius:24px;box-shadow:0 16px 50px rgba(0,0,0,0.8), 0 0 30px rgba(255,92,0,0.15);word-break:break-word;overflow-wrap:break-word;">
-          ${c.eyebrow ? `<div class="wd-eyebrow" style="margin-bottom:12px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#FF5C00;word-break:break-word;overflow-wrap:break-word;">${renderFormattedText(c.eyebrow)}</div>` : ''}
-          <h2 class="wd-cta-heading" style="font-size:clamp(28px, 4.5vw, 48px);font-family:'Syne',sans-serif;font-weight:800;color:#F5F0EB;margin:0 0 16px;line-height:1.15;word-break:break-word;overflow-wrap:break-word;">
+        <div class="sec-cta-card has-element-box has-reposition-handle" data-el-key="cta-card" data-el-label="CTA Card" data-sec-id="${section.id}" style="position:relative;${cardWidthStyle}${cardHeightStyle}margin:0 auto;box-sizing:border-box;padding:clamp(40px, 6vw, 64px) clamp(24px, 4vw, 40px);text-align:center;${cardBg}${cardBorder}${cardRadius}${cardShadow}${cardOpacity}${cardTransform}word-break:break-word;overflow-wrap:break-word;">
+          ${c.eyebrow ? `<div class="wd-eyebrow" data-el-key="eyebrow" style="margin-bottom:12px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#FF5C00;text-align:center;justify-content:center;word-break:break-word;overflow-wrap:break-word;">${renderFormattedText(c.eyebrow)}</div>` : ''}
+          <h2 class="wd-cta-heading" data-el-key="heading" style="font-size:clamp(28px, 4.5vw, 48px);font-family:'Syne',sans-serif;font-weight:800;color:#F5F0EB;margin:0 0 16px;line-height:1.15;text-align:center;word-break:break-word;overflow-wrap:break-word;">
             ${renderFormattedText(c.heading || '')}
           </h2>
-          <p class="wd-cta-desc" style="max-width:560px;width:100%;box-sizing:border-box;margin:0 auto 32px;font-size:15px;line-height:1.6;color:rgba(245,240,235,0.7);word-break:break-word;overflow-wrap:break-word;">
+          <p class="wd-cta-desc" data-el-key="description" style="max-width:560px;width:100%;box-sizing:border-box;margin:0 auto 32px;font-size:15px;line-height:1.6;color:rgba(245,240,235,0.7);text-align:center;word-break:break-word;overflow-wrap:break-word;">
             ${renderFormattedText(c.description || '')}
           </p>
           ${btnsHtml ? `
-            <div class="custom-btn-group" style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;align-items:center;">
+            <div class="custom-btn-wrapper custom-btn-group" style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;align-items:center;">
               ${btnsHtml}
             </div>
           ` : ''}
@@ -2019,6 +2598,69 @@
       const safeHtml = `<div class="sec-custom-html-wrap" data-el-key="custom-html-wrap">${sanitizeRichText(c.html || '')}</div>`;
       return renderUniversalWrap(section, safeHtml);
     }
+  });
+
+  function createLayoutDefaults(type) {
+    const isFreeform = type === 'freeform';
+    const nodes = isFreeform ? [] : [
+      {
+        id: generateId('text'),
+        type: 'text',
+        width: '100%',
+        height: '220px',
+        content: {
+          heading: 'Your Heading',
+          text: 'Add supporting copy for this section.'
+        }
+      },
+      {
+        id: generateId('image'),
+        type: 'image',
+        width: '100%',
+        height: '320px',
+        imageUrl: '',
+        objectFit: 'cover'
+      }
+    ];
+    return {
+      content: {},
+      settings: {
+        spacing: 'standard',
+        hideTemplateCard: true,
+        customContainers: nodes
+      }
+    };
+  }
+
+  function registerSemanticLayout(type, label, description, layout) {
+    SectionRegistry.register(type, {
+      label,
+      category: 'Columns & Layouts',
+      icon: '\u25A6',
+      description,
+      createDefault: () => {
+        const defaults = createLayoutDefaults(layout.type);
+        defaults.settings.semanticLayout = Object.assign({}, layout);
+        return defaults;
+      },
+      render(section) {
+        section.layout = Object.assign({}, layout, section.layout || {});
+        return renderUniversalWrap(section, '', 'sec-semantic-layout');
+      }
+    });
+  }
+
+  registerSemanticLayout('layout_grid', 'Grid + Text & Image', 'Responsive grid with independent text and image elements.', {
+    mode: 'structured', type: 'grid', columns: 2, gap: 24
+  });
+  registerSemanticLayout('layout_row', 'Row Layout', 'Responsive horizontal row for independent elements.', {
+    mode: 'structured', type: 'row', columns: 2, gap: 20
+  });
+  registerSemanticLayout('layout_stack', 'Stack Layout', 'Vertical structured layout for text, media, and buttons.', {
+    mode: 'structured', type: 'stack', columns: 1, gap: 20
+  });
+  registerSemanticLayout('layout_freeform', 'Freeform Canvas', 'Blank section for manually positioned independent elements.', {
+    mode: 'freeform', type: 'freeform', columns: 1, gap: 20
   });
 
   // ==========================================================================
@@ -2203,6 +2845,9 @@
     secBlocks.forEach(secEl => {
       const taggedEls = secEl.querySelectorAll('[data-el-key]');
       taggedEls.forEach(el => {
+        // Carousel slides are positioned exclusively by the track. Ignore old
+        // freeform offsets on both the semantic slide and its internal media.
+        if (el.closest('[data-builder-layer="carousel-slide"]')) return;
         const key = el.getAttribute('data-el-key');
         if (key) {
           const ox = getComputedStyle(secEl).getPropertyValue(`--el-${key}-ox`).trim();
@@ -2225,6 +2870,109 @@
   SectionRegistry.renderSectionButtonGroup = renderSectionButtonGroup;
   SectionRegistry.renderCustomBtnMarkup = renderCustomBtnMarkup;
   SectionRegistry.renderCustomContainersHtml = renderCustomContainersHtml;
+  SectionRegistry.schemaVersion = BUILDER_SCHEMA_VERSION;
+  SectionRegistry.migrateSection = migrateSection;
+  SectionRegistry.migrateSections = migrateSections;
+  SectionRegistry.serializeSections = serializeSections;
+  SectionRegistry.getSectionNodes = getSectionNodes;
+
+  // Mount builder-authored sections inside the same fixed design coordinate
+  // system used by the visual builder. This prevents a wide public viewport
+  // from stretching the canvas and changing relationships between manually
+  // positioned containers. Tablet/mobile use their own saved overrides.
+  SectionRegistry.mountPageSections = function (container, sections, options = {}) {
+    if (!container || !Array.isArray(sections)) return function () {};
+    sections = migrateSections(sections);
+
+    if (typeof container._sectionRuntimeCleanup === 'function') {
+      container._sectionRuntimeCleanup();
+    }
+
+    const viewportWidths = { desktop: 1440, tablet: 768, mobile: 390 };
+    let activeViewport = '';
+    let surface = null;
+    let resizeObserver = null;
+    let resizeFrame = 0;
+
+    const getViewport = () => {
+      const width = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+      if (width <= 600) return 'mobile';
+      if (width <= 900) return 'tablet';
+      return 'desktop';
+    };
+
+    const syncSurfaceGeometry = () => {
+      if (!surface || !surface.isConnected) return;
+      const logicalWidth = viewportWidths[activeViewport] || viewportWidths.desktop;
+      const availableWidth = Math.max(1, container.clientWidth || window.innerWidth || logicalWidth);
+      const scale = Math.min(1, availableWidth / logicalWidth);
+      surface.style.width = logicalWidth + 'px';
+      surface.style.left = '50%';
+      surface.style.transform = `translateX(-50%) scale(${scale})`;
+      surface.style.transformOrigin = 'top center';
+      container.style.height = Math.ceil(surface.scrollHeight * scale) + 'px';
+      container.style.setProperty('--section-runtime-scale', String(scale));
+    };
+
+    const scheduleGeometrySync = () => {
+      cancelAnimationFrame(resizeFrame);
+      resizeFrame = requestAnimationFrame(syncSurfaceGeometry);
+    };
+
+    const render = () => {
+      activeViewport = getViewport();
+      const visibleSections = options.includeHidden === true
+        ? sections
+        : sections.filter(section => section && section.visible !== false);
+      const html = visibleSections.map((section, index) =>
+        SectionRegistry.renderSection(section, {
+          isPublic: true,
+          index,
+          viewport: activeViewport
+        })
+      ).join('');
+
+      container.classList.add('sec-page-runtime');
+      container.dataset.viewport = activeViewport;
+      container.style.display = 'block';
+      container.innerHTML = `<div class="sec-page-surface" data-runtime-viewport="${activeViewport}">${html}</div>`;
+      surface = container.querySelector('.sec-page-surface');
+
+      if (typeof SectionRegistry.initInteractive === 'function') {
+        SectionRegistry.initInteractive(surface || container);
+      }
+
+      if (resizeObserver) resizeObserver.disconnect();
+      if (window.ResizeObserver && surface) {
+        resizeObserver = new ResizeObserver(scheduleGeometrySync);
+        resizeObserver.observe(surface);
+        resizeObserver.observe(container);
+      }
+
+      if (surface) {
+        surface.querySelectorAll('img').forEach(img => {
+          if (!img.complete) img.addEventListener('load', scheduleGeometrySync, { once: true });
+        });
+      }
+      scheduleGeometrySync();
+    };
+
+    const handleResize = () => {
+      const nextViewport = getViewport();
+      if (nextViewport !== activeViewport) render();
+      else scheduleGeometrySync();
+    };
+
+    window.addEventListener('resize', handleResize, { passive: true });
+    render();
+
+    const cleanup = () => {
+      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(resizeFrame);
+      if (resizeObserver) resizeObserver.disconnect();
+    };
+    container._sectionRuntimeCleanup = cleanup;
+    return cleanup;
+  };
 
 })(typeof window !== 'undefined' ? window : this);
-
