@@ -3228,11 +3228,111 @@
     }
 
     async function requireActiveAdminSession(client) {
-      const { data, error } = await client.auth.getSession();
-      if (error || !data || !data.session) {
+      if (!client || !client.auth) {
+        throw new Error('Supabase client is not initialized.');
+      }
+      let session = null;
+      try {
+        const { data } = await client.auth.getSession();
+        session = data?.session;
+      } catch (_) {}
+
+      const nowSec = Math.floor(Date.now() / 1000);
+
+      // 1. If missing from memory or expired, attempt restore from stored tokens
+      if (!session || (session.expires_at && nowSec >= (session.expires_at - 60))) {
+        const stored = (typeof getStoredSession === 'function' ? getStoredSession() : null) || (function () {
+          try {
+            const raw = window.sessionStorage.getItem(ADMIN_STORAGE_KEY) || window.localStorage.getItem(ADMIN_STORAGE_KEY);
+            return raw ? JSON.parse(raw) : null;
+          } catch (_) { return null; }
+        })();
+
+        if (stored && stored.access_token && stored.refresh_token) {
+          try {
+            const setRes = await client.auth.setSession({
+              access_token: stored.access_token,
+              refresh_token: stored.refresh_token
+            });
+            if (setRes.data?.session) {
+              session = setRes.data.session;
+              if (typeof saveSessionToStorage === 'function') {
+                saveSessionToStorage(session, session.user);
+              }
+            }
+          } catch (restoreErr) {
+            console.warn('[SonicAdmin] Could not restore session from storage tokens:', restoreErr);
+          }
+        }
+      }
+
+      // 2. If session is still missing or near expiration, attempt token refresh
+      if (!session || (session.expires_at && nowSec >= (session.expires_at - 60))) {
+        try {
+          const refRes = await client.auth.refreshSession();
+          if (refRes.data?.session) {
+            session = refRes.data.session;
+            if (typeof saveSessionToStorage === 'function') {
+              saveSessionToStorage(session, session.user);
+            }
+          }
+        } catch (refErr) {
+          console.warn('[SonicAdmin] Refresh session attempt failed:', refErr);
+        }
+      }
+
+      // 3. Final verification
+      if (!session || !session.user) {
         throw new Error('row-level security: No active admin session found. Please sign in again.');
       }
-      return data.session;
+      return session;
+    }
+
+    async function executeResilientAdminDelete(client, tableName, id) {
+      if (!client) throw new Error('Supabase client is not initialized.');
+      if (!id) throw new Error('Item ID is required for deletion.');
+
+      // 1. Ensure active, fresh admin session
+      await requireActiveAdminSession(client);
+
+      // 2. Perform delete on target table
+      let res = await client.from(tableName).delete().eq('id', id);
+
+      // If delete failed due to auth/JWT/RLS, refresh session and retry once
+      if (res.error && (res.error.code === 'PGRST301' || String(res.error.message || '').includes('JWT') || String(res.error.message || '').includes('security') || res.error.status === 401 || res.error.status === 403)) {
+        console.warn(`[SonicAdmin] Delete ${tableName} failed with auth error, attempting token refresh & retry...`, res.error);
+        await requireActiveAdminSession(client);
+        res = await client.from(tableName).delete().eq('id', id);
+      }
+
+      if (res.error) throw res.error;
+
+      // 3. Clean up associated draft in portfolio_drafts table (by id or by slug in listing_data)
+      try {
+        await client.from('portfolio_drafts').delete().eq('id', id);
+      } catch (_) {}
+      try {
+        await client.from('portfolio_drafts').delete().filter('listing_data->>slug', 'eq', id);
+      } catch (_) {}
+
+      // 4. Clean up local browser draft cache (matching ID or slug)
+      try {
+        window.localStorage.removeItem('tsm_draft_' + id);
+        let index = JSON.parse(window.localStorage.getItem('tsm_drafts_index') || '[]');
+        if (Array.isArray(index)) {
+          index = index.filter(x => x && x.id !== id && x.slug !== id);
+          window.localStorage.setItem('tsm_drafts_index', JSON.stringify(index));
+        }
+        const lastActive = window.localStorage.getItem('tsm_last_active_draft');
+        if (lastActive) {
+          const parsed = JSON.parse(lastActive);
+          if (parsed && (parsed.id === id || parsed.slug === id)) {
+            window.localStorage.removeItem('tsm_last_active_draft');
+          }
+        }
+      } catch (_) {}
+
+      return res;
     }
 
     // One-time, non-destructive builder schema migration. Existing content is
@@ -5193,12 +5293,8 @@
       }
       try {
         const client = getSupabase();
-        await requireActiveAdminSession(client);
-
-        // 1. Delete from Supabase portfolio_items and drafts
-        const { error } = await client.from('portfolio_items').delete().eq('id', id);
-        if (error) throw error;
-        await client.from('portfolio_drafts').delete().eq('id', id).catch(() => {});
+        // 1. Delete from Supabase portfolio_items, drafts and localStorage with session retry
+        await executeResilientAdminDelete(client, 'portfolio_items', id);
 
         // 2. Remove item from local state and systematically re-sequence all remaining projects
         state.portfolio = state.portfolio.filter(item => item.id !== id);
@@ -6191,11 +6287,8 @@
       }
       try {
         const client = getSupabase();
-        await requireActiveAdminSession(client);
-
-        const { error } = await client.from('case_studies').delete().eq('id', id);
-        if (error) throw error;
-        await client.from('portfolio_drafts').delete().eq('id', id).catch(() => {});
+        // 1. Delete from Supabase case_studies, drafts and localStorage with session retry
+        await executeResilientAdminDelete(client, 'case_studies', id);
 
         state.casestudies = state.casestudies.filter(item => item.id !== id);
         state.casestudies.forEach((item, index) => {
@@ -6531,11 +6624,8 @@
       }
       try {
         const client = getSupabase();
-        await requireActiveAdminSession(client);
-
-        const { error } = await client.from('journal_posts').delete().eq('id', id);
-        if (error) throw error;
-        await client.from('portfolio_drafts').delete().eq('id', id).catch(() => {});
+        // 1. Delete from Supabase journal_posts, drafts and localStorage with session retry
+        await executeResilientAdminDelete(client, 'journal_posts', id);
 
         state.journal = state.journal.filter(item => item.id !== id);
         state.journal.forEach((item, index) => {

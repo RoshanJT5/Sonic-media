@@ -197,7 +197,7 @@
     try {
       Object.defineProperty(section.settings, 'customContainers', {
         configurable: true,
-        enumerable: false,
+        enumerable: true,
         get() { return section.nodes; },
         set(value) {
           section.nodes = Array.isArray(value)
@@ -250,6 +250,11 @@
 
   function serializeSections(sections) {
     const migrated = migrateSections(sections);
+    migrated.forEach(sec => {
+      if (sec && sec.settings) {
+        sec.settings.customContainers = Array.isArray(sec.nodes) ? sec.nodes : (Array.isArray(sec.settings.customContainers) ? sec.settings.customContainers : []);
+      }
+    });
     return JSON.parse(JSON.stringify(migrated));
   }
 
@@ -992,6 +997,7 @@
       const opacityStyle = (c.opacity !== undefined && c.opacity !== '') ? `opacity:${c.opacity};` : '';
       const zIndexStyle = c.zIndex ? `z-index:${c.zIndex};` : '';
 
+      const maxWStyle = cWidth && cWidth !== 'auto' && !String(cWidth).endsWith('%') ? `max-width:${cWidth};` : 'max-width:100%;';
       return `
         <div class="custom-container-item custom-container-${cType} ${c.imageUrl ? 'has-uploaded-image' : 'is-empty-upload'}"
              id="ccont_${cId}"
@@ -999,7 +1005,7 @@
              data-container-type="${cType}"
              data-sec-id="${section.id}"
              data-rotation="${rot}"
-             style="position:relative;width:${cWidth};height:${cHeight};max-width:100%;box-sizing:border-box;border-radius:${bRadius};overflow:visible;${bgStyle}${borderStyle}${shadowStyle}${opacityStyle}${zIndexStyle}${transformStyle}">
+             style="position:relative;width:${cWidth};height:${cHeight};${maxWStyle}box-sizing:border-box;border-radius:${bRadius};overflow:visible;${bgStyle}${borderStyle}${shadowStyle}${opacityStyle}${zIndexStyle}${transformStyle}">
           ${innerContent}
         </div>
       `;
@@ -3294,8 +3300,14 @@
         // setting. Old drafts may contain per-slide resize values; applying
         // those values makes one slide narrower and leaves a blank seam before
         // the next slide. Focal point, rotation and visual styling remain valid.
-        if (st.width && !isCarouselTrackSlide) setStyleProp(el, 'width', 'width', st.width);
-        if (st.height && !isCarouselTrackSlide) setStyleProp(el, 'height', 'height', st.height);
+        if (st.width && !isCarouselTrackSlide) {
+          setStyleProp(el, 'width', 'width', st.width);
+          setStyleProp(el, 'maxWidth', 'max-width', st.width);
+        }
+        if (st.height && !isCarouselTrackSlide) {
+          setStyleProp(el, 'height', 'height', st.height);
+          setStyleProp(el, 'minHeight', 'min-height', st.height);
+        }
 
         // Container layers may own several textual children. Mirror saved
         // typography onto those children because template-level inline styles

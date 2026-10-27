@@ -758,39 +758,118 @@
       let hasRendered = false;
       let hasAuthoritativeLocalPreview = false;
       const requestedPreview = new URLSearchParams(window.location.search).get('preview') === 'true';
+
+      function resolveLocalDraft(slug) {
+        if (!slug) return null;
+        const clean = String(slug).toLowerCase().trim();
+        let raw = localStorage.getItem('tsm_draft_' + clean);
+        if (!raw) raw = localStorage.getItem('tsm_draft_' + slug);
+        if (!raw) {
+          try {
+            const snap = JSON.parse(localStorage.getItem('tsm_live_preview_snapshot') || 'null');
+            if (snap && snap.sections && Array.isArray(snap.sections) && snap.sections.length > 0) {
+              const snapId = String(snap.id || '').toLowerCase().trim();
+              if (snapId === clean || requestedPreview) {
+                return snap;
+              }
+            }
+          } catch (_) { }
+        }
+        if (!raw) {
+          try {
+            const targetKey = ('tsm_draft_' + clean).toLowerCase();
+            for (let i = 0; i < localStorage.length; i++) {
+              const k = localStorage.key(i);
+              if (k && k.toLowerCase() === targetKey) {
+                raw = localStorage.getItem(k);
+                break;
+              }
+            }
+          } catch (_) { }
+        }
+        if (raw) {
+          try { return JSON.parse(raw); } catch (_) { }
+        }
+        return null;
+      }
+
       let adminAccessToken = '';
+      let storedSession = null;
       try {
         const rawSession = window.sessionStorage?.getItem('sonicmedia_admin_session') || window.localStorage?.getItem('sonicmedia_admin_session');
-        const storedSession = rawSession ? JSON.parse(rawSession) : null;
+        storedSession = rawSession ? JSON.parse(rawSession) : null;
         const nowSec = Math.floor(Date.now() / 1000);
         if (storedSession && storedSession.access_token && (!storedSession.expires_at || nowSec < storedSession.expires_at)) {
           adminAccessToken = storedSession.access_token;
         }
       } catch (_) { }
-      const canPreviewDraft = requestedPreview && !!adminAccessToken;
 
-      if (requestedPreview && !canPreviewDraft) {
+      const localDraft = resolveLocalDraft(currentCaseId);
+      const hasAdminIndicator = !!adminAccessToken || !!storedSession || !!localStorage.getItem('sonicmedia_admin_session');
+      const canPreviewDraft = requestedPreview && (hasAdminIndicator || !!localDraft);
+
+      if (requestedPreview && !canPreviewDraft && !localDraft) {
         renderCaseStudyPreviewDenied();
         return;
       }
 
       // 1: Check instant local draft from Visual Builder for 0ms identical sync with Live Preview
+      if (localDraft && Array.isArray(localDraft.sections) && localDraft.sections.length > 0) {
+        hasRendered = true;
+        renderCaseStudy(Object.assign({}, localDraft, localDraft.listing_data || {}, {
+          title: localDraft.name || localDraft.title || (localDraft.listing_data && localDraft.listing_data.name),
+          sections: localDraft.sections,
+          status: 'draft',
+          publication_status: 'draft'
+        }), true);
+        hasAuthoritativeLocalPreview = requestedPreview;
+      }
+
+      // Set up real-time multi-tab sync so edits in builder / live preview update this preview tab instantly
       try {
-        const cleanSlug = currentCaseId.toLowerCase();
-        const localDraftRaw = localStorage.getItem('tsm_draft_' + cleanSlug) || localStorage.getItem('tsm_draft_' + currentCaseId);
-        if (localDraftRaw && (canPreviewDraft || requestedPreview || adminAccessToken)) {
-          const draft = JSON.parse(localDraftRaw);
-          if (draft && Array.isArray(draft.sections) && draft.sections.length > 0) {
-            hasRendered = true;
-            renderCaseStudy(Object.assign({}, draft, draft.listing_data || {}, {
-              title: draft.name,
-              sections: draft.sections,
-              status: 'draft'
-            }), canPreviewDraft || requestedPreview);
-            hasAuthoritativeLocalPreview = requestedPreview;
+        if (typeof BroadcastChannel !== 'undefined') {
+          const bc = new BroadcastChannel('sonicmedia_preview_sync');
+          bc.onmessage = function (ev) {
+            if (ev.data && ev.data.type === 'TSM_PREVIEW_SYNC') {
+              const draft = ev.data.draft;
+              const msgSlug = String(ev.data.slug || '').toLowerCase().trim();
+              const mySlug = currentCaseId.toLowerCase().trim();
+              if (draft && Array.isArray(draft.sections) && (!msgSlug || msgSlug === mySlug || requestedPreview)) {
+                const liveData = Object.assign({}, draft, draft.listing_data || {}, {
+                  title: draft.name || draft.title || (draft.listing_data && draft.listing_data.name),
+                  sections: draft.sections,
+                  status: 'draft',
+                  publication_status: 'draft'
+                });
+                renderCaseStudy(liveData, true);
+              }
+            }
+          };
+          if (requestedPreview) {
+            bc.postMessage({ type: 'TSM_REQUEST_LIVE_PREVIEW_DATA', slug: currentCaseId });
           }
         }
       } catch (_) { }
+
+      window.addEventListener('storage', function (e) {
+        if (!e.key) return;
+        const k = e.key.toLowerCase();
+        const mySlug = currentCaseId.toLowerCase().trim();
+        if (k === 'tsm_draft_' + mySlug || k === 'tsm_live_preview_snapshot') {
+          try {
+            const draft = JSON.parse(e.newValue);
+            if (draft && Array.isArray(draft.sections) && draft.sections.length > 0) {
+              const liveData = Object.assign({}, draft, draft.listing_data || {}, {
+                title: draft.name || draft.title || (draft.listing_data && draft.listing_data.name),
+                sections: draft.sections,
+                status: 'draft',
+                publication_status: 'draft'
+              });
+              renderCaseStudy(liveData, true);
+            }
+          } catch (_) { }
+        }
+      });
 
       // Keep the exact builder snapshot authoritative in its New Tab preview.
       if (hasAuthoritativeLocalPreview) return;
