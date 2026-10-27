@@ -2935,9 +2935,10 @@
             .replace(/&amp;apos;/gi, "'")
             .replace(/&amp;quot;/gi, '"')
             .replace(/&quot;/gi, '"')
-            .replace(/&amp;amp;/gi, '&')
             .replace(/&amp;lt;/gi, '<')
-            .replace(/&amp;gt;/gi, '>');
+            .replace(/&amp;gt;/gi, '>')
+            .replace(/&amp;amp;/gi, '&')
+            .replace(/&amp;/gi, '&');
           if (result === prev) break;
         }
         return result;
@@ -3189,13 +3190,24 @@
               }
             }
 
-            const secSub = secEl.querySelector('.hero-desc, .sec-subheading, .sec-subtitle, .wd-sub');
+            const secSub = secEl.querySelector('.hero-subtitle, .sec-subheading, .sec-subtitle, .wd-sub');
             if (secSub && !secSub.closest('.custom-container-item, .wd-narrative-card, .wd-gallery-card, .cards-grid-item, .sec-col')) {
               const sHtml = extractCleanEditableHtml(secSub);
               if (sHtml) {
                 sec.content.subtitle = sHtml;
                 sec.content.subheading = sHtml;
                 sec.content.sub = sHtml;
+              }
+            }
+
+            const secDesc = secEl.querySelector('.wd-article-body, .sec-desc, .hero-desc, blockquote');
+            if (secDesc && !secDesc.closest('.custom-container-item, .wd-narrative-card, .wd-gallery-card, .cards-grid-item, .sec-col')) {
+              const dHtml = extractCleanEditableHtml(secDesc);
+              if (dHtml) {
+                if (sec.content.body !== undefined) sec.content.body = dHtml;
+                if (sec.content.description !== undefined) sec.content.description = dHtml;
+                if (sec.content.desc !== undefined) sec.content.desc = dHtml;
+                if (sec.type === 'quote' || sec.type === 'testimonial') sec.content.quote = dHtml;
               }
             }
 
@@ -8240,8 +8252,6 @@
           syncInspectorInput('subtitle', contentHtml);
           syncInspectorInput('subheading', contentHtml);
         } else if (isDesc) {
-          sec.content.subtitle = contentHtml;
-          sec.content.subheading = contentHtml;
           sec.content.description = contentHtml;
           sec.content.desc = contentHtml;
           sec.content.body = contentHtml;
@@ -10336,106 +10346,70 @@
 
           // 16. Section-level Headings across ANY section
           if (cardEl.matches('.sec-heading, .hero-title, .wd-cta-heading, .wd-h1, h1, h2, h3, h4')) {
-            if (sec.content.heading !== undefined) {
-              sec.content.heading = '';
-              cleanupElementSettings('heading');
-              markUnsaved();
-              pushHistory();
-              renderCanvas();
-              renderProperties();
-              renderTree();
-              showToast('✓ Heading deleted');
-              return;
-            } else if (sec.content.title !== undefined) {
-              sec.content.title = '';
-              cleanupElementSettings('heading');
-              markUnsaved();
-              pushHistory();
-              renderCanvas();
-              renderProperties();
-              renderTree();
-              showToast('✓ Heading deleted');
-              return;
-            }
+            sec.content.heading = '';
+            sec.content.title = '';
+            sec.content.header = '';
+            if (sec.type === 'heading') sec.content.text = '';
+            cleanupElementSettings('heading');
+            markUnsaved();
+            pushHistory();
+            renderCanvas();
+            renderProperties();
+            renderTree();
+            showToast('✓ Heading deleted');
+            return;
           }
 
-          // 17. Section-level Eyebrows / Subheadings across ANY section
-          if (cardEl.matches('.wd-eyebrow, .project-eyebrow, .sec-eyebrow, .sec-subheading, .hero-eyebrow, .sec-subtitle')) {
-            if (sec.content.eyebrow !== undefined) {
-              sec.content.eyebrow = '';
-              cleanupElementSettings('eyebrow');
-              markUnsaved();
-              pushHistory();
-              renderCanvas();
-              renderProperties();
-              renderTree();
-              showToast('✓ Subtitle deleted');
-              return;
-            } else if (sec.content.subheading !== undefined) {
-              sec.content.subheading = '';
-              cleanupElementSettings('eyebrow');
-              markUnsaved();
-              pushHistory();
-              renderCanvas();
-              renderProperties();
-              renderTree();
-              showToast('✓ Subheading deleted');
-              return;
-            } else if (sec.content.subtitle !== undefined) {
-              sec.content.subtitle = '';
-              cleanupElementSettings('eyebrow');
-              markUnsaved();
-              pushHistory();
-              renderCanvas();
-              renderProperties();
-              renderTree();
-              showToast('✓ Subtitle deleted');
-              return;
-            }
+          // 17A. Section-level Subheadings across ANY section
+          if (cardEl.matches('.sec-subheading, .sec-subtitle, .wd-sub, .hero-subtitle')) {
+            sec.content.subheading = '';
+            sec.content.subtitle = '';
+            sec.content.sub = '';
+            cleanupElementSettings('subheading');
+            cleanupElementSettings('subtitle');
+            cleanupElementSettings('eyebrow');
+            markUnsaved();
+            pushHistory();
+            renderCanvas();
+            renderProperties();
+            renderTree();
+            showToast('✓ Subheading deleted');
+            return;
+          }
+
+          // 17B. Section-level Eyebrows across ANY section
+          if (cardEl.matches('.wd-eyebrow, .project-eyebrow, .sec-eyebrow, .hero-eyebrow, .badge-label')) {
+            sec.content.eyebrow = '';
+            sec.content.badge = '';
+            cleanupElementSettings('eyebrow');
+            markUnsaved();
+            pushHistory();
+            renderCanvas();
+            renderProperties();
+            renderTree();
+            showToast('✓ Eyebrow deleted');
+            return;
           }
 
           // 18. Section-level Descriptions / Body text across ANY section
           if (cardEl.matches('.sec-desc, .hero-desc, .wd-article-body, .wd-cta-sub, .wd-cta-desc, blockquote, p')) {
-            if (sec.content.description !== undefined) {
-              sec.content.description = '';
-              cleanupElementSettings('text');
-              markUnsaved();
-              pushHistory();
-              renderCanvas();
-              renderProperties();
-              renderTree();
-              showToast('âœ“ Description deleted');
-              return;
-            } else if (sec.content.desc !== undefined) {
-              sec.content.desc = '';
-              cleanupElementSettings('text');
-              markUnsaved();
-              pushHistory();
-              renderCanvas();
-              renderProperties();
-              renderTree();
-              showToast('✓ Description deleted');
-              return;
-            } else if (sec.content.body !== undefined) {
-              sec.content.body = '';
-              cleanupElementSettings('text');
-              markUnsaved();
-              pushHistory();
-              renderCanvas();
-              renderProperties();
-              renderTree();
-              showToast('✓ Text body deleted');
-              return;
-            } else if (sec.content.quote !== undefined) {
+            sec.content.description = '';
+            sec.content.desc = '';
+            sec.content.body = '';
+            if (sec.type !== 'heading') sec.content.text = '';
+            if (sec.type === 'quote' || sec.type === 'testimonial' || cardEl.matches('blockquote')) {
               sec.content.quote = '';
-              cleanupElementSettings('text');
-              markUnsaved();
-              pushHistory();
-              renderCanvas();
-              renderProperties();
-              showToast('✓ Quote deleted');
-              return;
             }
+            cleanupElementSettings('text');
+            cleanupElementSettings('description');
+            cleanupElementSettings('body');
+            markUnsaved();
+            pushHistory();
+            renderCanvas();
+            renderProperties();
+            renderTree();
+            showToast('✓ Description deleted');
+            return;
           }
 
           // Any remaining card candidate is the root card of a prebuilt
@@ -11273,14 +11247,19 @@
               syncInspectorInput('heading', html);
               syncInspectorInput('title', html);
             } else if (el.matches('.wd-cta-desc, .wd-cta-sub')) {
-              sec.content.desc = html;
-              sec.content.description = html;
-              sec.content.subtitle = html;
-              sec.content.subheading = html;
-              sec.content.body = html;
-              syncInspectorInput('desc', html);
-              syncInspectorInput('description', html);
-              syncInspectorInput('body', html);
+              if (el.matches('.wd-cta-sub')) {
+                sec.content.subtitle = html;
+                sec.content.subheading = html;
+                syncInspectorInput('subtitle', html);
+                syncInspectorInput('subheading', html);
+              } else {
+                sec.content.desc = html;
+                sec.content.description = html;
+                sec.content.body = html;
+                syncInspectorInput('desc', html);
+                syncInspectorInput('description', html);
+                syncInspectorInput('body', html);
+              }
             } else if (el.matches('.custom-sec-btn, .custom-btn-action')) {
               sec.settings = sec.settings || {};
               const rawIdx = el.getAttribute('data-btn-idx');
@@ -11315,8 +11294,6 @@
               sec.content.subtitle = html;
               sec.content.subheading = html;
               sec.content.sub = html;
-              sec.content.description = html;
-              sec.content.desc = html;
               syncInspectorInput('subheading', html);
               syncInspectorInput('subtitle', html);
             } else if (el.matches('blockquote, .sec-quote-box')) {
@@ -11329,8 +11306,6 @@
               syncInspectorInput('description', html);
               syncInspectorInput('body', html);
             } else if (el.matches('.sec-desc, .wd-article-body, p, .hero-desc')) {
-              sec.content.subtitle = html;
-              sec.content.subheading = html;
               sec.content.body = html;
               sec.content.description = html;
               sec.content.desc = html;
@@ -11938,9 +11913,22 @@
             if (seenEls.has(ey)) return;
             seenEls.add(ey);
             const parentCard = ey.closest('.wd-narrative-card, .wd-deliverable-item, .cards-grid-item, .sec-col, .sec-col-card, .sec-feature-card, .client-logo-item, .testimonial-card, .wd-gallery-card, .wd-meta-cell, .sec-carousel-slide, .sec-hover-card, .sec-cta-card, .sec-grid-item, .sec-list-item');
-            const key = parentCard ? `card-ey-${idx}` : (idx === 0 ? 'eyebrow' : `eyebrow-${idx}`);
-            const label = parentCard ? `Item Subtitle` : (idx === 0 ? 'Title / Eyebrow' : `Title ${idx + 1}`);
-            candidates.push({ el: ey, key, label, type: 'eyebrow' });
+            const isSub = ey.matches('.sec-subheading, .sec-subtitle, .wd-sub, .hero-subtitle');
+            let key, label, type;
+            if (parentCard) {
+              key = `card-ey-${idx}`;
+              label = `Item Subtitle`;
+              type = 'eyebrow';
+            } else if (isSub) {
+              key = idx === 0 ? 'subheading' : `subheading-${idx}`;
+              label = idx === 0 ? 'Subheading' : `Subheading ${idx + 1}`;
+              type = 'subtitle';
+            } else {
+              key = idx === 0 ? 'eyebrow' : `eyebrow-${idx}`;
+              label = idx === 0 ? 'Title / Eyebrow' : `Title ${idx + 1}`;
+              type = 'eyebrow';
+            }
+            candidates.push({ el: ey, key, label, type });
           });
 
           // 3. Descriptions, Paragraphs, Quotes & Rich Text
@@ -14235,8 +14223,6 @@
             syncInspectorInput('subtitle', storedVal);
             syncInspectorInput('subheading', storedVal);
           } else if (isText) {
-            sec.content.subtitle = storedVal;
-            sec.content.subheading = storedVal;
             sec.content.description = storedVal;
             sec.content.desc = storedVal;
             sec.content.body = storedVal;
@@ -17137,9 +17123,11 @@
         let processedVal = val;
         const isMediaField = ['url', 'imageUrl', 'bgImage', 'avatar', 'beforeUrl', 'afterUrl'].includes(key);
         if (typeof val === 'string' && key !== 'html' && !isMediaField) {
-          processedVal = isFormattedInternal
-            ? sanitizeContentFormatting(val)
-            : replaceFormattedTextPreservingStyles(sec.content[key] || '', val);
+          if (isFormattedInternal || (key === 'body' && val.includes('<'))) {
+            processedVal = sanitizeContentFormatting(val);
+          } else {
+            processedVal = replaceFormattedTextPreservingStyles(sec.content[key] || '', val);
+          }
           sec.content[key] = processedVal;
         } else {
           sec.content[key] = val;
@@ -19038,6 +19026,20 @@
                   });
                 };
                 healObj(sec.content);
+              }
+
+              // Auto-heal rich_text: purge corrupted ghost subheadings across all loaded projects
+              if (sec && sec.type === 'rich_text' && sec.content) {
+                const c = sec.content;
+                if (c.subheading && typeof c.subheading === 'string') {
+                  const cleanSub = c.subheading.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+                  const cleanBody = (c.body || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+                  const cleanDesc = (c.description || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+                  if (cleanSub === cleanBody || cleanSub === cleanDesc || (cleanSub.length > 50 && (cleanBody.startsWith(cleanSub) || cleanDesc.startsWith(cleanSub)))) {
+                    c.subheading = '';
+                    if (c.subtitle) c.subtitle = '';
+                  }
+                }
               }
 
               // Auto-heal any squashed customWidth (< 540px)

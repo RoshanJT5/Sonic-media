@@ -21,9 +21,10 @@
         .replace(/&amp;apos;/gi, "'")
         .replace(/&amp;quot;/gi, '"')
         .replace(/&quot;/gi, '"')
-        .replace(/&amp;amp;/gi, '&')
         .replace(/&amp;lt;/gi, '<')
-        .replace(/&amp;gt;/gi, '>');
+        .replace(/&amp;gt;/gi, '>')
+        .replace(/&amp;amp;/gi, '&')
+        .replace(/&amp;/gi, '&');
       if (result === prev) break;
     }
     return result;
@@ -260,6 +261,20 @@
     section.kind = 'section';
     section.schemaVersion = BUILDER_SCHEMA_VERSION;
     section.settings = section.settings && typeof section.settings === 'object' ? section.settings : {};
+
+    // Global auto-healing for rich_text: purge corrupted ghost subheadings
+    if (section.type === 'rich_text' && section.content && typeof section.content === 'object') {
+      const c = section.content;
+      if (c.subheading && typeof c.subheading === 'string') {
+        const cleanSub = c.subheading.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+        const cleanBody = (c.body || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+        const cleanDesc = (c.description || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+        if (cleanSub === cleanBody || cleanSub === cleanDesc || (cleanSub.length > 50 && (cleanBody.startsWith(cleanSub) || cleanDesc.startsWith(cleanSub)))) {
+          c.subheading = '';
+          if (c.subtitle) c.subtitle = '';
+        }
+      }
+    }
 
     const legacyNodes = Array.isArray(section.nodes)
       ? section.nodes
@@ -1294,7 +1309,7 @@
     createDefault: () => ({
       content: {
         heading: 'Strategic Deep Dive',
-        subheading: 'Behind the creative execution and measurable outcomes',
+        subheading: '',
         body: '<p>Write your detailed story, methodology, client interview, or results analysis here. You can format paragraphs, bullet points, links, and bold highlights easily.</p>'
       },
       settings: {
@@ -1311,11 +1326,24 @@
       const bodyHtml = sanitizeRichText(c.body || '');
       const fSize = s.fontSize ? `font-size:${parseInt(s.fontSize)}px;` : '';
 
+      // Global guard: suppress duplicate ghost subheading if identical or duplicated from body/description
+      let hasValidSubheading = false;
+      if (c.subheading && typeof c.subheading === 'string' && c.subheading.trim().length > 0) {
+        const cleanSub = c.subheading.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+        const cleanBody = (c.body || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+        const cleanDesc = (c.description || '').replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+        const isDupeOfBody = cleanSub === cleanBody || (cleanSub.length > 50 && cleanBody.startsWith(cleanSub));
+        const isDupeOfDesc = cleanDesc && (cleanSub === cleanDesc || (cleanSub.length > 50 && cleanDesc.startsWith(cleanSub)));
+        if (!isDupeOfBody && !isDupeOfDesc) {
+          hasValidSubheading = true;
+        }
+      }
+
       const inner = `
         <div style="max-width:${maxW};margin:0 auto;">
           <div class="${s.cardStyle ? 'wd-full-card' : ''}" style="${s.cardStyle ? 'padding:40px 36px;' : ''}">
             ${c.heading ? `<h2 class="sec-heading">${renderFormattedText(c.heading)}</h2>` : ''}
-            ${c.subheading ? `<div class="sec-subheading">${renderFormattedText(c.subheading)}</div>` : ''}
+            ${hasValidSubheading ? `<div class="sec-subheading">${renderFormattedText(c.subheading)}</div>` : ''}
             <div class="wd-article-body" style="margin-top:18px;${fSize}">
               ${bodyHtml}
             </div>
@@ -3252,6 +3280,7 @@
     const firstFor = group => secEl.querySelector(selectorGroups[group]);
     if (key === 'heading') return firstFor('heading');
     if (key === 'eyebrow') return firstFor('eyebrow');
+    if (key === 'subheading' || key === 'subtitle') return secEl.querySelector('.sec-subheading, .sec-subtitle, .wd-sub, .hero-subtitle') || firstFor('eyebrow');
     if (key === 'text' || key === 'description') return firstFor('text');
     if (key === 'button') return firstFor('button');
     if (key === 'image') return secEl.querySelector('.sec-img-col, .sec-img-wrap, .sec-img-holder, img');
@@ -3259,6 +3288,7 @@
     const indexedPatterns = [
       [/^heading-(\d+)$/, 'heading'], [/^card-h-(\d+)$/, 'heading'],
       [/^eyebrow-(\d+)$/, 'eyebrow'], [/^card-ey-(\d+)$/, 'eyebrow'],
+      [/^subheading-(\d+)$/, 'eyebrow'], [/^subtitle-(\d+)$/, 'eyebrow'],
       [/^text-(\d+)$/, 'text'], [/^card-desc-(\d+)$/, 'text'],
       [/^button-(\d+)$/, 'button']
     ];
