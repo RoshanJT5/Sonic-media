@@ -146,6 +146,30 @@
     return value;
   }
 
+  function formatRichTextHtml(html) {
+    if (!html || typeof html !== 'string') return '';
+    let str = html.trim();
+    if (!str) return '';
+
+    const hasBlockTags = /<(?:p|div|h[1-6]|ul|ol|blockquote|table)\b/i.test(str);
+    if (!hasBlockTags) {
+      return str
+        .split(/\r?\n\s*\r?\n/)
+        .map(p => p.trim())
+        .filter(Boolean)
+        .map(p => '<p>' + p.replace(/\r?\n/g, '<br>') + '</p>')
+        .join('');
+    }
+
+    if (/\r?\n\s*\r?\n/.test(str)) {
+      str = str.replace(/\r?\n\s*\r?\n/g, '</p><p>');
+      str = str.replace(/<p>\s*<\/p>/gi, '');
+    }
+
+    str = str.replace(/(?:<br\s*\/?>\s*){2,}/gi, '</p><p>');
+    return str;
+  }
+
   function sanitizeRichText(html) {
     if (!html) return '';
     const quoteToken = '__SONIC_HTML_QUOTE__';
@@ -273,6 +297,9 @@
           c.subheading = '';
           if (c.subtitle) c.subtitle = '';
         }
+      }
+      if (c.body && typeof c.body === 'string' && (c.body.includes('\n\n') || !/<[a-z][\s\S]*>/i.test(c.body))) {
+        c.body = formatRichTextHtml(c.body);
       }
     }
 
@@ -1125,6 +1152,8 @@
       return Array.from(cats);
     },
 
+    formatRichTextHtml: formatRichTextHtml,
+
     createSection(type, customContent, customSettings) {
       const def = this.get(type);
       if (!def) throw new Error('Unknown section type: ' + type);
@@ -1323,7 +1352,8 @@
       const c = section.content || {};
       const s = section.settings || {};
       const maxW = s.maxWidth === 'narrow' ? '760px' : (s.maxWidth === 'wide' ? '1100px' : '920px');
-      const bodyHtml = sanitizeRichText(c.body || '');
+      const rawBody = c.body || c.description || '';
+      const bodyHtml = sanitizeRichText(formatRichTextHtml(rawBody));
       const fSize = s.fontSize ? `font-size:${parseInt(s.fontSize)}px;` : '';
 
       // Global guard: suppress duplicate ghost subheading if identical or duplicated from body/description

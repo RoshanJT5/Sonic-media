@@ -1353,6 +1353,14 @@
       font-size: 12px;
       color: var(--text-muted);
     }
+
+    .wd-article-body p {
+      margin-bottom: 20px;
+      line-height: 1.85;
+    }
+    .wd-article-body p:last-child {
+      margin-bottom: 0;
+    }
   </style>
 </head>
 
@@ -5069,9 +5077,12 @@
         const sectionEl = document.getElementById('canvas_sec_' + sectionId);
         const matchedElement = findRenderedSectionContentElement(sectionEl, key);
         if (!matchedElement) return false;
-        const target = matchedElement.matches('h1,h2,h3,h4,h5,h6,p,blockquote,a,button,[contenteditable="true"]')
+        const isBodyContainer = matchedElement.matches('.wd-article-body, .sec-rich-text, .sec-content-col');
+        const target = isBodyContainer
           ? matchedElement
-          : (matchedElement.querySelector('h1,h2,h3,h4,h5,h6,p,blockquote,a,button,[contenteditable="true"]') || matchedElement);
+          : (matchedElement.matches('h1,h2,h3,h4,h5,h6,p,blockquote,a,button,[contenteditable="true"]')
+            ? matchedElement
+            : (matchedElement.querySelector('h1,h2,h3,h4,h5,h6,p,blockquote,a,button,[contenteditable="true"]') || matchedElement));
 
         const nextHtml = typeof value === 'string'
           ? sanitizeContentFormatting(value)
@@ -5418,6 +5429,10 @@
             e.preventDefault();
             e.stopPropagation();
 
+            if (typeof flushCanvasDomToState === 'function') {
+              flushCanvasDomToState();
+            }
+
             try { h.setPointerCapture(e.pointerId); } catch (_) {}
             activeHandle = h.getAttribute('data-handle');
             const secId = h.getAttribute('data-sec-id');
@@ -5532,6 +5547,10 @@
                 } else {
                   targetSettings.customWidth = Math.round(curW) + 'px';
                 }
+              }
+
+              if (typeof flushCanvasDomToState === 'function') {
+                flushCanvasDomToState();
               }
 
               pushHistory();
@@ -7206,12 +7225,22 @@
 
       function plainTextFromFormattedContent(value) {
         if (value === null || value === undefined) return '';
-        const source = stripEditorChromeFromHtml(String(value));
-        if (typeof document === 'undefined' || !document.createElement) return stripHtmlTags(source);
+        let source = stripEditorChromeFromHtml(String(value));
+        if (!source.includes('<')) return source.replace(/\u00a0/g, ' ');
+        // Convert line breaks and paragraph breaks before extracting text
+        source = source
+          .replace(/<br\s*\/?>/gi, '\n')
+          .replace(/<\/(?:p|div|li|h[1-6]|tr|blockquote)>/gi, '\n\n');
+        if (typeof document === 'undefined' || !document.createElement) {
+          return stripHtmlTags(source).replace(/&nbsp;|\u00a0/gi, ' ').replace(/\n{3,}/g, '\n\n').trim();
+        }
         const template = document.createElement('template');
         template.innerHTML = source;
         template.content.querySelectorAll(EDITOR_CHROME_SELECTOR).forEach(node => node.remove());
-        return (template.content.textContent || '').replace(/\u00a0/g, ' ');
+        const text = (template.content.textContent || '')
+          .replace(/\u00a0/g, ' ')
+          .replace(/\n{3,}/g, '\n\n');
+        return text.trim();
       }
 
       function replaceFormattedTextPreservingStyles(value, plainText) {
@@ -11136,6 +11165,8 @@
 
         textEls.forEach(el => {
           if (el.closest('.canvas-resize-handle') || el.closest('.canvas-img-resize-handle') || el.closest('.canvas-section-badge') || el.closest('.canvas-reposition-handle')) return;
+          // Prevent double contenteditable nesting inside .wd-article-body
+          if (el.tagName === 'P' && el.closest('.wd-article-body') && el !== el.closest('.wd-article-body')) return;
 
           el.setAttribute('contenteditable', 'true');
           el.setAttribute('spellcheck', 'false');
@@ -17123,7 +17154,15 @@
         let processedVal = val;
         const isMediaField = ['url', 'imageUrl', 'bgImage', 'avatar', 'beforeUrl', 'afterUrl'].includes(key);
         if (typeof val === 'string' && key !== 'html' && !isMediaField) {
-          if (isFormattedInternal || (key === 'body' && val.includes('<'))) {
+          const isRichField = key === 'body' || (sec.type === 'rich_text' && (key === 'description' || key === 'desc' || key === 'text'));
+          if (isFormattedInternal) {
+            processedVal = sanitizeContentFormatting(val);
+          } else if (isRichField) {
+            const formatter = (window.SectionRegistry && typeof window.SectionRegistry.formatRichTextHtml === 'function')
+              ? window.SectionRegistry.formatRichTextHtml
+              : (typeof formatRichTextHtml === 'function' ? formatRichTextHtml : (s => s));
+            processedVal = sanitizeContentFormatting(formatter(val));
+          } else if (val.includes('<')) {
             processedVal = sanitizeContentFormatting(val);
           } else {
             processedVal = replaceFormattedTextPreservingStyles(sec.content[key] || '', val);
@@ -18637,10 +18676,13 @@
 
         // 7. Full Long-Form Article (if present)
         if (d.articleBody && d.articleBody.trim().length > 0) {
+          const bodyFmt = (window.SectionRegistry && typeof window.SectionRegistry.formatRichTextHtml === 'function')
+            ? window.SectionRegistry.formatRichTextHtml(d.articleBody)
+            : d.articleBody;
           sections.push(window.SectionRegistry.createSection('rich_text', {
             heading: 'In-Depth Case Study & Story',
             subheading: '',
-            body: d.articleBody
+            body: bodyFmt
           }));
         }
 
@@ -18708,10 +18750,13 @@
 
         // 5. Body / Content
         if (c.body && c.body.trim().length > 0) {
+          const bodyFmt = (window.SectionRegistry && typeof window.SectionRegistry.formatRichTextHtml === 'function')
+            ? window.SectionRegistry.formatRichTextHtml(c.body)
+            : c.body;
           sections.push(window.SectionRegistry.createSection('rich_text', {
             heading: 'Strategic Breakdown & Results',
             subheading: '',
-            body: c.body
+            body: bodyFmt
           }));
         }
 
@@ -18746,10 +18791,13 @@
 
         // 2. Body / Content
         if (p.body && p.body.trim().length > 0) {
+          const bodyFmt = (window.SectionRegistry && typeof window.SectionRegistry.formatRichTextHtml === 'function')
+            ? window.SectionRegistry.formatRichTextHtml(p.body)
+            : p.body;
           sections.push(window.SectionRegistry.createSection('rich_text', {
             heading: '',
             subheading: '',
-            body: p.body
+            body: bodyFmt
           }));
         }
 
@@ -19039,6 +19087,12 @@
                     c.subheading = '';
                     if (c.subtitle) c.subtitle = '';
                   }
+                }
+                if (c.body && typeof c.body === 'string' && (c.body.includes('\n\n') || !/<[a-z][\s\S]*>/i.test(c.body))) {
+                  const formatter = (window.SectionRegistry && typeof window.SectionRegistry.formatRichTextHtml === 'function')
+                    ? window.SectionRegistry.formatRichTextHtml
+                    : (typeof formatRichTextHtml === 'function' ? formatRichTextHtml : (s => s));
+                  c.body = formatter(c.body);
                 }
               }
 

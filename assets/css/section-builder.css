@@ -4958,3 +4958,11 @@ body.live-preview-mode .has-element-box.element-active-selected {
   pointer-events: none;
 }
 
+/* Rich Text & Paragraph Block Styling */
+.wd-article-body p {
+  margin-bottom: 20px;
+  line-height: 1.85;
+}
+.wd-article-body p:last-child {
+  margin-bottom: 0;
+}

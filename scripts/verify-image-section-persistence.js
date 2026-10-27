@@ -72,7 +72,7 @@ assert(
   'Testimonial canvas replacement is not mapped to the avatar field.'
 );
 assert(
-  /processCustomContainerImageFile[\s\S]{0,3500}pushHistory\(\);[\s\S]{0,100}saveCurrentDraftLocally\(\);/.test(builder),
+  /processCustomContainerImageFile[\s\S]{0,4500}pushHistory\(\);[\s\S]{0,100}saveCurrentDraftLocally\(\);/.test(builder),
   'Custom image containers do not persist immediately after upload.'
 );
 
