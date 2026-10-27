@@ -2091,7 +2091,8 @@
     <div style="margin-bottom:10px;">
       <label class="prop-label" style="font-size:10.5px;">Web Address / URL</label>
       <input type="text" id="wdpadPopoverUrl" class="prop-input" style="font-size:12px;"
-        placeholder="https://instagram.com/thesonicmedia">
+        placeholder="https://instagram.com/thesonicmedia"
+        onblur="if(this.value && typeof normalizeLinkUrl==='function') this.value=normalizeLinkUrl(this.value);">
     </div>
 
     <!-- Quick Platform Presets -->
@@ -2157,6 +2158,38 @@
       <button type="button" class="btn btn-primary btn-sm"
         style="background:#FF5C00;color:#fff;font-weight:700;padding:6px 16px;font-size:11px;border-radius:16px;"
         onclick="wdpadApplyHyperlinkFromPopover()">✓ Apply Hyperlink</button>
+    </div>
+  </div>
+
+  <!-- MULTI-SELECTION & GROUP REPOSITIONING ACTION BAR -->
+  <div id="builderMultiSelectBar" class="builder-multiselect-bar" style="display:none;" role="toolbar" aria-label="Multi-selection actions">
+    <div class="multiselect-pill">
+      <span class="multiselect-icon">⚏</span>
+      <span id="multiselectCountLabel">0 Selected</span>
+    </div>
+    <div class="multiselect-divider"></div>
+    <div class="multiselect-actions">
+      <button type="button" class="multiselect-btn" onclick="window.alignMultiSelection('left')" title="Align Left Edges">
+        <span>⇤</span> <span>Left</span>
+      </button>
+      <button type="button" class="multiselect-btn" onclick="window.alignMultiSelection('center')" title="Align Centers Horizontally">
+        <span>⇹</span> <span>Center</span>
+      </button>
+      <button type="button" class="multiselect-btn" onclick="window.alignMultiSelection('right')" title="Align Right Edges">
+        <span>⇥</span> <span>Right</span>
+      </button>
+      <button type="button" class="multiselect-btn" onclick="window.alignMultiSelection('top')" title="Align Top Edges">
+        <span>⤊</span> <span>Top</span>
+      </button>
+      <button type="button" class="multiselect-btn" onclick="window.alignMultiSelection('distribute-v')" title="Distribute Vertically Evenly">
+        <span>⇕</span> <span>Distribute</span>
+      </button>
+      <button type="button" class="multiselect-btn multiselect-btn-reset" onclick="window.alignMultiSelection('reset')" title="Reset Positions to (0,0)">
+        <span>↺</span> <span>Reset</span>
+      </button>
+      <button type="button" class="multiselect-btn multiselect-close-btn" onclick="window.clearMultiSelection()" title="Clear Selection (Esc)" aria-label="Clear selection">
+        ✕
+      </button>
     </div>
   </div>
 
@@ -2241,7 +2274,13 @@
         historyIndex: -1,
         isDirty: false,
         isPreviewMode: false,
-        collapsedDrawers: {}
+        collapsedDrawers: {},
+        multiSelection: {
+          active: false,
+          type: null,
+          sectionIds: [],
+          elements: []
+        }
       };
 
       // O(1) lookup for the hot editing path. Structural operations rebuild
@@ -2267,6 +2306,453 @@
           sectionPositionById.set(section.id, index);
         });
       }
+
+      // ══════════════════════════════════════════════════════════════════════════
+      // MULTI-SELECTION & GROUP REPOSITIONING ENGINE
+      // ══════════════════════════════════════════════════════════════════════════
+
+      window.isSectionMultiSelected = function (secId) {
+        return !!(state.multiSelection &&
+          state.multiSelection.active &&
+          state.multiSelection.type === 'section' &&
+          state.multiSelection.sectionIds.includes(secId));
+      };
+
+      window.getSectionMultiSelectPin = function (secId) {
+        if (!state.multiSelection || state.multiSelection.type !== 'section') return 0;
+        const idx = state.multiSelection.sectionIds.indexOf(secId);
+        return idx >= 0 ? idx + 1 : 0;
+      };
+
+      window.isElementMultiSelected = function (elOrKey) {
+        if (!state.multiSelection || !state.multiSelection.active || state.multiSelection.type !== 'element') return false;
+        return state.multiSelection.elements.some(item => item.key === elOrKey || item.el === elOrKey);
+      };
+
+      window.getElementMultiSelectPin = function (elOrKey) {
+        if (!state.multiSelection || state.multiSelection.type !== 'element') return 0;
+        const idx = state.multiSelection.elements.findIndex(item => item.key === elOrKey || item.el === elOrKey);
+        return idx >= 0 ? idx + 1 : 0;
+      };
+
+      window.clearMultiSelection = function (preserveSingleSelect = false) {
+        if (!state.multiSelection) return;
+        state.multiSelection.active = false;
+        state.multiSelection.type = null;
+        state.multiSelection.sectionIds = [];
+        state.multiSelection.elements = [];
+
+        // Clean up section highlights & pins
+        document.querySelectorAll('.canvas-section.is-multi-selected').forEach(el => {
+          el.classList.remove('is-multi-selected');
+        });
+        document.querySelectorAll('.multi-select-pin').forEach(pin => pin.remove());
+        document.querySelectorAll('.tree-item.is-multi-selected, .section-tree-item.is-multi-selected').forEach(el => {
+          el.classList.remove('is-multi-selected');
+        });
+
+        // Clean up element highlights
+        document.querySelectorAll('.element-active-selected.is-multi-selected, .has-element-box.is-multi-selected').forEach(el => {
+          el.classList.remove('is-multi-selected');
+        });
+
+        const bar = document.getElementById('builderMultiSelectBar');
+        if (bar) bar.style.display = 'none';
+
+        if (!preserveSingleSelect && typeof renderTree === 'function') {
+          renderTree();
+        }
+      };
+
+      window.toggleSectionMultiSelect = function (secId, event) {
+        if (!state.multiSelection) {
+          state.multiSelection = { active: false, type: 'section', sectionIds: [], elements: [] };
+        }
+        if (state.multiSelection.type === 'element') {
+          window.clearMultiSelection(true);
+        }
+        state.multiSelection.type = 'section';
+
+        const ids = state.multiSelection.sectionIds;
+        const existingIdx = ids.indexOf(secId);
+
+        if (existingIdx >= 0) {
+          ids.splice(existingIdx, 1);
+        } else {
+          if (ids.length === 0 && state.selectedSectionId && state.selectedSectionId !== secId) {
+            ids.push(state.selectedSectionId);
+          }
+          ids.push(secId);
+        }
+
+        state.multiSelection.active = ids.length > 1;
+
+        if (ids.length === 1) {
+          state.selectedSectionId = ids[0];
+          selectSection(ids[0], false);
+        } else if (ids.length > 1) {
+          state.selectedSectionId = ids[ids.length - 1];
+        }
+
+        window.syncMultiSelectionUi();
+      };
+
+      window.toggleElementMultiSelect = function (el, cand, targetSec, secId, event) {
+        if (!state.multiSelection) {
+          state.multiSelection = { active: false, type: 'element', sectionIds: [], elements: [] };
+        }
+        if (state.multiSelection.type === 'section') {
+          window.clearMultiSelection(true);
+        }
+        state.multiSelection.type = 'element';
+
+        const elems = state.multiSelection.elements;
+        const existingIdx = elems.findIndex(it => it.key === cand.key || it.el === el);
+
+        if (existingIdx >= 0) {
+          elems.splice(existingIdx, 1);
+        } else {
+          if (elems.length === 0) {
+            const activePrev = document.querySelector('.element-active-selected');
+            if (activePrev && activePrev !== el && activePrev._cand) {
+              elems.push({
+                el: activePrev,
+                cand: activePrev._cand,
+                targetSec: activePrev._targetSec || targetSec,
+                secId: activePrev._secId || secId,
+                key: activePrev._cand.key
+              });
+            }
+          }
+          el._cand = cand;
+          el._targetSec = targetSec;
+          el._secId = secId;
+          elems.push({
+            el: el,
+            cand: cand,
+            targetSec: targetSec,
+            secId: secId,
+            key: cand.key
+          });
+        }
+
+        state.multiSelection.active = elems.length > 1;
+        window.syncMultiSelectionUi();
+      };
+
+      window.syncMultiSelectionUi = function () {
+        if (!state.multiSelection) return;
+
+        // Clean previous pins and multi-selected classes
+        document.querySelectorAll('.canvas-section.is-multi-selected').forEach(el => el.classList.remove('is-multi-selected'));
+        document.querySelectorAll('.multi-select-pin').forEach(pin => pin.remove());
+        document.querySelectorAll('.tree-item.is-multi-selected, .section-tree-item.is-multi-selected').forEach(el => el.classList.remove('is-multi-selected'));
+        document.querySelectorAll('.element-active-selected.is-multi-selected, .has-element-box.is-multi-selected').forEach(el => el.classList.remove('is-multi-selected'));
+
+        const bar = document.getElementById('builderMultiSelectBar');
+        const countLabel = document.getElementById('multiselectCountLabel');
+
+        if (!state.multiSelection.active) {
+          if (bar) bar.style.display = 'none';
+          return;
+        }
+
+        if (state.multiSelection.type === 'section') {
+          const ids = state.multiSelection.sectionIds;
+          ids.forEach((id, idx) => {
+            const secEl = document.getElementById('canvas_sec_' + id);
+            if (secEl) {
+              secEl.classList.add('is-multi-selected');
+              const pin = document.createElement('div');
+              pin.className = 'multi-select-pin';
+              pin.textContent = String(idx + 1);
+              pin.title = `Selection #${idx + 1} of ${ids.length}`;
+              secEl.appendChild(pin);
+            }
+            const treeItem = document.querySelector(`.section-tree-item[data-section-id="${id}"]`);
+            if (treeItem) {
+              treeItem.classList.add('is-multi-selected');
+            }
+          });
+
+          if (bar) {
+            bar.style.display = 'flex';
+            if (countLabel) countLabel.textContent = `${ids.length} Containers Selected`;
+          }
+        } else if (state.multiSelection.type === 'element') {
+          const elems = state.multiSelection.elements;
+          elems.forEach((item, idx) => {
+            if (item.el) {
+              item.el.classList.add('is-multi-selected');
+              const pin = document.createElement('div');
+              pin.className = 'multi-select-pin';
+              pin.textContent = String(idx + 1);
+              pin.title = `Selection #${idx + 1} of ${elems.length}`;
+              item.el.appendChild(pin);
+            }
+          });
+
+          if (bar) {
+            bar.style.display = 'flex';
+            if (countLabel) countLabel.textContent = `${elems.length} Elements Selected`;
+          }
+        }
+      };
+
+      window.alignMultiSelection = function (alignment) {
+        if (!state.multiSelection || !state.multiSelection.active) return;
+        const canvasScale = typeof getBuilderCanvasScale === 'function' ? getBuilderCanvasScale() : 1;
+
+        if (state.multiSelection.type === 'section') {
+          const ids = state.multiSelection.sectionIds;
+          const items = [];
+          for (const id of ids) {
+            const sec = state.sections.find(s => s.id === id);
+            const el = document.getElementById('canvas_sec_' + id);
+            if (sec && el) {
+              const effectiveSettings = getEffectiveSettings(sec);
+              const rect = el.getBoundingClientRect();
+              items.push({
+                id,
+                sec,
+                el,
+                rect,
+                curOffsetX: parseInt(effectiveSettings.offsetX || 0),
+                curOffsetY: parseInt(effectiveSettings.offsetY || 0),
+                left: rect.left,
+                centerX: rect.left + rect.width / 2,
+                right: rect.right,
+                top: rect.top,
+                centerY: rect.top + rect.height / 2,
+                bottom: rect.bottom,
+                height: rect.height
+              });
+            }
+          }
+          if (items.length < 2) return;
+
+          if (alignment === 'reset') {
+            items.forEach(it => {
+              const targetSettings = getViewportSettingsTarget(it.sec);
+              targetSettings.offsetX = 0;
+              targetSettings.offsetY = 0;
+              it.el.style.transform = '';
+              it.el.style.setProperty('--sec-ox', '0px');
+              it.el.style.setProperty('--sec-oy', '0px');
+            });
+            markUnsaved();
+            pushHistory();
+            showToast(`✓ Reset positions for ${items.length} containers to (0, 0)`);
+            window.syncMultiSelectionUi();
+            return;
+          }
+
+          if (alignment === 'left') {
+            const minLeft = Math.min(...items.map(it => it.left));
+            items.forEach(it => {
+              const dx = (minLeft - it.left) / canvasScale;
+              const newX = Math.round(it.curOffsetX + dx);
+              const targetSettings = getViewportSettingsTarget(it.sec);
+              targetSettings.offsetX = newX;
+              it.el.style.transform = `translate3d(${newX}px, ${it.curOffsetY}px, 0)`;
+              it.el.style.setProperty('--sec-ox', `${newX}px`);
+            });
+          } else if (alignment === 'center') {
+            const avgCenterX = items.reduce((acc, it) => acc + it.centerX, 0) / items.length;
+            items.forEach(it => {
+              const dx = (avgCenterX - it.centerX) / canvasScale;
+              const newX = Math.round(it.curOffsetX + dx);
+              const targetSettings = getViewportSettingsTarget(it.sec);
+              targetSettings.offsetX = newX;
+              it.el.style.transform = `translate3d(${newX}px, ${it.curOffsetY}px, 0)`;
+              it.el.style.setProperty('--sec-ox', `${newX}px`);
+            });
+          } else if (alignment === 'right') {
+            const maxRight = Math.max(...items.map(it => it.right));
+            items.forEach(it => {
+              const dx = (maxRight - it.right) / canvasScale;
+              const newX = Math.round(it.curOffsetX + dx);
+              const targetSettings = getViewportSettingsTarget(it.sec);
+              targetSettings.offsetX = newX;
+              it.el.style.transform = `translate3d(${newX}px, ${it.curOffsetY}px, 0)`;
+              it.el.style.setProperty('--sec-ox', `${newX}px`);
+            });
+          } else if (alignment === 'top') {
+            const minTop = Math.min(...items.map(it => it.top));
+            items.forEach(it => {
+              const dy = (minTop - it.top) / canvasScale;
+              const newY = Math.round(it.curOffsetY + dy);
+              const targetSettings = getViewportSettingsTarget(it.sec);
+              targetSettings.offsetY = newY;
+              it.el.style.transform = `translate3d(${it.curOffsetX}px, ${newY}px, 0)`;
+              it.el.style.setProperty('--sec-oy', `${newY}px`);
+            });
+          } else if (alignment === 'distribute-v') {
+            items.sort((a, b) => a.top - b.top);
+            const first = items[0];
+            const last = items[items.length - 1];
+            const totalSpan = last.top - first.top;
+            const step = totalSpan / (items.length - 1);
+            items.forEach((it, idx) => {
+              if (idx === 0 || idx === items.length - 1) return;
+              const targetTop = first.top + step * idx;
+              const dy = (targetTop - it.top) / canvasScale;
+              const newY = Math.round(it.curOffsetY + dy);
+              const targetSettings = getViewportSettingsTarget(it.sec);
+              targetSettings.offsetY = newY;
+              it.el.style.transform = `translate3d(${it.curOffsetX}px, ${newY}px, 0)`;
+              it.el.style.setProperty('--sec-oy', `${newY}px`);
+            });
+          }
+
+          markUnsaved();
+          pushHistory();
+          showToast(`✓ Aligned ${items.length} containers (${alignment})`);
+          window.syncMultiSelectionUi();
+
+        } else if (state.multiSelection.type === 'element') {
+          const elems = state.multiSelection.elements;
+          if (elems.length < 2) return;
+
+          if (alignment === 'reset') {
+            elems.forEach(item => {
+              if (item.cand && item.cand.isCustomContainer) {
+                const cObj = getViewportCustomContainer(item.targetSec, item.cand.ccontId);
+                if (cObj) { cObj.offsetX = 0; cObj.offsetY = 0; }
+              } else if (item.cand) {
+                const ts = getViewportSettingsTarget(item.targetSec);
+                ts.elementOffsets = ts.elementOffsets || {};
+                ts.elementOffsets[item.cand.key] = { x: 0, y: 0 };
+              }
+              if (item.el) {
+                item.el.style.setProperty('transform', 'translate3d(0px, 0px, 0px)', 'important');
+              }
+            });
+            markUnsaved();
+            pushHistory();
+            showToast(`✓ Reset positions for ${elems.length} elements to (0, 0)`);
+            window.syncMultiSelectionUi();
+            return;
+          }
+
+          const items = elems.map(item => {
+            const rect = item.el.getBoundingClientRect();
+            return {
+              ...item,
+              rect,
+              left: rect.left,
+              centerX: rect.left + rect.width / 2,
+              right: rect.right,
+              top: rect.top,
+              centerY: rect.top + rect.height / 2
+            };
+          });
+
+          if (alignment === 'left') {
+            const minLeft = Math.min(...items.map(it => it.left));
+            items.forEach(it => {
+              const dx = (minLeft - it.left) / canvasScale;
+              window.applyElementOffsetDelta(it, dx, 0);
+            });
+          } else if (alignment === 'center') {
+            const avgCenterX = items.reduce((acc, it) => acc + it.centerX, 0) / items.length;
+            items.forEach(it => {
+              const dx = (avgCenterX - it.centerX) / canvasScale;
+              window.applyElementOffsetDelta(it, dx, 0);
+            });
+          } else if (alignment === 'right') {
+            const maxRight = Math.max(...items.map(it => it.right));
+            items.forEach(it => {
+              const dx = (maxRight - it.right) / canvasScale;
+              window.applyElementOffsetDelta(it, dx, 0);
+            });
+          } else if (alignment === 'top') {
+            const minTop = Math.min(...items.map(it => it.top));
+            items.forEach(it => {
+              const dy = (minTop - it.top) / canvasScale;
+              window.applyElementOffsetDelta(it, 0, dy);
+            });
+          }
+
+          markUnsaved();
+          pushHistory();
+          showToast(`✓ Aligned ${elems.length} elements (${alignment})`);
+          window.syncMultiSelectionUi();
+        }
+      };
+
+      window.applyElementOffsetDelta = function (item, dx, dy) {
+        if (!item || !item.cand || !item.targetSec) return;
+        const effectiveSettings = getEffectiveSettings(item.targetSec);
+        let curInitX = 0;
+        let curInitY = 0;
+
+        if (item.cand.isCustomContainer) {
+          const cObj = (effectiveSettings.customContainers || []).find(c => c.id === item.cand.ccontId);
+          if (cObj) {
+            curInitX = parseInt(cObj.offsetX || 0);
+            curInitY = parseInt(cObj.offsetY || 0);
+          }
+          const vObj = getViewportCustomContainer(item.targetSec, item.cand.ccontId);
+          if (vObj) {
+            vObj.offsetX = Math.round(curInitX + dx);
+            vObj.offsetY = Math.round(curInitY + dy);
+          }
+        } else {
+          if (effectiveSettings.elementOffsets && effectiveSettings.elementOffsets[item.cand.key]) {
+            curInitX = parseInt(effectiveSettings.elementOffsets[item.cand.key].x || 0);
+            curInitY = parseInt(effectiveSettings.elementOffsets[item.cand.key].y || 0);
+          }
+          const ts = getViewportSettingsTarget(item.targetSec);
+          ts.elementOffsets = ts.elementOffsets || {};
+          const newX = Math.round(curInitX + dx);
+          const newY = Math.round(curInitY + dy);
+          ts.elementOffsets[item.cand.key] = { x: newX, y: newY };
+          if (item.cand.key === 'heading') { ts.headingOffsetX = newX; ts.headingOffsetY = newY; }
+          else if (item.cand.key === 'text') { ts.textOffsetX = newX; ts.textOffsetY = newY; }
+          else if (item.cand.key === 'image') { ts.imageOffsetX = newX; ts.imageOffsetY = newY; }
+          else if (item.cand.key === 'button') { ts.buttonOffsetX = newX; ts.buttonOffsetY = newY; }
+        }
+
+        const finalX = Math.round(curInitX + dx);
+        const finalY = Math.round(curInitY + dy);
+        if (item.el) {
+          item.el.style.setProperty('transform', `translate3d(${finalX}px, ${finalY}px, 0)`, 'important');
+        }
+      };
+
+      window.nudgeMultiSelection = function (dx, dy) {
+        if (!state.multiSelection || !state.multiSelection.active) return;
+
+        if (state.multiSelection.type === 'section') {
+          const ids = state.multiSelection.sectionIds;
+          ids.forEach(id => {
+            const sec = state.sections.find(s => s.id === id);
+            const el = document.getElementById('canvas_sec_' + id);
+            if (sec && el) {
+              const effectiveSettings = getEffectiveSettings(sec);
+              const curX = parseInt(effectiveSettings.offsetX || 0) + dx;
+              const curY = parseInt(effectiveSettings.offsetY || 0) + dy;
+              const targetSettings = getViewportSettingsTarget(sec);
+              targetSettings.offsetX = curX;
+              targetSettings.offsetY = curY;
+              el.style.transform = `translate3d(${curX}px, ${curY}px, 0)`;
+              el.style.setProperty('--sec-ox', `${curX}px`);
+              el.style.setProperty('--sec-oy', `${curY}px`);
+            }
+          });
+          markUnsaved();
+          pushHistory();
+          window.syncMultiSelectionUi();
+        } else if (state.multiSelection.type === 'element') {
+          state.multiSelection.elements.forEach(item => {
+            window.applyElementOffsetDelta(item, dx, dy);
+          });
+          markUnsaved();
+          pushHistory();
+          window.syncMultiSelectionUi();
+        }
+      };
 
       function getSectionById(sectionId) {
         let section = sectionById.get(sectionId);
@@ -3851,7 +4337,7 @@
 
           return `
             <div class="section-tree-group">
-              <div class="section-tree-item ${isSelected ? 'selected' : ''}"
+              <div class="section-tree-item ${isSelected ? 'selected' : ''} ${window.isSectionMultiSelected && window.isSectionMultiSelected(sec.id) ? 'is-multi-selected' : ''}"
                    data-section-id="${sec.id}"
                    draggable="true"
                    ondragstart="onTreeDragStart(event, ${idx})"
@@ -3859,7 +4345,7 @@
                    ondragleave="onTreeDragLeave(event)"
                    ondragend="onTreeDragEnd(event)"
                    ondrop="onTreeDrop(event, ${idx})"
-                   onclick="selectSection('${sec.id}')">
+                   onclick="if (event.ctrlKey || event.metaKey || event.shiftKey) { event.preventDefault(); event.stopPropagation(); window.toggleSectionMultiSelect('${sec.id}', event); } else { if (state.multiSelection && state.multiSelection.active) window.clearMultiSelection(true); selectSection('${sec.id}'); }">
                 <span class="tree-drag-handle" title="Click & drag to reorder section">⋮⋮</span>
                 <span class="tree-item-icon">${isCardHidden && customContainerCount === 1 ? (onlyContainerType === 'image' ? '🖼️' : (onlyContainerType === 'text' ? '📝' : (onlyContainerType === 'button' ? '🔘' : '📦'))) : def.icon}</span>
                 <span class="tree-item-title">${escapeHtml(previewTitle)}</span>
@@ -4617,6 +5103,19 @@
 
       // ── Canvas Section Click Handler (Preserves WordPad-style Text Selection) ──
       window.handleCanvasSectionClick = function (event, secId) {
+
+        // 0. Multi-selection toggle with Ctrl, Cmd, or Shift key
+        if (event.ctrlKey || event.metaKey || event.shiftKey) {
+          event.preventDefault();
+          event.stopPropagation();
+          window.toggleSectionMultiSelect(secId, event);
+          return;
+        }
+
+        // When standard clicking without modifier key, clear multi-selection if active
+        if (state.multiSelection && state.multiSelection.active) {
+          window.clearMultiSelection(true);
+        }
 
         // 1. If text is currently selected, keep it selected and DO NOT re-render
         const sel = window.getSelection();
@@ -5889,6 +6388,7 @@
         const btns = window.ensureSectionButtonsArray(sec);
         if (!btns[bIdx]) return;
 
+        if (key === 'url') val = normalizeLinkUrl(val);
         if (key === 'radius') val = parseInt(val) || 0;
         if (key === 'borderWidth' && val !== '' && val !== null && val !== undefined) val = parseFloat(val);
         if (key === 'letterSpacing' && val !== '' && val !== null && val !== undefined) val = parseInt(val) || 0;
@@ -6571,6 +7071,38 @@
           .trim();
       }
 
+      function normalizeLinkUrl(rawUrl) {
+        if (window.SectionRegistry && typeof window.SectionRegistry.normalizeLinkUrl === 'function') {
+          return window.SectionRegistry.normalizeLinkUrl(rawUrl);
+        }
+        if (!rawUrl || typeof rawUrl !== 'string') return '#';
+        const trimmed = rawUrl.trim();
+        if (!trimmed || trimmed === '#') return '#';
+        if (/^(?:javascript|data|vbscript):/i.test(trimmed)) return '#';
+        if (/^(?:https?:|\/\/|mailto:|tel:|sms:|#|\/|\.\/|\.\.\/|\?)/i.test(trimmed)) return trimmed;
+        if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) return 'mailto:' + trimmed;
+        if (/^www\./i.test(trimmed) || /^[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+(?:[/?#].*)?$/i.test(trimmed) || (trimmed.includes('.') && !trimmed.startsWith('/') && !trimmed.startsWith('#'))) {
+          return 'https://' + trimmed;
+        }
+        return trimmed;
+      }
+      window.normalizeLinkUrl = normalizeLinkUrl;
+
+      function repairAnchorHrefs(html) {
+        if (window.SectionRegistry && typeof window.SectionRegistry.repairAnchorHrefs === 'function') {
+          return window.SectionRegistry.repairAnchorHrefs(html);
+        }
+        if (!html || typeof html !== 'string') return html || '';
+        if (!html.includes('<a') && !html.includes('<A')) return html;
+        return html.replace(/<a\b([^>]*?)href=(?:(["'])(.*?)\2|([^\s>]+))([^>]*?)>/gi, function (match, pre, quote, quotedHref, unquotedHref, post) {
+          const raw = quotedHref !== undefined ? quotedHref : unquotedHref;
+          const q = quote || '"';
+          const normalized = normalizeLinkUrl(raw);
+          return '<a' + pre + 'href=' + q + normalized + q + post + '>';
+        });
+      }
+      window.repairAnchorHrefs = repairAnchorHrefs;
+
       function repairEscapedFormatting(str) {
         if (!str || typeof str !== 'string') return str || '';
         var s = decodePreEscapedEntities(str);
@@ -6583,6 +7115,8 @@
         // Also convert legacy <font color="X">...</font> to <span style="color:X;">...</span>
         s = s.replace(/<font\s+[^>]*color=["']([^"']*)["'][^>]*>([\s\S]*?)<\/font>/gi, '<span style="color:$1;">$2</span>');
         s = s.replace(/<font\s+[^>]*color=([^\s>]+)[^>]*>([\s\S]*?)<\/font>/gi, '<span style="color:$1;">$2</span>');
+        // Normalize and repair anchor hrefs so relative-looking external domains (e.g. www.theconicmedia.com) become https://...
+        s = repairAnchorHrefs(s);
         return s;
       }
 
@@ -6791,6 +7325,9 @@
         cleaned = cleaned.replace(/<span\s+style=["']\s*["']>([\s\S]*?)<\/span>/gi, '$1');
         cleaned = cleaned.replace(/<span>([\s\S]*?)<\/span>/gi, '$1');
 
+        // Repair and normalize any anchor hrefs missing protocol
+        cleaned = repairAnchorHrefs(cleaned);
+
         // Use the shared renderer sanitizer as the final security boundary when
         // available. This keeps the builder, Live Preview, and New Tab on the
         // same allow-list while still preserving legitimate rich-text styles.
@@ -6821,7 +7358,7 @@
 
         const isLink = /<a\b/i.test(rawHtml);
         const hrefMatch = rawHtml.match(/href=["']([^"']*)["']/i);
-        const href = hrefMatch ? hrefMatch[1] : '#';
+        const href = hrefMatch ? normalizeLinkUrl(hrefMatch[1]) : '#';
         const targetMatch = rawHtml.match(/target=["']([^"']*)["']/i);
         const target = targetMatch ? targetMatch[1] : '_blank';
         const classMatch = rawHtml.match(/class=["']([^"']*)["']/i);
@@ -6938,7 +7475,7 @@
         if (d.isLink) {
           const targetAttr = d.target ? ` target="${d.target}" rel="noopener noreferrer"` : ' target="_blank" rel="noopener noreferrer"';
           const cls = d.className ? ` class="${d.className}"` : ' class="wd-inline-link"';
-          const href = d.href || '#';
+          const href = normalizeLinkUrl(d.href || '#');
           return `<a href="${href}"${cls}${styleAttr}${targetAttr}>${text}</a>`;
         }
 
@@ -7175,7 +7712,8 @@
                 <!-- Target Destination URL -->
                 <div class="prop-group" style="margin-bottom:6px;">
                   <label class="prop-label" style="font-size:10px;">Destination URL</label>
-                  <input type="text" id="ihLinkUrl_${idSuffix}" class="prop-input" style="font-size:11.5px;" placeholder="https://instagram.com/yourhandle">
+                  <input type="text" id="ihLinkUrl_${idSuffix}" class="prop-input" style="font-size:11.5px;" placeholder="https://instagram.com/yourhandle"
+                    onblur="if(this.value && typeof normalizeLinkUrl==='function') this.value=normalizeLinkUrl(this.value);">
                 </div>
 
                 <!-- Quick Preset Chips -->
@@ -7292,7 +7830,9 @@
 
         if (textIn) textIn.value = targetWord;
 
-        const url = (urlIn && urlIn.value.trim()) ? urlIn.value.trim() : '#';
+        const rawUrl = (urlIn && urlIn.value.trim()) ? urlIn.value.trim() : '#';
+        const url = normalizeLinkUrl(rawUrl);
+        if (urlIn) urlIn.value = url;
         const color = colorIn ? colorIn.value : '#FF5C00';
         const bold = boldIn ? boldIn.checked : true;
         const underline = underIn ? underIn.checked : true;
@@ -8482,7 +9022,9 @@
 
         const rawAnchor = textIn ? textIn.value.trim() : (window.wdpadState ? window.wdpadState.text : '');
         const anchorText = stripHtmlTags(rawAnchor);
-        const url = (urlIn && urlIn.value.trim()) ? urlIn.value.trim() : '#';
+        const rawUrl = (urlIn && urlIn.value.trim()) ? urlIn.value.trim() : '#';
+        const url = normalizeLinkUrl(rawUrl);
+        if (urlIn) urlIn.value = url;
         const color = colorIn ? colorIn.value : '#FF5C00';
         const bold = boldIn ? boldIn.checked : true;
         const underline = underIn ? underIn.checked : true;
@@ -10849,9 +11391,40 @@
 
             if (!targetSec.settings) targetSec.settings = {};
 
-            // Automatically select this section if not already selected so inspector coordinates stay in sync
-            if (state.selectedSectionId !== secId) {
-              selectSection(secId, false);
+            // Check if this container is part of an active multi-selection group
+            const isGroupReposition = !!(state.multiSelection &&
+              state.multiSelection.active &&
+              state.multiSelection.type === 'section' &&
+              state.multiSelection.sectionIds.includes(secId) &&
+              state.multiSelection.sectionIds.length > 1);
+
+            let groupSections = [];
+            if (isGroupReposition) {
+              groupSections = state.multiSelection.sectionIds.map(id => {
+                const s = state.sections.find(sec => sec.id === id);
+                const el = document.getElementById('canvas_sec_' + id);
+                if (!s || !el) return null;
+                const eff = getEffectiveSettings(s);
+                return {
+                  id,
+                  sec: s,
+                  el,
+                  initX: parseInt(eff.offsetX || 0),
+                  initY: parseInt(eff.offsetY || 0),
+                  curX: parseInt(eff.offsetX || 0),
+                  curY: parseInt(eff.offsetY || 0)
+                };
+              }).filter(Boolean);
+
+              groupSections.forEach(g => {
+                g.el.classList.add('is-repositioning-container');
+                g.el.style.zIndex = '999999';
+              });
+            } else {
+              // Automatically select this section if not already selected so inspector coordinates stay in sync
+              if (state.selectedSectionId !== secId) {
+                selectSection(secId, false);
+              }
             }
 
             handle.setPointerCapture(e.pointerId);
@@ -11045,18 +11618,41 @@
               hud.style.top = (moveEv.clientY - 20) + 'px';
               const signX = curOffsetX > 0 ? '+' : '';
               const signY = curOffsetY > 0 ? '+' : '';
-              hud.innerHTML = `
-                <span style="color:#FF5C00;">✥ Position:</span>
-                <span>X: <strong>${signX}${curOffsetX}px</strong></span>
-                <span style="opacity:0.4;">|</span>
-                <span>Y: <strong>${signY}${curOffsetY}px</strong></span>
-                ${(isSnappedX || isSnappedY) ? '<span style="color:#00E5FF;font-weight:700;">(Snapped)</span>' : ''}
-              `;
+              const effDeltaX = candX - initOffsetX;
+              const effDeltaY = candY - initOffsetY;
+
+              if (isGroupReposition && groupSections.length > 1) {
+                hud.innerHTML = `
+                  <span style="color:#00E5FF;">⚏ Group Move (${groupSections.length}):</span>
+                  <span>ΔX: <strong>${effDeltaX >= 0 ? '+' : ''}${Math.round(effDeltaX)}px</strong></span>
+                  <span style="opacity:0.4;">|</span>
+                  <span>ΔY: <strong>${effDeltaY >= 0 ? '+' : ''}${Math.round(effDeltaY)}px</strong></span>
+                  ${(isSnappedX || isSnappedY) ? '<span style="color:#00E5FF;font-weight:700;">(Snapped)</span>' : ''}
+                `;
+              } else {
+                hud.innerHTML = `
+                  <span style="color:#FF5C00;">✥ Position:</span>
+                  <span>X: <strong>${signX}${curOffsetX}px</strong></span>
+                  <span style="opacity:0.4;">|</span>
+                  <span>Y: <strong>${signY}${curOffsetY}px</strong></span>
+                  ${(isSnappedX || isSnappedY) ? '<span style="color:#00E5FF;font-weight:700;">(Snapped)</span>' : ''}
+                `;
+              }
 
               // ── 5. Apply smooth transform in 60fps ──
-              secEl.style.transform = `translate3d(${curOffsetX}px, ${curOffsetY}px, 0)`;
-              secEl.style.setProperty('--sec-ox', `${curOffsetX}px`);
-              secEl.style.setProperty('--sec-oy', `${curOffsetY}px`);
+              if (isGroupReposition && groupSections.length > 1) {
+                groupSections.forEach(g => {
+                  g.curX = Math.round(g.initX + effDeltaX);
+                  g.curY = Math.round(g.initY + effDeltaY);
+                  g.el.style.transform = `translate3d(${g.curX}px, ${g.curY}px, 0)`;
+                  g.el.style.setProperty('--sec-ox', `${g.curX}px`);
+                  g.el.style.setProperty('--sec-oy', `${g.curY}px`);
+                });
+              } else {
+                secEl.style.transform = `translate3d(${curOffsetX}px, ${curOffsetY}px, 0)`;
+                secEl.style.setProperty('--sec-ox', `${curOffsetX}px`);
+                secEl.style.setProperty('--sec-oy', `${curOffsetY}px`);
+              }
 
               // Sync inspector sliders in real-time during drag
               const xRange = document.getElementById('propOffsetXRange');
@@ -11084,6 +11680,28 @@
               window.removeEventListener('pointercancel', onPointerUp);
 
               if (guideOverlay) guideOverlay.style.display = 'none';
+
+              if (isGroupReposition && groupSections.length > 1) {
+                groupSections.forEach(g => {
+                  g.el.classList.remove('is-repositioning-container');
+                  const sIdx = state.sections.findIndex(s => s.id === g.id);
+                  const autoZ = 10 + (sIdx + 1) * 10;
+                  const effSettings = getEffectiveSettings(g.sec);
+                  const restoredZ = (effSettings.zIndex !== undefined && effSettings.zIndex !== '' && !isNaN(parseInt(effSettings.zIndex)))
+                    ? parseInt(effSettings.zIndex)
+                    : autoZ;
+                  g.el.style.zIndex = restoredZ;
+
+                  const targetSettings = getViewportSettingsTarget(g.sec);
+                  targetSettings.offsetX = g.curX;
+                  targetSettings.offsetY = g.curY;
+                });
+                markUnsaved();
+                pushHistory();
+                showToast(`✓ Repositioned ${groupSections.length} containers together in unison`);
+                window.syncMultiSelectionUi();
+                return;
+              }
 
               // Restore layer z-index according to bottom-over-top rule or custom setting
               const secIdx = state.sections.findIndex(s => s.id === secId);
@@ -13498,7 +14116,7 @@
         if (!el || !cand || !sec) return;
 
         const isUrlField = field === 'buttonUrl' || field === 'url' || field === 'href';
-        let storedVal = isUrlField ? String(val || '').trim() : String(val || '');
+        let storedVal = isUrlField ? normalizeLinkUrl(String(val || '').trim()) : String(val || '');
 
         if (cand.isCustomContainer) {
           const ccont = getEffectiveSettings(sec).customContainers?.find(c => c.id === cand.ccontId);
@@ -14942,23 +15560,49 @@
               </div>
             </div>
 
-            <!-- LAYOUT SPLIT & PLACEMENT -->
-            <div style="background:#141414;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:12px;margin-bottom:14px;">
-              <div class="prop-group" style="margin-bottom:10px;">
-                <label class="prop-label" style="font-size:11px;color:#FF5C00;font-weight:700;">◫ Column Split Ratio</label>
+            <!-- LAYOUT SPLIT & CARD INTERCHANGE -->
+            <div style="background:#141414;border:1px solid rgba(255,92,0,0.3);border-radius:10px;padding:14px;margin-bottom:14px;box-shadow:0 4px 18px rgba(0,0,0,0.35);">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                <label class="prop-label" style="font-size:11px;color:#FF5C00;font-weight:700;margin:0;letter-spacing:0.04em;">⇄ Card Layout & Interchange</label>
+                <span style="font-size:10px;padding:2px 8px;border-radius:12px;background:${s.imagePosition === 'left' ? 'rgba(0,229,255,0.14)' : 'rgba(255,92,0,0.14)'};color:${s.imagePosition === 'left' ? '#00E5FF' : '#FF5C00'};font-weight:700;border:1px solid ${s.imagePosition === 'left' ? 'rgba(0,229,255,0.35)' : 'rgba(255,92,0,0.35)'};">
+                  ${s.imagePosition === 'left' ? 'Image Left • Text Right' : 'Text Left • Image Right'}
+                </span>
+              </div>
+
+              <!-- Quick 1-Click Swap Button -->
+              <button type="button" class="btn btn-secondary btn-sm" onclick="window.swapSectionCards('${sec.id}')" style="width:100%;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;padding:9px 12px;background:linear-gradient(135deg, rgba(255,92,0,0.2), rgba(255,140,0,0.08));border:1px solid rgba(255,92,0,0.45);color:#F5F0EB;font-weight:700;font-size:12px;border-radius:8px;cursor:pointer;transition:all 0.2s ease;" title="Interchange the positions of the text card and image card">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FF5C00" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M16 3l4 4-4 4M20 7H4M8 21l-4-4 4-4M4 17h16"/>
+                </svg>
+                <span>Swap Card Positions (${s.imagePosition === 'left' ? '⇄ Move Text Left' : '⇄ Move Image Left'})</span>
+              </button>
+
+              <!-- Two Arrangement Toggle Pills -->
+              <div class="prop-group" style="margin-bottom:12px;">
+                <label class="prop-label" style="font-size:10px;color:rgba(245,240,235,0.65);text-transform:uppercase;margin-bottom:6px;">Select Arrangement</label>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                  <button type="button" class="prop-segment-btn ${s.imagePosition !== 'left' ? 'active' : ''}" onclick="window.setSectionCardArrangement('${sec.id}', 'right')" style="padding:8px 4px;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:4px;border-radius:8px;${s.imagePosition !== 'left' ? 'border-color:#FF5C00;background:rgba(255,92,0,0.18);color:#FFF;' : ''}">
+                    <span style="font-size:13px;">📝 ⇄ 🖼️</span>
+                    <span style="font-weight:700;">Text | Image</span>
+                    <span style="font-size:9px;color:rgba(245,240,235,0.5);">Default</span>
+                  </button>
+                  <button type="button" class="prop-segment-btn ${s.imagePosition === 'left' ? 'active' : ''}" onclick="window.setSectionCardArrangement('${sec.id}', 'left')" style="padding:8px 4px;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:4px;border-radius:8px;${s.imagePosition === 'left' ? 'border-color:#00E5FF;background:rgba(0,229,255,0.18);color:#FFF;' : ''}">
+                    <span style="font-size:13px;">🖼️ ⇄ 📝</span>
+                    <span style="font-weight:700;">Image | Text</span>
+                    <span style="font-size:9px;color:rgba(245,240,235,0.5);">Swapped</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Column Split Ratio -->
+              <div class="prop-group" style="margin-bottom:0;">
+                <label class="prop-label" style="font-size:10px;color:rgba(245,240,235,0.65);text-transform:uppercase;margin-bottom:6px;">Column Proportions</label>
                 <div class="prop-segmented-row" style="flex-wrap:wrap;">
                   <button type="button" class="prop-segment-btn ${s.ratio === '50:50' || !s.ratio ? 'active' : ''}" onclick="updateSetting('ratio', '50:50')">50 : 50</button>
                   <button type="button" class="prop-segment-btn ${s.ratio === '40:60' ? 'active' : ''}" onclick="updateSetting('ratio', '40:60')">40 : 60</button>
                   <button type="button" class="prop-segment-btn ${s.ratio === '60:40' ? 'active' : ''}" onclick="updateSetting('ratio', '60:40')">60 : 40</button>
                   <button type="button" class="prop-segment-btn ${s.ratio === '25:75' ? 'active' : ''}" onclick="updateSetting('ratio', '25:75')">25 : 75</button>
                   <button type="button" class="prop-segment-btn ${s.ratio === '75:25' ? 'active' : ''}" onclick="updateSetting('ratio', '75:25')">75 : 25</button>
-                </div>
-              </div>
-              <div class="prop-group" style="margin-bottom:0;">
-                <label class="prop-label" style="font-size:11px;color:rgba(245,240,235,0.8);">Image Placement</label>
-                <div class="prop-segmented-row">
-                  <button type="button" class="prop-segment-btn ${s.imagePosition === 'left' ? 'active' : ''}" onclick="updateSetting('imagePosition', 'left')">Image Left</button>
-                  <button type="button" class="prop-segment-btn ${s.imagePosition !== 'left' ? 'active' : ''}" onclick="updateSetting('imagePosition', 'right')">Image Right</button>
                 </div>
               </div>
             </div>
@@ -15387,6 +16031,27 @@
                 <option value="66:33" ${s.ratio === '66:33' ? 'selected' : ''}>66% : 33% (Two-thirds : One-third)</option>
               </select>
             </div>
+
+            <!-- INTERCHANGE COLUMNS TOOLBAR -->
+            <div style="background:#141414;border:1px solid rgba(255,92,0,0.25);border-radius:8px;padding:12px;margin-bottom:12px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                <label class="prop-label" style="font-size:11px;color:#FF5C00;font-weight:700;margin:0;">⇄ Interchange Columns</label>
+                <span style="font-size:10px;color:rgba(245,240,235,0.6);">Swap card positions</span>
+              </div>
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="window.swapSectionCards('${sec.id}', 'col1', 'col2')" style="flex:1;min-width:110px;padding:6px 10px;font-size:11px;background:rgba(255,92,0,0.12);border:1px solid rgba(255,92,0,0.3);color:#FF5C00;border-radius:6px;cursor:pointer;" title="Swap Column 1 and Column 2">
+                  ⇄ Swap Col 1 & 2
+                </button>
+                ${(s.columnsCount === 3 || !s.columnsCount) ? `
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="window.swapSectionCards('${sec.id}', 'col2', 'col3')" style="flex:1;min-width:110px;padding:6px 10px;font-size:11px;background:rgba(255,92,0,0.12);border:1px solid rgba(255,92,0,0.3);color:#FF5C00;border-radius:6px;cursor:pointer;" title="Swap Column 2 and Column 3">
+                    ⇄ Swap Col 2 & 3
+                  </button>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="window.swapSectionCards('${sec.id}', 'reverse')" style="width:100%;margin-top:4px;padding:5px 10px;font-size:10.5px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);color:rgba(245,240,235,0.8);border-radius:6px;cursor:pointer;" title="Reverse all columns">
+                    ⇄ Reverse Order (Col 3 → Col 1)
+                  </button>
+                ` : ''}
+              </div>
+            </div>
             <!-- Column 1 -->
             <div style="background:#161616;border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:12px;margin-bottom:12px;">
               <div style="font-size:11px;font-weight:700;color:var(--orange);margin-bottom:6px;">Column 1 Content</div>
@@ -15801,6 +16466,11 @@
               <label class="prop-mini-input-group"><span class="prop-mini-label">Columns</span><input type="number" class="prop-mini-input" min="1" max="12" value="${sectionLayout.columns || 1}" oninput="updateSectionLayoutValue('columns', this.value)"></label>
               <label class="prop-mini-input-group"><span class="prop-mini-label">Gap</span><input type="number" class="prop-mini-input" min="0" max="160" value="${sectionLayout.gap ?? 20}" oninput="updateSectionLayoutValue('gap', this.value)"></label>
             </div>` : `<div style="font-size:10.5px;color:rgba(245,240,235,0.58);line-height:1.45;margin-top:9px;">Elements can be moved independently. Switch back to Grid, Row, or Stack for automatic responsive alignment.</div>`}
+            ${semanticNodes.length >= 2 ? `
+            <button type="button" class="btn btn-secondary btn-sm" onclick="window.swapSectionCards('${sec.id}')" style="width:100%;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:11px;padding:7px 10px;background:rgba(255,92,0,0.12);border:1px solid rgba(255,92,0,0.3);color:#FF5C00;border-radius:6px;cursor:pointer;" title="Swap order of elements inside this layout">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3l4 4-4 4M20 7H4M8 21l-4-4 4-4M4 17h16"/></svg>
+              ⇄ Interchange / Reverse Element Order
+            </button>` : ''}
           </div>` : ''}
 
           <div class="prop-group">
@@ -16542,6 +17212,139 @@
         scheduleCanvasSectionRender(sec.id);
         renderProperties();
         pushHistory();
+      };
+
+      // ⇄ Interchange / Swap Cards inside split and multi-column containers
+      window.swapSectionCards = function (sectionId, colA, colB) {
+        const sec = getSectionById(sectionId) || state.sections.find(s => s.id === state.selectedSectionId);
+        if (!sec) return;
+
+        const activeViewport = getBuilderViewportMode();
+        const targetSettings = getViewportSettingsTarget(sec);
+        const effective = getEffectiveSettings(sec, activeViewport);
+
+        // A. Text & Image Split: Swap imagePosition between 'left' and 'right'
+        if (sec.type === 'text_image') {
+          const curPos = targetSettings.imagePosition || effective.imagePosition || 'right';
+          const nextPos = curPos === 'left' ? 'right' : 'left';
+          targetSettings.imagePosition = nextPos;
+          if (activeViewport === 'desktop') {
+            sec.settings.imagePosition = nextPos;
+          }
+
+          if (typeof flushCanvasDomToState === 'function') {
+            flushCanvasDomToState();
+          }
+
+          markUnsaved();
+          scheduleCanvasSectionRender(sec.id);
+          renderProperties();
+          pushHistory(true);
+          if (typeof saveCurrentDraftLocally === 'function') {
+            saveCurrentDraftLocally();
+          }
+          showToast(nextPos === 'left' ? '⇄ Interchanged: Image on Left, Text on Right' : '⇄ Interchanged: Text on Left, Image on Right');
+          return;
+        }
+
+        // B. Columns Container: Swap columns
+        if (sec.type === 'columns') {
+          sec.content = sec.content || {};
+          const colsCount = effective.columnsCount || sec.settings.columnsCount || 3;
+
+          if (colsCount === 2 || (colA === 'col1' && colB === 'col2') || (!colA && !colB)) {
+            const tmp = sec.content.col1;
+            sec.content.col1 = sec.content.col2 || { title: '', body: '' };
+            sec.content.col2 = tmp || { title: '', body: '' };
+
+            if (sec.settings.ratio === '25:75') sec.settings.ratio = '75:25';
+            else if (sec.settings.ratio === '75:25') sec.settings.ratio = '25:75';
+            else if (sec.settings.ratio === '33:66') sec.settings.ratio = '66:33';
+            else if (sec.settings.ratio === '66:33') sec.settings.ratio = '33:66';
+
+            showToast('⇄ Columns 1 & 2 swapped');
+          } else if (colA === 'col2' && colB === 'col3') {
+            const tmp = sec.content.col2;
+            sec.content.col2 = sec.content.col3 || { title: '', body: '' };
+            sec.content.col3 = tmp || { title: '', body: '' };
+            showToast('⇄ Columns 2 & 3 swapped');
+          } else if (colA === 'reverse') {
+            const c1 = sec.content.col1;
+            const c2 = sec.content.col2;
+            const c3 = sec.content.col3;
+            sec.content.col1 = c3 || c2;
+            sec.content.col3 = c1;
+            showToast('⇄ Column order reversed');
+          }
+
+          if (typeof flushCanvasDomToState === 'function') {
+            flushCanvasDomToState();
+          }
+          markUnsaved();
+          scheduleCanvasSectionRender(sec.id);
+          renderProperties();
+          pushHistory(true);
+          if (typeof saveCurrentDraftLocally === 'function') {
+            saveCurrentDraftLocally();
+          }
+          return;
+        }
+
+        // C. Custom Containers / Semantic Nodes (layout_grid, layout_row, stack, etc.)
+        const containers = sec.settings && Array.isArray(sec.settings.customContainers) ? sec.settings.customContainers : null;
+        if (containers && containers.length >= 2) {
+          if (typeof colA === 'number' && typeof colB === 'number' && containers[colA] && containers[colB]) {
+            const tmp = containers[colA];
+            containers[colA] = containers[colB];
+            containers[colB] = tmp;
+          } else {
+            if (containers.length === 2) {
+              const tmp = containers[0];
+              containers[0] = containers[1];
+              containers[1] = tmp;
+            } else {
+              containers.reverse();
+            }
+          }
+          if (Array.isArray(sec.nodes)) {
+            sec.nodes = containers.slice();
+          }
+
+          if (typeof flushCanvasDomToState === 'function') {
+            flushCanvasDomToState();
+          }
+          markUnsaved();
+          scheduleCanvasSectionRender(sec.id);
+          renderProperties();
+          pushHistory(true);
+          if (typeof saveCurrentDraftLocally === 'function') {
+            saveCurrentDraftLocally();
+          }
+          showToast('⇄ Card positions interchanged');
+          return;
+        }
+      };
+
+      window.setSectionCardArrangement = function (sectionId, position) {
+        const sec = getSectionById(sectionId) || state.sections.find(s => s.id === state.selectedSectionId);
+        if (!sec) return;
+        const activeViewport = getBuilderViewportMode();
+        const targetSettings = getViewportSettingsTarget(sec);
+        targetSettings.imagePosition = position;
+        if (activeViewport === 'desktop') {
+          sec.settings.imagePosition = position;
+        }
+        if (typeof flushCanvasDomToState === 'function') {
+          flushCanvasDomToState();
+        }
+        markUnsaved();
+        scheduleCanvasSectionRender(sec.id);
+        renderProperties();
+        pushHistory(true);
+        if (typeof saveCurrentDraftLocally === 'function') {
+          saveCurrentDraftLocally();
+        }
+        showToast(position === 'left' ? '⇄ Image on Left, Text on Right' : '⇄ Text on Left, Image on Right');
       };
 
       window.updateSectionLayout = function (type) {

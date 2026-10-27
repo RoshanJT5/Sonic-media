@@ -39,6 +39,45 @@
       .replace(/"/g, '&quot;');
   }
 
+  function normalizeLinkUrl(rawUrl) {
+    if (!rawUrl || typeof rawUrl !== 'string') return '#';
+    const trimmed = rawUrl.trim();
+    if (!trimmed || trimmed === '#') return '#';
+
+    // Disallow dangerous script pseudo-protocols
+    if (/^(?:javascript|data|vbscript):/i.test(trimmed)) {
+      return '#';
+    }
+
+    // Preserve valid protocol schemes and site-relative links
+    if (/^(?:https?:|\/\/|mailto:|tel:|sms:|#|\/|\.\/|\.\.\/|\?)/i.test(trimmed)) {
+      return trimmed;
+    }
+
+    // Auto-prefix mailto: for email addresses entered directly without protocol
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      return 'mailto:' + trimmed;
+    }
+
+    // Prefix https:// for web addresses without protocol (e.g. www.theconicmedia.com or thesonicmedia.com)
+    if (/^www\./i.test(trimmed) || /^[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+(?:[/?#].*)?$/i.test(trimmed) || (trimmed.includes('.') && !trimmed.startsWith('/') && !trimmed.startsWith('#'))) {
+      return 'https://' + trimmed;
+    }
+
+    return trimmed;
+  }
+
+  function repairAnchorHrefs(html) {
+    if (!html || typeof html !== 'string') return html || '';
+    if (!html.includes('<a') && !html.includes('<A')) return html;
+    return html.replace(/<a\b([^>]*?)href=(?:(["'])(.*?)\2|([^\s>]+))([^>]*?)>/gi, function (match, pre, quote, quotedHref, unquotedHref, post) {
+      const raw = quotedHref !== undefined ? quotedHref : unquotedHref;
+      const q = quote || '"';
+      const normalized = normalizeLinkUrl(raw);
+      return '<a' + pre + 'href=' + q + normalized + q + post + '>';
+    });
+  }
+
   function repairEscapedFormatting(str) {
     if (!str || typeof str !== 'string') return str || '';
     var s = decodePreEscapedEntities(str);
@@ -51,6 +90,8 @@
     // Also convert legacy <font color="X">...</font> to <span style="color:X;">...</span>
     s = s.replace(/<font\s+[^>]*color=["']([^"']*)["'][^>]*>([\s\S]*?)<\/font>/gi, '<span style="color:$1;">$2</span>');
     s = s.replace(/<font\s+[^>]*color=([^\s>]+)[^>]*>([\s\S]*?)<\/font>/gi, '<span style="color:$1;">$2</span>');
+    // Normalize and repair anchor hrefs so relative-looking external domains (e.g. www.theconicmedia.com) become https://...
+    s = repairAnchorHrefs(s);
     return s;
   }
 
@@ -110,17 +151,19 @@
     const protectedHtml = stripBuilderChromeFromHtml(String(html)).replace(/&amp;quot;|&quot;/gi, quoteToken);
     var processed = repairEscapedFormatting(decodePreEscapedEntities(protectedHtml)).replace(new RegExp(quoteToken, 'g'), '&quot;');
     if (typeof global.DOMPurify !== 'undefined') {
-      return global.DOMPurify.sanitize(processed, {
+      const sanitized = global.DOMPurify.sanitize(processed, {
         ALLOWED_TAGS: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'b', 'strong', 'i', 'em', 'u', 'a', 'ul', 'ol', 'li', 'blockquote', 'span', 'br', 'hr', 'code', 'mark', 'small', 'sub', 'sup', 'font'],
         ALLOWED_ATTR: ['href', 'target', 'rel', 'class', 'style', 'title', 'color', 'face', 'size']
       });
+      return repairAnchorHrefs(sanitized);
     }
     // Fallback basic stripper for dangerous tags if DOMPurify is not yet loaded
-    return String(processed)
+    const fallbackCleaned = String(processed)
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
       .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
       .replace(/on\w+="[^"]*"/gi, '')
       .replace(/on\w+='[^']*'/gi, '');
+    return repairAnchorHrefs(fallbackCleaned);
   }
 
   function renderFormattedText(text) {
@@ -281,7 +324,7 @@
     if (!btnConfig) return '';
     const rawText = (btnConfig.text !== undefined && btnConfig.text !== null && btnConfig.text !== '') ? btnConfig.text : 'Action';
     const text = escapeHtml(rawText);
-    const url = escapeHtml(btnConfig.url || '#');
+    const url = escapeHtml(normalizeLinkUrl(btnConfig.url || '#'));
     const target = btnConfig.target === '_blank' ? ' target="_blank" rel="noopener noreferrer"' : '';
     const color = btnConfig.color || '#FF5C00';
     const textColor = btnConfig.textColor || '#FFFFFF';
@@ -977,7 +1020,7 @@
         const bUrl = (c.content && c.content.buttonUrl) ? c.content.buttonUrl : '#';
         innerContent = `
           <div style="display:flex;align-items:center;justify-content:center;padding:16px 20px;width:100%;box-sizing:border-box;">
-            <a href="${escapeHtml(bUrl)}" class="custom-sec-btn btn-hover-lift" style="background:#FF5C00;color:#FFFFFF;padding:12px 28px;border-radius:50px;font-weight:700;display:inline-block;text-decoration:none;box-shadow:0 4px 18px rgba(255,92,0,0.35)${customTextSuffix};">${escapeHtml(bText)}</a>
+            <a href="${escapeHtml(normalizeLinkUrl(bUrl))}" class="custom-sec-btn btn-hover-lift" style="background:#FF5C00;color:#FFFFFF;padding:12px 28px;border-radius:50px;font-weight:700;display:inline-block;text-decoration:none;box-shadow:0 4px 18px rgba(255,92,0,0.35)${customTextSuffix};">${escapeHtml(bText)}</a>
           </div>
         `;
       } else {
@@ -1613,7 +1656,7 @@
         <div class="canvas-img-resize-handle canvas-img-resize-handle-sw" data-img-handle="sw" data-sec-id="${section.id}" title="Drag corner to adjust image width & height"></div>
       ` : '';
 
-      const wrapped = c.link ? `<a href="${escapeHtml(c.link)}" target="_blank" rel="noopener noreferrer">${imgTag}</a>` : imgTag;
+      const wrapped = c.link ? `<a href="${escapeHtml(normalizeLinkUrl(c.link))}" target="_blank" rel="noopener noreferrer">${imgTag}</a>` : imgTag;
 
       const inner = `
         <div class="sec-img-wrap" style="${marginAuto}width:100%;position:relative;${customW ? `max-width:${customW};` : (isFull ? 'max-width:100%;' : '')}">
@@ -2522,7 +2565,7 @@
         <div class="wd-full-card sec-hover-card" style="padding:32px;display:flex;flex-direction:column;min-width:0;">
           <h4 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:#F5F0EB;margin:0 0 10px;">${renderFormattedText(cd.title || '')}</h4>
           <p style="font-size:13.5px;line-height:1.6;color:rgba(245,240,235,0.7);margin:0 0 16px;flex:1;">${renderFormattedText(cd.desc || '')}</p>
-          ${cd.link ? `<a href="${escapeHtml(cd.link)}" style="color:#FF5C00;font-size:12px;font-weight:700;text-decoration:none;">Learn More →</a>` : ''}
+          ${cd.link ? `<a href="${escapeHtml(normalizeLinkUrl(cd.link))}" style="color:#FF5C00;font-size:12px;font-weight:700;text-decoration:none;">Learn More →</a>` : ''}
         </div>
       `).join('');
 
@@ -3174,8 +3217,12 @@
   global.SectionRegistry = SectionRegistry;
   global.renderFormattedText = renderFormattedText;
   global.sanitizeRichText = sanitizeRichText;
+  global.normalizeLinkUrl = normalizeLinkUrl;
+  global.repairAnchorHrefs = repairAnchorHrefs;
   SectionRegistry.renderFormattedText = renderFormattedText;
   SectionRegistry.sanitizeRichText = sanitizeRichText;
+  SectionRegistry.normalizeLinkUrl = normalizeLinkUrl;
+  SectionRegistry.repairAnchorHrefs = repairAnchorHrefs;
   SectionRegistry.getSectionButtons = getSectionButtons;
   SectionRegistry.renderSectionButtonGroup = renderSectionButtonGroup;
   SectionRegistry.renderCustomBtnMarkup = renderCustomBtnMarkup;

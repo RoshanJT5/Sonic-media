@@ -2205,8 +2205,10 @@ body.builder-bottom-open .builder-canvas-stage {
   .sec-multicol-grid.ratio-75-25,
   .sec-multicol-grid.ratio-33-66,
   .sec-multicol-grid.ratio-66-33,
-  .sec-multicol-grid.ratio-33-33-33 {
+  .sec-multicol-grid.ratio-33-33-33,
+  .sec-split-grid {
     grid-template-columns: 1fr !important;
+    gap: 32px !important;
   }
 }
 
@@ -4789,3 +4791,170 @@ body.live-preview-mode .has-element-box.element-active-selected {
   gap: 6px;
   padding: 2px 0 12px;
 }
+
+/* ==========================================================================
+   MULTI-SELECTION & GROUPED REPOSITIONING ENGINE
+   ========================================================================== */
+
+.builder-multiselect-bar {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  background: rgba(16, 16, 20, 0.94);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(0, 229, 255, 0.45);
+  border-radius: 50px;
+  padding: 6px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.85), 0 0 24px rgba(0, 229, 255, 0.22);
+  z-index: 9999999;
+  user-select: none;
+  animation: multiBarPopIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes multiBarPopIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(14px) scale(0.96); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+.multiselect-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 229, 255, 0.12);
+  border: 1px solid rgba(0, 229, 255, 0.3);
+  padding: 4px 10px;
+  border-radius: 20px;
+  color: #00E5FF;
+  font-family: 'Syne', sans-serif;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.multiselect-icon {
+  color: #FF5C00;
+  font-size: 13px;
+}
+
+.multiselect-divider {
+  width: 1px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.multiselect-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.multiselect-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #F5F0EB;
+  border-radius: 20px;
+  padding: 5px 11px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+
+.multiselect-btn:hover {
+  background: rgba(0, 229, 255, 0.2);
+  border-color: #00E5FF;
+  color: #00E5FF;
+  transform: translateY(-1px);
+}
+
+.multiselect-btn-reset:hover {
+  background: rgba(255, 92, 0, 0.2);
+  border-color: #FF5C00;
+  color: #FF5C00;
+}
+
+.multiselect-close-btn {
+  padding: 4px 9px;
+  font-size: 12px;
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.multiselect-close-btn:hover {
+  background: rgba(255, 60, 60, 0.25);
+  border-color: #ff4d4d;
+  color: #fff;
+}
+
+/* Multi-Selected Section Highlight */
+.canvas-section.is-multi-selected {
+  outline: 2px solid #00E5FF !important;
+  outline-offset: -2px;
+  box-shadow: 0 0 24px rgba(0, 229, 255, 0.35) !important;
+  position: relative;
+}
+
+.canvas-section.is-multi-selected .canvas-section-header-bar {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  pointer-events: auto !important;
+}
+
+.canvas-section.is-multi-selected .canvas-reposition-handle {
+  background: rgba(0, 229, 255, 0.25) !important;
+  border-color: #00E5FF !important;
+  color: #00E5FF !important;
+}
+
+.canvas-section.is-multi-selected .canvas-section-badge {
+  background: #00E5FF !important;
+  color: #000 !important;
+}
+
+/* Multi-Selected Tree Item Highlight */
+.tree-item.is-multi-selected {
+  border-color: rgba(0, 229, 255, 0.5) !important;
+  background: rgba(0, 229, 255, 0.1) !important;
+}
+
+/* Multi-Selected Inner Element Highlight */
+.element-active-selected.is-multi-selected,
+.has-element-box.is-multi-selected {
+  outline: 2px dashed #00E5FF !important;
+  box-shadow: 0 0 16px rgba(0, 229, 255, 0.4) !important;
+}
+
+.element-reposition-drag-handle.is-multi-handle {
+  background: #00E5FF !important;
+  color: #000 !important;
+}
+
+/* Numbered Multi-Select Pin Badge */
+.multi-select-pin {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: #00E5FF;
+  color: #000;
+  font-family: 'Syne', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 229, 255, 0.5);
+  z-index: 140;
+  pointer-events: none;
+}
+
