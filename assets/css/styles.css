@@ -6495,32 +6495,28 @@ a.wd-inline-link:hover {
 #projectDynamicSectionsContainer,
 #caseDynamicSectionsContainer,
 #articleDynamicSectionsContainer {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  align-items: flex-start !important;
-  align-content: flex-start !important;
+  display: block !important;
   width: 100% !important;
   box-sizing: border-box !important;
-  padding: 0 32px 80px !important;
+  padding: 0 !important;
   background: #050505;
   overflow-x: hidden;
   min-height: 800px;
 }
 
-#projectDynamicSectionsContainer > .sec-block,
-#caseDynamicSectionsContainer > .sec-block,
-#articleDynamicSectionsContainer > .sec-block {
+#projectDynamicSectionsContainer .sec-block,
+#caseDynamicSectionsContainer .sec-block,
+#articleDynamicSectionsContainer .sec-block,
+.sec-page-surface > .sec-block {
   width: 100%;
   flex: 0 0 100%;
   box-sizing: border-box;
 }
 
-#projectDynamicSectionsContainer > .sec-block.has-row-flow,
-#caseDynamicSectionsContainer > .sec-block.has-row-flow,
-#articleDynamicSectionsContainer > .sec-block.has-row-flow,
-#projectDynamicSectionsContainer > .sec-block[style*="max-width:"],
-#caseDynamicSectionsContainer > .sec-block[style*="max-width:"],
-#articleDynamicSectionsContainer > .sec-block[style*="max-width:"] {
+#projectDynamicSectionsContainer .sec-block.has-row-flow,
+#caseDynamicSectionsContainer .sec-block.has-row-flow,
+#articleDynamicSectionsContainer .sec-block.has-row-flow,
+.sec-page-surface > .sec-block.has-row-flow {
   flex: 0 1 auto;
   display: inline-block;
   vertical-align: top;
@@ -6531,15 +6527,13 @@ a.wd-inline-link:hover {
   #projectDynamicSectionsContainer,
   #caseDynamicSectionsContainer,
   #articleDynamicSectionsContainer {
-    padding: 0 16px 60px !important;
+    padding: 0 !important;
   }
 
-  #projectDynamicSectionsContainer > .sec-block.has-row-flow,
-  #caseDynamicSectionsContainer > .sec-block.has-row-flow,
-  #articleDynamicSectionsContainer > .sec-block.has-row-flow,
-  #projectDynamicSectionsContainer > .sec-block[style*="max-width:"],
-  #caseDynamicSectionsContainer > .sec-block[style*="max-width:"],
-  #articleDynamicSectionsContainer > .sec-block[style*="max-width:"] {
+  #projectDynamicSectionsContainer .sec-block.has-row-flow,
+  #caseDynamicSectionsContainer .sec-block.has-row-flow,
+  #articleDynamicSectionsContainer .sec-block.has-row-flow,
+  .sec-page-surface > .sec-block.has-row-flow {
     flex: 0 0 100% !important;
     max-width: 100% !important;
     width: 100% !important;
@@ -6681,7 +6675,7 @@ a.wd-inline-link:hover {
 .sec-block .wd-sub:not(.sec-text-col *):not(.sec-content-col *),
 .sec-block .wd-eyebrow:not(.sec-text-col *):not(.sec-content-col *),
 .sec-block .wd-article-body:not(.sec-text-col *):not(.sec-content-col *),
-.sec-block p:not(.sec-text-col *):not(.sec-content-col *),
+.sec-block p:not(.sec-text-col *):not(.sec-content-col *):not(.wd-article-body *):not(.sec-desc *):not(.sec-quote-box *):not(blockquote *),
 .sec-block blockquote:not(.sec-text-col *):not(.sec-content-col *) {
   transform: translate3d(var(--sec-t-ox, 0px), var(--sec-t-oy, 0px), 0);
 }
@@ -6694,5 +6688,47 @@ a.wd-inline-link:hover {
 .sec-block .wd-article-body,
 .sec-block p {
   max-width: var(--sec-t-maxw, 100%);
+}
+
+/* ═══════════════════════════════════════════════════
+   FULL CARD DESIGN & CONTAINER COMPONENT (.wd-full-card)
+   Harmonized globally for admin builder, public page & live visitor preview
+   ═══════════════════════════════════════════════════ */
+.wd-full-card {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 28px;
+  padding: 40px 42px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  position: relative;
+  overflow: visible;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.wd-full-card:hover {
+  border-color: rgba(255, 92, 0, 0.3);
+}
+
+.wd-full-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
+  background: linear-gradient(90deg, #FF5C00, transparent);
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .wd-full-card {
+    padding: 28px 20px;
+    margin-bottom: 20px;
+  }
 }
 

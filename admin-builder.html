@@ -33,7 +33,7 @@
     crossorigin="anonymous" defer></script>
   <script src="assets/js/supabase-config.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" defer></script>
-<script src="assets/js/section-registry.js?v=4.0" defer></script>
+<script src="assets/js/section-registry.js?v=4.2" defer></script>
   <script src="assets/js/admin-dialogs.js?v=2" defer></script>
 
   <style>
@@ -4279,7 +4279,11 @@
               ? sec.content.items
               : (Array.isArray(sec.content.images)
                 ? sec.content.images
-                : (Array.isArray(sec.content.slides) ? sec.content.slides : null));
+                : (Array.isArray(sec.content.slides)
+                  ? sec.content.slides
+                  : (Array.isArray(sec.content.cards)
+                    ? sec.content.cards
+                    : (Array.isArray(sec.content.logos) ? sec.content.logos : null))));
             if (rawItems && rawItems.length > 0) {
               const isMediaSec = ['gallery', 'image_grid', 'carousel', 'before_after'].includes(sec.type);
               rawItems.forEach((it, itIdx) => {
@@ -4310,6 +4314,68 @@
                   data: colObj
                 });
               });
+            } else if (sec.type === 'rich_text' || (!rawItems && !sec.content.columns && (sec.content.body || sec.content.description || sec.content.quote))) {
+              if (sec.type === 'rich_text') {
+                if (sec.content.heading !== undefined && sec.content.heading !== null && String(sec.content.heading).trim() !== '') {
+                  const cleanH = String(sec.content.heading).replace(/<[^>]*>/g, '').trim();
+                  sectionChildren.push({
+                    id: 'heading',
+                    type: 'contentElement',
+                    subType: 'heading',
+                    icon: '📝',
+                    label: cleanH ? (cleanH.length > 28 ? cleanH.slice(0, 26) + '…' : cleanH) : 'Heading',
+                    index: 0,
+                    data: { key: 'heading', text: sec.content.heading }
+                  });
+                }
+                if (sec.content.subheading && String(sec.content.subheading).replace(/<[^>]*>/g, '').trim()) {
+                  const cleanS = String(sec.content.subheading).replace(/<[^>]*>/g, '').trim();
+                  sectionChildren.push({
+                    id: 'subheading',
+                    type: 'contentElement',
+                    subType: 'subtitle',
+                    icon: '💬',
+                    label: cleanS ? (cleanS.length > 28 ? cleanS.slice(0, 26) + '…' : cleanS) : 'Subheading',
+                    index: 1,
+                    data: { key: 'subheading', text: sec.content.subheading }
+                  });
+                }
+                if (sec.content.body !== undefined || sec.content.description !== undefined) {
+                  sectionChildren.push({
+                    id: 'text',
+                    type: 'contentElement',
+                    subType: 'text',
+                    icon: '📄',
+                    label: 'Article Body',
+                    index: 2,
+                    data: { key: 'text', text: sec.content.body || sec.content.description || '' }
+                  });
+                }
+              } else if (sec.type === 'quote') {
+                if (sec.content.quote) {
+                  const cleanQ = String(sec.content.quote).replace(/<[^>]*>/g, '').trim();
+                  sectionChildren.push({
+                    id: 'text',
+                    type: 'contentElement',
+                    subType: 'text',
+                    icon: '💬',
+                    label: cleanQ ? (cleanQ.length > 28 ? cleanQ.slice(0, 26) + '…' : cleanQ) : 'Quote Text',
+                    index: 0,
+                    data: { key: 'text', text: sec.content.quote }
+                  });
+                }
+                if (sec.content.author) {
+                  sectionChildren.push({
+                    id: 'eyebrow',
+                    type: 'contentElement',
+                    subType: 'eyebrow',
+                    icon: '👤',
+                    label: String(sec.content.author).slice(0, 26),
+                    index: 1,
+                    data: { key: 'eyebrow', text: sec.content.author }
+                  });
+                }
+              }
             }
           }
 
@@ -4330,8 +4396,11 @@
               ${sectionChildren.map(child => {
                 const isChildActive = state.selectedElementKey === child.id ||
                                      (child.type === 'customContainer' && state.selectedElementKey === child.data.id) ||
-                                     (child.subType === 'image' && (state.selectedElementKey === `slide-${child.index + 1}` || state.selectedElementKey === `gallery-img-${child.index}` || state.selectedElementKey === `gallery-card-${child.index}` || state.selectedElementKey === `item_${child.index}` || state.selectedElementKey === `item-${child.index}`));
-                const deleteActionTitle = child.type === 'customContainer' ? 'Delete this container' : 'Delete this item';
+                                     (child.subType === 'image' && (state.selectedElementKey === `slide-${child.index + 1}` || state.selectedElementKey === `gallery-img-${child.index}` || state.selectedElementKey === `gallery-card-${child.index}` || state.selectedElementKey === `item_${child.index}` || state.selectedElementKey === `item-${child.index}`)) ||
+                                     (child.type === 'contentElement' && (state.selectedElementKey === child.id || (child.id === 'text' && (state.selectedElementKey === 'body' || state.selectedElementKey === 'description'))));
+                const deleteActionTitle = child.type === 'customContainer'
+                  ? 'Delete this container'
+                  : (child.type === 'contentElement' ? 'Clear this layer' : 'Delete this item');
                 return `
                   <div class="tree-child-item ${isChildActive ? 'active' : ''}"
                        data-item-key="${child.id}"
@@ -4432,6 +4501,11 @@
         if (type === 'customContainer') {
           target = secEl.querySelector(`[data-container-id="${childId}"]`) || document.querySelector(`[data-container-id="${childId}"]`);
           if (target) target = target.closest('.custom-container-item') || target;
+        } else if (type === 'contentElement') {
+          if (childId === 'heading') target = secEl.querySelector('.sec-heading, h1, h2, h3, .wd-h1');
+          else if (childId === 'subheading') target = secEl.querySelector('.sec-subheading');
+          else if (childId === 'text' || childId === 'body') target = secEl.querySelector('.wd-article-body, .sec-desc, p');
+          else if (childId === 'eyebrow') target = secEl.querySelector('.wd-eyebrow, .sec-quote-box cite, .sec-quote-box span');
         } else {
           target = secEl.querySelector(`.wd-gallery-img-wrap[data-gallery-idx="${index}"], .sec-prebuilt-img-holder[data-gallery-idx="${index}"], [data-el-key="gallery-img-${index}"], [data-gallery-idx="${index}"]`);
           if (!target) {
@@ -4451,6 +4525,8 @@
       window.selectChildLayerInTree = function (secId, type, childId, index) {
         if (type === 'customContainer') {
           window.selectCustomContainerInTree(secId, childId);
+        } else if (type === 'contentElement') {
+          window.selectContentElementInTree(secId, childId, index);
         } else {
           window.selectContentItemInTree(secId, index);
         }
@@ -4459,6 +4535,8 @@
       window.deleteChildLayerInTree = function (secId, type, childId, index) {
         if (type === 'customContainer') {
           window.deleteCustomContainer(secId, childId);
+        } else if (type === 'contentElement') {
+          window.deleteContentElementInTree(secId, childId);
         } else {
           window.deleteSectionContentItem(secId, index);
         }
@@ -4653,6 +4731,93 @@
             item.classList.remove('active');
           }
         });
+      };
+
+      window.selectContentElementInTree = function (secId, elementKey, elementIdx) {
+        if (state.selectedSectionId !== secId) {
+          selectSection(secId, false);
+        }
+        state.selectedElementKey = elementKey;
+
+        // Auto-expand drawer if collapsed so layer stays visible
+        if (state.collapsedDrawers && state.collapsedDrawers[secId]) {
+          state.collapsedDrawers[secId] = false;
+          const drawer = document.getElementById('tree_drawer_' + secId);
+          if (drawer) drawer.classList.remove('is-collapsed');
+          const btn = document.querySelector(`[data-section-id="${secId}"] .tree-drawer-btn`);
+          if (btn) {
+            btn.classList.remove('is-collapsed');
+            btn.classList.add('is-expanded');
+            const arrow = btn.querySelector('.drawer-arrow-icon');
+            if (arrow) arrow.textContent = '▾';
+          }
+        }
+
+        window.highlightTreeElement(elementKey);
+
+        const secEl = document.getElementById('canvas_sec_' + secId);
+        if (!secEl) return;
+        const targetSec = state.sections.find(s => s.id === secId);
+        const canvas = getBuilderElement('builderCanvas');
+
+        // Look for candidate matching elementKey
+        const cands = (targetSec && targetSec._candidates) ? targetSec._candidates : (window._activeCandidates || []);
+        let cand = cands.find(c => c && (c.key === elementKey || (elementKey === 'text' && (c.key === 'text' || c.el?.matches('.wd-article-body, .sec-desc')))));
+
+        let targetEl = cand ? cand.el : null;
+        if (!targetEl) {
+          if (elementKey === 'heading') {
+            targetEl = secEl.querySelector('.sec-heading, h1, h2, h3, .wd-h1');
+          } else if (elementKey === 'subheading') {
+            targetEl = secEl.querySelector('.sec-subheading');
+          } else if (elementKey === 'text' || elementKey === 'body') {
+            targetEl = secEl.querySelector('.wd-article-body, .sec-desc, p');
+          } else if (elementKey === 'eyebrow') {
+            targetEl = secEl.querySelector('.wd-eyebrow, .sec-quote-box cite, .sec-quote-box span');
+          }
+        }
+
+        if (targetEl) {
+          targetEl.classList.add('element-active-selected', 'has-element-box', 'has-reposition-handle');
+          if (!cand) {
+            cand = {
+              el: targetEl,
+              key: elementKey,
+              label: elementKey === 'heading' ? 'Heading' : (elementKey === 'subheading' ? 'Subheading' : (elementKey === 'eyebrow' ? 'Author' : 'Article Body')),
+              type: elementKey === 'heading' ? 'heading' : (elementKey === 'subheading' ? 'subtitle' : (elementKey === 'eyebrow' ? 'eyebrow' : 'text'))
+            };
+          }
+          if (typeof selectElementAdjustmentBox === 'function') {
+            selectElementAdjustmentBox(targetEl, cand, targetSec, secId, canvas, cands);
+          }
+          try {
+            targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          } catch (_) {}
+        }
+      };
+
+      window.deleteContentElementInTree = function (secId, elementKey) {
+        const sec = getSectionById(secId);
+        if (!sec || !sec.content) return;
+        if (elementKey === 'heading') {
+          sec.content.heading = '';
+        } else if (elementKey === 'subheading') {
+          sec.content.subheading = '';
+        } else if (elementKey === 'text' || elementKey === 'body') {
+          sec.content.body = '';
+          sec.content.description = '';
+          if (sec.content.quote) sec.content.quote = '';
+        } else if (elementKey === 'eyebrow') {
+          if (sec.content.author) sec.content.author = '';
+          if (sec.content.eyebrow) sec.content.eyebrow = '';
+        }
+        if (window.deselectAllCanvasElements) window.deselectAllCanvasElements(document, true);
+        markUnsaved();
+        pushHistory();
+        renderTree();
+        renderCanvas();
+        renderProperties();
+        showToast('✓ Layer content cleared');
       };
 
       // ── Tree Drag & Drop with Grabbing Cursor Feedback ──
@@ -11967,13 +12132,15 @@
             if (t.closest('.canvas-section-header-bar, .canvas-section-badge, .canvas-reposition-handle, .element-action-bar, .canvas-resize-handle, .element-resize-handle')) return;
             if (isCustomContainerChild(t)) return;
             if (isCarouselSlideChild(t)) return;
+            if (t.tagName === 'P' && t.closest('.wd-article-body, .sec-desc, .sec-quote-box, blockquote')) return;
             if (t.matches('h1, h2, h3, h4, h5, h6, .wd-eyebrow, .project-eyebrow, .sec-heading, .sec-subheading, .wd-h1, .wd-gallery-title, .wd-narrative-card-title, .custom-btn-group, .btn-primary, .btn-secondary, .badge-label')) return;
             if (seenEls.has(t)) return;
             if (!t.textContent.trim()) return;
             seenEls.add(t);
             const parentCard = t.closest('.wd-narrative-card, .wd-deliverable-item, .cards-grid-item, .sec-col, .sec-col-card, .sec-feature-card, .client-logo-item, .testimonial-card, .wd-gallery-card, .wd-meta-cell, .sec-carousel-slide, .sec-hover-card, .sec-cta-card, .sec-grid-item, .sec-list-item');
-            const key = parentCard ? `card-desc-${idx}` : (idx === 0 ? 'text' : `text-${idx}`);
-            const label = parentCard ? `Item Description` : (idx === 0 ? 'Description' : `Description ${idx + 1}`);
+            const isArticleBody = t.matches('.wd-article-body');
+            const key = parentCard ? `card-desc-${idx}` : (isArticleBody || idx === 0 ? 'text' : `text-${idx}`);
+            const label = parentCard ? `Item Description` : (isArticleBody ? 'Article Body' : (idx === 0 ? 'Description' : `Description ${idx + 1}`));
             candidates.push({ el: t, key, label, type: 'text' });
           });
 
@@ -12356,6 +12523,14 @@
         if (btnGroupRoot && btnGroupRoot !== el) {
           el = btnGroupRoot;
           const foundCand = (candidates || []).find(item => item.el === btnGroupRoot);
+          if (foundCand) cand = foundCand;
+        }
+
+        // Promote any article body paragraph/descendant to the unified article body container
+        const articleBodyRoot = el.closest('.wd-article-body');
+        if (articleBodyRoot && articleBodyRoot !== el) {
+          el = articleBodyRoot;
+          const foundCand = (candidates || []).find(item => item.el === articleBodyRoot);
           if (foundCand) cand = foundCand;
         }
 
@@ -19093,6 +19268,22 @@
                     ? window.SectionRegistry.formatRichTextHtml
                     : (typeof formatRichTextHtml === 'function' ? formatRichTextHtml : (s => s));
                   c.body = formatter(c.body);
+                }
+
+                // Auto-heal rich_text: purge fragmented paragraph offsets so unified article body controls all text
+                const purgeFragmentedOffsets = (sett) => {
+                  if (!sett || !sett.elementOffsets) return;
+                  Object.keys(sett.elementOffsets).forEach(k => {
+                    if (/^text-\d+$/.test(k) || /^desc-\d+$/.test(k)) {
+                      delete sett.elementOffsets[k];
+                    }
+                  });
+                };
+                purgeFragmentedOffsets(sec.settings);
+                if (sec.settings && sec.settings.responsive) {
+                  ['desktop', 'tablet', 'mobile'].forEach(vp => {
+                    if (sec.settings.responsive[vp]) purgeFragmentedOffsets(sec.settings.responsive[vp]);
+                  });
                 }
               }
 

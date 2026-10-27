@@ -34,7 +34,7 @@
     rel="stylesheet">
   <link rel="stylesheet" href="assets/css/styles.css">
   <link rel="stylesheet" href="assets/css/section-builder.css?v=3.3">
-<script src="assets/js/section-registry.js?v=4.0"></script>
+<script src="assets/js/section-registry.js?v=4.2"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" defer
     integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a"
     crossorigin="anonymous"></script>
@@ -760,8 +760,19 @@
       const requestedPreview = new URLSearchParams(window.location.search).get('preview') === 'true';
 
       function resolveLocalDraft(slug) {
-        if (!slug) return null;
-        const clean = String(slug).toLowerCase().trim();
+        if (!slug && !requestedPreview) return null;
+        const clean = String(slug || '').toLowerCase().trim();
+        if (requestedPreview) {
+          try {
+            const snap = JSON.parse(localStorage.getItem('tsm_live_preview_snapshot') || 'null');
+            if (snap && snap.sections && Array.isArray(snap.sections) && snap.sections.length > 0) {
+              const snapId = String(snap.id || '').toLowerCase().trim();
+              if (snapId === clean || !clean || !slug) {
+                return snap;
+              }
+            }
+          } catch (_) { }
+        }
         let raw = localStorage.getItem('tsm_draft_' + clean);
         if (!raw) raw = localStorage.getItem('tsm_draft_' + slug);
         if (!raw) {

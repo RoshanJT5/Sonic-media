@@ -301,7 +301,28 @@
       if (c.body && typeof c.body === 'string' && (c.body.includes('\n\n') || !/<[a-z][\s\S]*>/i.test(c.body))) {
         c.body = formatRichTextHtml(c.body);
       }
+
+      // Auto-heal rich_text: purge fragmented paragraph offsets so unified article body controls all text
+      const purgeFragmentedOffsets = (sett) => {
+        if (!sett || !sett.elementOffsets) return;
+        Object.keys(sett.elementOffsets).forEach(k => {
+          if (/^text-\d+$/.test(k) || /^desc-\d+$/.test(k) || /^p-\d+$/.test(k)) {
+            delete sett.elementOffsets[k];
+          }
+        });
+      };
+      purgeFragmentedOffsets(section.settings);
+      if (section.settings && section.settings.responsive) {
+        ['desktop', 'tablet', 'mobile'].forEach(vp => {
+          if (section.settings.responsive[vp]) purgeFragmentedOffsets(section.settings.responsive[vp]);
+        });
+      }
+      if (section.settings && (section.settings.maxWidth === 'standard' || !section.settings.maxWidth)) {
+        section.settings.maxWidth = '100%';
+      }
     }
+
+
 
     const legacyNodes = Array.isArray(section.nodes)
       ? section.nodes
@@ -873,7 +894,7 @@
     // Granular Element Offsets (Per-Card, Per-Column, Per-Image Item)
     if (s.elementOffsets && typeof s.elementOffsets === 'object') {
       for (const [elKey, pos] of Object.entries(s.elementOffsets)) {
-        if (pos && (pos.x || pos.y)) {
+        if (pos && (pos.x !== undefined || pos.y !== undefined)) {
           const eox = parseInt(pos.x || 0);
           const eoy = parseInt(pos.y || 0);
           styleParts.push(`--el-${elKey}-ox:${eox}px`);
@@ -1342,7 +1363,7 @@
         body: '<p>Write your detailed story, methodology, client interview, or results analysis here. You can format paragraphs, bullet points, links, and bold highlights easily.</p>'
       },
       settings: {
-        maxWidth: 'standard', // 'narrow', 'standard', 'wide'
+        maxWidth: '100%',
         cardStyle: true,       // boxed card vs transparent
         fontSize: '16',
         spacing: 'standard'
@@ -1351,7 +1372,9 @@
     render(section, opts) {
       const c = section.content || {};
       const s = section.settings || {};
-      const maxW = s.maxWidth === 'narrow' ? '760px' : (s.maxWidth === 'wide' ? '1100px' : '920px');
+      const maxW = (s.maxWidth && s.maxWidth !== 'standard' && s.maxWidth !== '100%')
+        ? (s.maxWidth === 'narrow' ? '760px' : (s.maxWidth === 'wide' ? '1400px' : s.maxWidth))
+        : '100%';
       const rawBody = c.body || c.description || '';
       const bodyHtml = sanitizeRichText(formatRichTextHtml(rawBody));
       const fSize = s.fontSize ? `font-size:${parseInt(s.fontSize)}px;` : '';
@@ -1370,13 +1393,11 @@
       }
 
       const inner = `
-        <div style="max-width:${maxW};margin:0 auto;">
-          <div class="${s.cardStyle ? 'wd-full-card' : ''}" style="${s.cardStyle ? 'padding:40px 36px;' : ''}">
-            ${c.heading ? `<h2 class="sec-heading">${renderFormattedText(c.heading)}</h2>` : ''}
-            ${hasValidSubheading ? `<div class="sec-subheading">${renderFormattedText(c.subheading)}</div>` : ''}
-            <div class="wd-article-body" style="margin-top:18px;${fSize}">
-              ${bodyHtml}
-            </div>
+        <div class="${s.cardStyle ? 'wd-full-card' : ''}" style="width:100%;max-width:${maxW};box-sizing:border-box;margin:0 auto;${s.cardStyle ? 'padding:clamp(24px, 4vw, 40px) clamp(20px, 3.5vw, 36px);' : ''}">
+          ${c.heading ? `<h2 class="sec-heading">${renderFormattedText(c.heading)}</h2>` : ''}
+          ${hasValidSubheading ? `<div class="sec-subheading">${renderFormattedText(c.subheading)}</div>` : ''}
+          <div class="wd-article-body" style="margin-top:18px;${fSize}width:100%;box-sizing:border-box;">
+            ${bodyHtml}
           </div>
         </div>
       `;
@@ -1414,17 +1435,15 @@
       const fSize = elSt.fontSize || (s.fontSize ? `${parseInt(s.fontSize)}px` : '22px');
 
       const inner = `
-        <div style="max-width:880px;margin:0 auto;">
-          <div class="sec-quote-box ${s.cardStyle ? 'wd-full-card' : ''}" style="border-left:4px solid #FF5C00;padding:32px 36px;${s.cardStyle ? '' : 'background:transparent;'}">
-            <blockquote style="font-family:${quoteFont};font-style:${quoteFontStyle};font-size:${fSize};font-weight:${quoteFontWeight};line-height:1.45;color:#F5F0EB;margin:0 0 16px;">
-              ${renderFormattedText(c.quote || '')}
-            </blockquote>
-            <div style="display:flex;align-items:center;gap:12px;">
-              <div style="width:24px;height:2px;background:#FF5C00;"></div>
-              <div>
-                <strong style="color:#F5F0EB;font-size:14px;font-family:'Syne',sans-serif;">${escapeHtml(c.author || '')}</strong>
-                ${c.role ? `<div style="font-size:12px;color:rgba(245,240,235,0.6);margin-top:2px;">${escapeHtml(c.role)}</div>` : ''}
-              </div>
+        <div class="sec-quote-box ${s.cardStyle ? 'wd-full-card' : ''}" style="width:100%;max-width:100%;box-sizing:border-box;margin:0 auto;border-left:4px solid #FF5C00;padding:clamp(20px, 3vw, 32px) clamp(20px, 3.5vw, 36px);${s.cardStyle ? '' : 'background:transparent;'}">
+          <blockquote style="font-family:${quoteFont};font-style:${quoteFontStyle};font-size:${fSize};font-weight:${quoteFontWeight};line-height:1.45;color:#F5F0EB;margin:0 0 16px;">
+            ${renderFormattedText(c.quote || '')}
+          </blockquote>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:24px;height:2px;background:#FF5C00;"></div>
+            <div>
+              <strong style="color:#F5F0EB;font-size:14px;font-family:'Syne',sans-serif;">${escapeHtml(c.author || '')}</strong>
+              ${c.role ? `<div style="font-size:12px;color:rgba(245,240,235,0.6);margin-top:2px;">${escapeHtml(c.role)}</div>` : ''}
             </div>
           </div>
         </div>
@@ -2103,7 +2122,7 @@
       const c = section.content || {};
       const s = section.settings || {};
 
-      const customW = s.customWidth ? (String(s.customWidth).endsWith('%') || String(s.customWidth).endsWith('px') ? s.customWidth : `${s.customWidth}px`) : '960px';
+      const customW = s.customWidth ? (String(s.customWidth).endsWith('%') || String(s.customWidth).endsWith('px') ? s.customWidth : `${s.customWidth}px`) : '100%';
       const hasCustomH = s.comparisonHeight && parseInt(s.comparisonHeight) > 0;
       const customH = hasCustomH ? parseInt(s.comparisonHeight) : null;
       const isBuilderSelected = !opts?.isPublic && opts?.isSelected;
@@ -2117,7 +2136,7 @@
       ` : '';
 
       const inner = `
-        <div style="max-width:${customW};margin:0 auto;position:relative;">
+        <div style="width:100%;max-width:${customW};box-sizing:border-box;margin:0 auto;position:relative;">
           ${c.heading ? `<h3 class="sec-heading" style="margin-bottom:20px;text-align:center;">${renderFormattedText(c.heading)}</h3>` : ''}
           <div class="sec-ba-container" style="position:relative;width:100%;${hasCustomH ? `height:${customH}px;padding-top:0;` : 'padding-top:56.25%;'}border-radius:16px;overflow:hidden;background:#121212;box-shadow:0 12px 40px rgba(0,0,0,0.8);--pos:50%;">
             <!-- After Image (Background) -->
@@ -2208,7 +2227,7 @@
       }
 
       const inner = `
-        <div style="max-width:960px;margin:0 auto;">
+        <div style="width:100%;max-width:100%;box-sizing:border-box;margin:0 auto;">
           ${c.title ? `<h3 class="sec-heading" style="margin-bottom:16px;text-align:center;">${renderFormattedText(c.title)}</h3>` : ''}
           ${videoPlayerHtml}
           ${c.caption ? `<div style="font-size:12px;color:rgba(245,240,235,0.5);text-align:center;margin-top:10px;">${renderFormattedText(c.caption)}</div>` : ''}
@@ -2660,18 +2679,16 @@
       const ratingStars = '★'.repeat(c.rating || 5);
 
       const inner = `
-        <div style="max-width:880px;margin:0 auto;">
-          <div class="wd-full-card testimonial-card" style="padding:40px;position:relative;border:1px solid rgba(255,92,0,0.25);">
-            <div style="color:#FF5C00;font-size:18px;margin-bottom:14px;letter-spacing:2px;">${ratingStars}</div>
-            <p style="font-family:'Syne',sans-serif;font-size:20px;font-weight:600;line-height:1.5;color:#F5F0EB;margin:0 0 24px;">
-              “${escapeHtml(c.quote || '')}”
-            </p>
-            <div style="display:flex;align-items:center;gap:14px;">
-              ${c.avatar ? `<span data-el-key="testimonial-avatar" style="display:inline-flex;width:48px;height:48px;border-radius:50%;overflow:hidden;flex:0 0 auto;"><img src="${escapeHtml(c.avatar)}" alt="${escapeHtml(c.author || '')}" style="width:100%;height:100%;border-radius:inherit;object-fit:cover;border:2px solid #FF5C00;box-sizing:border-box;" loading="lazy"></span>` : ''}
-              <div>
-                <strong style="color:#F5F0EB;font-size:14px;font-family:'Syne',sans-serif;">${escapeHtml(c.author || '')}</strong>
-                <div style="font-size:12px;color:rgba(245,240,235,0.6);margin-top:2px;">${escapeHtml(c.title || '')}</div>
-              </div>
+        <div class="wd-full-card testimonial-card" style="width:100%;max-width:100%;box-sizing:border-box;margin:0 auto;padding:clamp(24px, 4vw, 40px);position:relative;border:1px solid rgba(255,92,0,0.25);">
+          <div style="color:#FF5C00;font-size:18px;margin-bottom:14px;letter-spacing:2px;">${ratingStars}</div>
+          <p style="font-family:'Syne',sans-serif;font-size:20px;font-weight:600;line-height:1.5;color:#F5F0EB;margin:0 0 24px;">
+            “${escapeHtml(c.quote || '')}”
+          </p>
+          <div style="display:flex;align-items:center;gap:14px;">
+            ${c.avatar ? `<span data-el-key="testimonial-avatar" style="display:inline-flex;width:48px;height:48px;border-radius:50%;overflow:hidden;flex:0 0 auto;"><img src="${escapeHtml(c.avatar)}" alt="${escapeHtml(c.author || '')}" style="width:100%;height:100%;border-radius:inherit;object-fit:cover;border:2px solid #FF5C00;box-sizing:border-box;" loading="lazy"></span>` : ''}
+            <div>
+              <strong style="color:#F5F0EB;font-size:14px;font-family:'Syne',sans-serif;">${escapeHtml(c.author || '')}</strong>
+              <div style="font-size:12px;color:rgba(245,240,235,0.6);margin-top:2px;">${escapeHtml(c.title || '')}</div>
             </div>
           </div>
         </div>
@@ -2761,7 +2778,7 @@
       const cardStyle = s.elementStyles?.['cta-card'] || {};
       const cardW = cardStyle.width || (s.cardWidth ? (String(s.cardWidth).endsWith('px') || String(s.cardWidth).endsWith('%') ? s.cardWidth : `${s.cardWidth}px`) : null);
       const cardH = cardStyle.height || null;
-      const cardWidthStyle = cardW ? `width:${cardW} !important;max-width:${cardW} !important;` : 'width:100%;max-width:1000px;';
+      const cardWidthStyle = cardW ? `width:${cardW} !important;max-width:${cardW} !important;` : 'width:100%;max-width:100%;box-sizing:border-box;';
       const cardHeightStyle = cardH ? `height:${cardH} !important;min-height:${cardH} !important;` : '';
       const cardBg = cardStyle.background ? `background:${cardStyle.background} !important;` : 'background:radial-gradient(circle at 50% 50%, rgba(255,92,0,0.12), transparent 70%), #0D0D0D;';
       const cardBorder = cardStyle.border ? `border:${cardStyle.border} !important;` : 'border:1px solid rgba(255,92,0,0.3);';
@@ -3528,12 +3545,29 @@
       const logicalWidth = viewportWidths[activeViewport] || viewportWidths.desktop;
       const availableWidth = Math.max(1, container.clientWidth || window.innerWidth || logicalWidth);
       const scale = Math.min(1, availableWidth / logicalWidth);
-      surface.style.width = logicalWidth + 'px';
-      surface.style.left = '50%';
-      surface.style.transform = `translateX(-50%) scale(${scale})`;
-      surface.style.transformOrigin = 'top center';
-      container.style.height = Math.ceil(surface.scrollHeight * scale) + 'px';
-      container.style.setProperty('--section-runtime-scale', String(scale));
+      surface.style.boxSizing = 'border-box';
+      if (scale >= 1) {
+        surface.style.width = '100%';
+        surface.style.maxWidth = logicalWidth + 'px';
+        surface.style.margin = '0 auto';
+        surface.style.position = 'relative';
+        surface.style.left = '0';
+        surface.style.transform = 'none';
+        surface.style.transformOrigin = 'top center';
+        container.style.height = 'auto';
+        container.style.setProperty('--section-runtime-scale', '1');
+      } else {
+        surface.style.width = logicalWidth + 'px';
+        surface.style.maxWidth = 'none';
+        surface.style.position = 'relative';
+        surface.style.transformOrigin = 'top left';
+        surface.style.transform = `scale(${scale})`;
+        const leftOffset = Math.max(0, Math.floor((availableWidth - logicalWidth * scale) / 2));
+        surface.style.left = `${leftOffset}px`;
+        surface.style.margin = '0';
+        container.style.height = Math.ceil(surface.scrollHeight * scale) + 'px';
+        container.style.setProperty('--section-runtime-scale', String(scale));
+      }
     };
 
     const scheduleGeometrySync = () => {
