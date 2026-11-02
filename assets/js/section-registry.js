@@ -79,6 +79,90 @@
     });
   }
 
+  function normalizeImageUrl(rawUrl) {
+    if (!rawUrl || typeof rawUrl !== 'string') return '';
+
+    // 1. Trim whitespace, zero-width spaces, line breaks
+    let url = rawUrl.trim().replace(/^[\u200B\u200C\u200D\uFEFF]+|[\u200B\u200C\u200D\uFEFF]+$/g, '');
+    if (!url) return '';
+
+    // 2. Strip surrounding quotes or backticks
+    url = url.replace(/^["'`]+|["'`]+$/g, '').trim();
+
+    // 3. Extract from markdown image or link syntax: ![alt](url) or [alt](url)
+    const mdMatch = url.match(/^!?\[.*?\]\(\s*([^\s\)]+)(?:\s+["'][^"']*["'])?\s*\)$/i);
+    if (mdMatch) {
+      url = mdMatch[1].trim();
+    }
+
+    // 4. Extract from HTML <img> or <a> tag: <img src="url"> or <a href="url">
+    const htmlMatch = url.match(/<(?:img|source)[^>]+src=["']([^"']+)["']/i) || url.match(/<a[^>]+href=["']([^"']+)["']/i);
+    if (htmlMatch) {
+      url = htmlMatch[1].trim();
+    }
+
+    // 5. Data URLs and Blob URLs should be preserved as-is
+    if (/^(?:data:image\/|blob:)/i.test(url)) {
+      return url;
+    }
+
+    // 6. Strip trailing punctuation often accidentally copied (parenthesis, comma, semicolon, angle bracket)
+    url = url.replace(/[)>,;]+$/, '').trim();
+
+    // 7. Root-relative or relative paths preserved (e.g. /assets/..., assets/..., ./...) - but NOT protocol-relative //
+    if (/^(?:\/(?!\/)|\.\/|\.\.\/|assets\/)/i.test(url)) {
+      return url;
+    }
+
+    // 8. Protocol handling:
+    // Convert protocol-relative //domain.com/... -> https://domain.com/...
+    if (url.startsWith('//')) {
+      url = 'https:' + url;
+    }
+    // If starts with http://, upgrade to https:// for modern secure CDN delivery & prevent mixed-content blocks
+    else if (/^http:\/\//i.test(url)) {
+      url = url.replace(/^http:\/\//i, 'https://');
+    }
+    // If no scheme but domain-like (e.g. res.cloudinary.com/..., images.unsplash.com/..., etc.)
+    else if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(url)) {
+      // Check if it looks like a domain name with path
+      if (/^[a-zA-Z0-9_-]+(?:\.[a-zA-Z0-9_-]+)+(?:\/.*)?$/i.test(url)) {
+        url = 'https://' + url;
+      }
+    }
+
+    // 9. Cloudinary URL normalization:
+    // Remove fl_attachment (which forces browser download rather than display)
+    if (/cloudinary\.com/i.test(url)) {
+      url = url.replace(/\/fl_attachment(?::[^,/]+)?(?=[,\/])/gi, '');
+    }
+
+    // 10. Google Drive sharing link conversion:
+    // /file/d/FILE_ID/view?usp=sharing -> https://drive.google.com/uc?export=view&id=FILE_ID
+    const gDriveMatch = url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)/i);
+    if (gDriveMatch && gDriveMatch[1]) {
+      url = `https://drive.google.com/uc?export=view&id=${gDriveMatch[1]}`;
+    }
+
+    // 11. Dropbox sharing link conversion:
+    // dropbox.com/s/ID/name.jpg?dl=0 -> ?raw=1
+    if (/dropbox\.com\/s\//i.test(url)) {
+      url = url.replace(/\?dl=[01]/i, '?raw=1');
+      if (!url.includes('?raw=1') && !url.includes('&raw=1')) {
+        url += (url.includes('?') ? '&' : '?') + 'raw=1';
+      }
+    }
+
+    // 12. Imgur page conversion:
+    // imgur.com/abc1234 (without i. and without extension)
+    const imgurMatch = url.match(/^(?:https?:\/\/)?(?:www\.)?imgur\.com\/([a-zA-Z0-9]{5,8})$/i);
+    if (imgurMatch && imgurMatch[1]) {
+      url = `https://i.imgur.com/${imgurMatch[1]}.jpg`;
+    }
+
+    return url;
+  }
+
   function repairEscapedFormatting(str) {
     if (!str || typeof str !== 'string') return str || '';
     var s = decodePreEscapedEntities(str);
@@ -603,6 +687,64 @@
     `;
   }
 
+  const DEFAULT_TAG_SIZES = {
+    h1: '48px',
+    h2: '36px',
+    h3: '28px',
+    h4: '22px',
+    h5: '18px',
+    p: '16px',
+    none: '16px'
+  };
+
+  function resolveHeadingTag(tagVal, defaultFallback = 'h2') {
+    if (!tagVal) return defaultFallback;
+    const clean = String(tagVal).trim().toLowerCase();
+    if (clean === 'none') return 'div';
+    if (['h1', 'h2', 'h3', 'h4', 'h5', 'p'].includes(clean)) return clean;
+    return defaultFallback;
+  }
+
+  function resolveHeadingStyles(section, defaultFallbackSize = '') {
+    if (!section) return '';
+    const c = section.content || {};
+    const s = section.settings || {};
+    const elSt = (s.elementStyles && (s.elementStyles.heading || s.elementStyles['heading-0'])) || {};
+    const rawTag = c.tag ? String(c.tag).trim().toLowerCase() : '';
+    const tagSize = DEFAULT_TAG_SIZES[rawTag] || '';
+
+    const rawSize = elSt.fontSize || s.headingFontSize || (s.fontSize && !s.descFontSize && section.type !== 'rich_text' ? s.fontSize : '') || tagSize || defaultFallbackSize;
+    let fSize = '';
+    if (rawSize) {
+      const strSize = String(rawSize).trim();
+      fSize = (strSize.endsWith('px') || strSize.endsWith('rem') || strSize.endsWith('em') || strSize.startsWith('clamp'))
+        ? strSize
+        : (parseFloat(strSize) + 'px');
+    }
+
+    const color = elSt.color || s.color || '';
+    const fontFamily = elSt.fontFamily || s.fontFamily || '';
+    const fontStyle = elSt.fontStyle || s.fontStyle || '';
+    const fontWeight = elSt.fontWeight || s.fontWeight || '';
+    const textDecoration = elSt.textDecoration || '';
+    const letterSpacing = elSt.letterSpacing ? (String(elSt.letterSpacing).endsWith('px') ? elSt.letterSpacing : `${elSt.letterSpacing}px`) : (s.letterSpacing ? `${s.letterSpacing}px` : '');
+    const lineHeight = elSt.lineHeight || s.lineHeight || '';
+    const textAlign = elSt.textAlign || s.alignment || '';
+
+    const parts = [];
+    if (fSize) parts.push(`font-size:${fSize}`);
+    if (color) parts.push(`color:${color}`);
+    if (fontFamily) parts.push(`font-family:${resolveFontFamily(fontFamily)} !important`);
+    if (fontStyle) parts.push(`font-style:${fontStyle} !important`);
+    if (fontWeight) parts.push(`font-weight:${fontWeight} !important`);
+    if (textDecoration) parts.push(`text-decoration:${textDecoration}`);
+    if (letterSpacing) parts.push(`letter-spacing:${letterSpacing}`);
+    if (lineHeight) parts.push(`line-height:${lineHeight}`);
+    if (textAlign) parts.push(`text-align:${textAlign}`);
+
+    return parts.filter(Boolean).join(';');
+  }
+
   // ── Scoped Responsive Media Query Generator (Tablet & Mobile) ──
   function generateSectionResponsiveCss(secId, resp) {
     if (!resp || (!resp.tablet && !resp.mobile)) return '';
@@ -787,10 +929,11 @@
       const showOverlay = s.showBgOverlay !== false; // Default true unless user turns it off
       const overlay = showOverlay ? (s.bgOverlay !== undefined && s.bgOverlay !== '' ? parseFloat(s.bgOverlay) : 0.75) : 0;
       
+      const bgImgClean = normalizeImageUrl(s.bgImage);
       if (overlay > 0) {
-        styleParts.push(`background-image:linear-gradient(rgba(8,8,8,${overlay}), rgba(8,8,8,${overlay})), url('${escapeHtml(s.bgImage)}');background-size:cover;background-position:${escapeHtml(s.bgPosition || 'center center')}`);
+        styleParts.push(`background-image:linear-gradient(rgba(8,8,8,${overlay}), rgba(8,8,8,${overlay})), url('${escapeHtml(bgImgClean)}');background-size:cover;background-position:${escapeHtml(s.bgPosition || 'center center')}`);
       } else {
-        styleParts.push(`background-image:url('${escapeHtml(s.bgImage)}');background-size:cover;background-position:${escapeHtml(s.bgPosition || 'center center')}`);
+        styleParts.push(`background-image:url('${escapeHtml(bgImgClean)}');background-size:cover;background-position:${escapeHtml(s.bgPosition || 'center center')}`);
       }
     }
 
@@ -1010,27 +1153,49 @@
     const itemsHtml = containers.map((c, idx) => {
       const cId = c.id || `ccont_${idx}`;
       const cType = c.type || 'image';
-      const cWidth = c.width ? (String(c.width).endsWith('px') || String(c.width).endsWith('%') ? c.width : `${parseInt(c.width)}px`) : (cType === 'button' ? 'auto' : '450px');
-      const cHeight = c.height ? (String(c.height).endsWith('px') || String(c.height).endsWith('%') ? c.height : `${parseInt(c.height)}px`) : (cType === 'button' ? 'auto' : (cType === 'image' ? '320px' : '200px'));
+      const cWidth = c.width ? (String(c.width).endsWith('px') || String(c.width).endsWith('%') || c.width === 'auto' ? c.width : `${parseInt(c.width)}px`) : (cType === 'button' ? 'auto' : '450px');
+      const cHeight = c.height ? (String(c.height).endsWith('px') || String(c.height).endsWith('%') || c.height === 'auto' ? c.height : `${parseInt(c.height)}px`) : (cType === 'button' ? 'auto' : (cType === 'image' ? '320px' : '200px'));
       const ox = parseInt(c.offsetX || 0);
       const oy = parseInt(c.offsetY || 0);
       const rot = parseInt(c.rotation || 0);
 
       // Typography edited on a custom container must reach its real text
-      // children. The children carry template defaults inline, so relying on
-      // CSS inheritance would make the edit appear in the builder and then
-      // disappear in Live Preview/New Tab.
+      // children independently. Heading and description text each carry their
+      // own font size, family, weight, style and color.
+      const headingFontSize = c.headingFontSize || (cType === 'card' ? (c.fontSize || '20px') : (c.fontSize || '24px'));
+      const textFontSize = c.textFontSize || c.descFontSize || (cType === 'card' ? '14px' : '15px');
+      const headingFontFamily = c.headingFontFamily || c.fontFamily || '';
+      const textFontFamily = c.descFontFamily || c.fontFamily || '';
+      const headingFontWeight = c.headingFontWeight || c.fontWeight || (cType === 'card' ? '700' : '800');
+      const textFontWeight = c.descFontWeight || c.fontWeight || '400';
+      const headingColor = c.headingColor || c.color || '#F5F0EB';
+      const textColor = c.descColor || c.color || (cType === 'card' ? 'rgba(245,240,235,0.65)' : 'rgba(245,240,235,0.7)');
+
+      const customHeadingStyle = [
+        headingFontFamily ? `font-family:${escapeHtml(String(headingFontFamily).replace(/["']/g, ''))}` : '',
+        headingFontSize ? `font-size:${escapeHtml(headingFontSize)}` : '',
+        headingFontWeight ? `font-weight:${escapeHtml(headingFontWeight)}` : '',
+        c.headingFontStyle || c.fontStyle ? `font-style:${escapeHtml(c.headingFontStyle || c.fontStyle)}` : '',
+        c.headingTextDecoration || c.textDecoration ? `text-decoration:${escapeHtml(c.headingTextDecoration || c.textDecoration)}` : '',
+        c.headingTextAlign || c.textAlign ? `text-align:${escapeHtml(c.headingTextAlign || c.textAlign)}` : '',
+        c.headingTextTransform || c.textTransform ? `text-transform:${escapeHtml(c.headingTextTransform || c.textTransform)}` : '',
+        c.headingLetterSpacing || c.letterSpacing ? `letter-spacing:${escapeHtml(c.headingLetterSpacing || c.letterSpacing)}` : '',
+        c.headingLineHeight || c.lineHeight ? `line-height:${escapeHtml(c.headingLineHeight || c.lineHeight)}` : '',
+        headingColor ? `color:${escapeHtml(headingColor)}` : ''
+      ].filter(Boolean).join(';');
+      const customHeadingSuffix = customHeadingStyle ? `;${customHeadingStyle}` : '';
+
       const customTextStyle = [
-        c.fontFamily ? `font-family:${escapeHtml(String(c.fontFamily).replace(/["']/g, ''))}` : '',
-        c.fontSize ? `font-size:${escapeHtml(c.fontSize)}` : '',
-        c.fontWeight ? `font-weight:${escapeHtml(c.fontWeight)}` : '',
-        c.fontStyle ? `font-style:${escapeHtml(c.fontStyle)}` : '',
-        c.textDecoration ? `text-decoration:${escapeHtml(c.textDecoration)}` : '',
-        c.textAlign ? `text-align:${escapeHtml(c.textAlign)}` : '',
-        c.textTransform ? `text-transform:${escapeHtml(c.textTransform)}` : '',
-        c.letterSpacing ? `letter-spacing:${escapeHtml(c.letterSpacing)}` : '',
-        c.lineHeight ? `line-height:${escapeHtml(c.lineHeight)}` : '',
-        c.color ? `color:${escapeHtml(c.color)}` : ''
+        textFontFamily ? `font-family:${escapeHtml(String(textFontFamily).replace(/["']/g, ''))}` : '',
+        textFontSize ? `font-size:${escapeHtml(textFontSize)}` : '',
+        textFontWeight ? `font-weight:${escapeHtml(textFontWeight)}` : '',
+        c.descFontStyle || c.fontStyle ? `font-style:${escapeHtml(c.descFontStyle || c.fontStyle)}` : '',
+        c.descTextDecoration || c.textDecoration ? `text-decoration:${escapeHtml(c.descTextDecoration || c.textDecoration)}` : '',
+        c.descTextAlign || c.textAlign ? `text-align:${escapeHtml(c.descTextAlign || c.textAlign)}` : '',
+        c.descTextTransform || c.textTransform ? `text-transform:${escapeHtml(c.descTextTransform || c.textTransform)}` : '',
+        c.descLetterSpacing || c.letterSpacing ? `letter-spacing:${escapeHtml(c.descLetterSpacing || c.letterSpacing)}` : '',
+        c.descLineHeight || c.lineHeight ? `line-height:${escapeHtml(c.descLineHeight || c.lineHeight)}` : '',
+        textColor ? `color:${escapeHtml(textColor)}` : ''
       ].filter(Boolean).join(';');
       const customTextSuffix = customTextStyle ? `;${customTextStyle}` : '';
 
@@ -1043,7 +1208,7 @@
         if (c.imageUrl) {
           innerContent = `
             <div class="custom-image-wrapper" style="width:100%;height:100%;overflow:hidden;border-radius:inherit;display:flex;align-items:center;justify-content:center;position:relative;">
-              <img src="${escapeHtml(c.imageUrl)}" alt="${escapeHtml(c.alt || 'Custom Image')}" style="width:100%;height:100%;object-fit:${escapeHtml(c.objectFit || 'cover')};object-position:${escapeHtml(c.objectPosition || '50% 50%')};transform:rotate(${rot}deg);display:block;border-radius:inherit;pointer-events:none;transition:transform 0.25s cubic-bezier(0.16,1,0.3,1);">
+              <img src="${escapeHtml(normalizeImageUrl(c.imageUrl))}" alt="${escapeHtml(c.alt || 'Custom Image')}" referrerpolicy="no-referrer" decoding="async" style="width:100%;height:100%;object-fit:${escapeHtml(c.objectFit || 'cover')};object-position:${escapeHtml(c.objectPosition || '50% 50%')};transform:rotate(${rot}deg);display:block;border-radius:inherit;pointer-events:none;transition:transform 0.25s cubic-bezier(0.16,1,0.3,1);">
               <div class="custom-image-drop-overlay" style="position:absolute;inset:0;background:rgba(255,92,0,0.25);display:none;align-items:center;justify-content:center;border-radius:inherit;border:2px dashed #FF5C00;z-index:2;pointer-events:none;">
                 <span style="background:#111;color:#FF5C00;font-weight:700;font-size:13px;padding:6px 16px;border-radius:20px;border:1px solid #FF5C00;box-shadow:0 4px 15px rgba(0,0,0,0.5);">Drop to Replace Photo</span>
               </div>
@@ -1072,26 +1237,29 @@
       } else if (cType === 'text') {
         const h = (c.content && c.content.heading !== undefined) ? c.content.heading : 'Custom Heading';
         const p = (c.content && c.content.text !== undefined) ? c.content.text : 'Click here to write custom description...';
+        const ccontTag = (c.content && c.content.tag && ['h1', 'h2', 'h3', 'h4', 'h5'].includes(c.content.tag)) ? c.content.tag : 'h3';
         innerContent = `
-          <div class="custom-text-wrapper" style="padding:28px 24px;width:100%;box-sizing:border-box;">
-            <h3 class="canvas-live-editable" contenteditable="true" data-ccont-id="${cId}" data-field="heading" style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#F5F0EB;margin:0 0 10px;line-height:1.2${customTextSuffix};">${renderFormattedText(h)}</h3>
-            <p class="canvas-live-editable" contenteditable="true" data-ccont-id="${cId}" data-field="text" style="font-size:15px;line-height:1.6;color:rgba(245,240,235,0.7);margin:0${customTextSuffix};">${renderFormattedText(p)}</p>
+          <div class="custom-text-wrapper" style="padding:28px 24px;width:100%;height:100%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;">
+            <${ccontTag} class="canvas-live-editable" contenteditable="true" data-ccont-id="${cId}" data-field="heading" style="font-family:'Syne',sans-serif;font-size:${escapeHtml(headingFontSize)};font-weight:${escapeHtml(headingFontWeight)};color:${escapeHtml(headingColor)};margin:0 0 10px;line-height:1.2${customHeadingSuffix};">${renderFormattedText(h)}</${ccontTag}>
+            <p class="canvas-live-editable" contenteditable="true" data-ccont-id="${cId}" data-field="text" style="font-size:${escapeHtml(textFontSize)};line-height:1.6;color:${escapeHtml(textColor)};margin:0${customTextSuffix};">${renderFormattedText(p)}</p>
           </div>
         `;
       } else if (cType === 'button') {
         const bText = (c.content && c.content.buttonText) ? c.content.buttonText : 'Custom Action →';
         const bUrl = (c.content && c.content.buttonUrl) ? c.content.buttonUrl : '#';
+        const btnFontSize = c.buttonFontSize || c.fontSize || '14px';
         innerContent = `
-          <div style="display:flex;align-items:center;justify-content:center;padding:16px 20px;width:100%;box-sizing:border-box;">
-            <a href="${escapeHtml(normalizeLinkUrl(bUrl))}" class="custom-sec-btn btn-hover-lift" style="background:#FF5C00;color:#FFFFFF;padding:12px 28px;border-radius:50px;font-weight:700;display:inline-block;text-decoration:none;box-shadow:0 4px 18px rgba(255,92,0,0.35)${customTextSuffix};">${escapeHtml(bText)}</a>
+          <div style="display:flex;align-items:center;justify-content:center;padding:16px 20px;width:100%;height:100%;box-sizing:border-box;">
+            <a href="${escapeHtml(normalizeLinkUrl(bUrl))}" class="custom-sec-btn btn-hover-lift" style="background:#FF5C00;color:#FFFFFF;padding:12px 28px;border-radius:50px;font-weight:700;display:inline-block;text-decoration:none;box-shadow:0 4px 18px rgba(255,92,0,0.35);font-size:${escapeHtml(btnFontSize)}${customTextSuffix};">${escapeHtml(bText)}</a>
           </div>
         `;
       } else {
         // card / box
+        const ccontCardTag = (c.content && c.content.tag && ['h1', 'h2', 'h3', 'h4', 'h5'].includes(c.content.tag)) ? c.content.tag : 'h4';
         innerContent = `
-          <div style="padding:28px;width:100%;box-sizing:border-box;">
-            <h4 class="canvas-live-editable" contenteditable="true" data-ccont-id="${cId}" data-field="heading" style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:#F5F0EB;margin:0 0 8px${customTextSuffix};">${renderFormattedText(c.content && c.content.heading !== undefined ? c.content.heading : 'Custom Card Box')}</h4>
-            <p class="canvas-live-editable" contenteditable="true" data-ccont-id="${cId}" data-field="text" style="font-size:14px;line-height:1.6;color:rgba(245,240,235,0.65);margin:0${customTextSuffix};">${renderFormattedText(c.content && c.content.text !== undefined ? c.content.text : 'Customize this card with your own text or media elements.')}</p>
+          <div style="padding:28px;width:100%;height:100%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;">
+            <${ccontCardTag} class="canvas-live-editable" contenteditable="true" data-ccont-id="${cId}" data-field="heading" style="font-family:'Syne',sans-serif;font-size:${escapeHtml(headingFontSize)};font-weight:${escapeHtml(headingFontWeight)};color:${escapeHtml(headingColor)};margin:0 0 8px${customHeadingSuffix};">${renderFormattedText(c.content && c.content.heading !== undefined ? c.content.heading : 'Custom Card Box')}</${ccontCardTag}>
+            <p class="canvas-live-editable" contenteditable="true" data-ccont-id="${cId}" data-field="text" style="font-size:${escapeHtml(textFontSize)};line-height:1.6;color:${escapeHtml(textColor)};margin:0${customTextSuffix};">${renderFormattedText(c.content && c.content.text !== undefined ? c.content.text : 'Customize this card with your own text or media elements.')}</p>
           </div>
         `;
       }
@@ -1314,33 +1482,13 @@
       const c = section.content || {};
       const s = section.settings || {};
       const elSt = (s.elementStyles && (s.elementStyles.heading || s.elementStyles['heading-0'])) || {};
-      const tag = ['h1', 'h2', 'h3', 'h4', 'h5'].includes(c.tag) ? c.tag : 'h2';
+      const tag = resolveHeadingTag(c.tag, 'h2');
       const align = elSt.textAlign || s.alignment || 'left';
-      const rawFont = elSt.fontFamily || s.fontFamily || 'Syne';
-      const font = resolveFontFamily(rawFont, "'Syne', sans-serif");
-      const fontStyle = elSt.fontStyle || s.fontStyle || 'normal';
-      const fontWeight = elSt.fontWeight || s.fontWeight || '';
-      const fSize = elSt.fontSize ? elSt.fontSize : (s.fontSize ? `${parseInt(s.fontSize)}px` : '36px');
-      const color = elSt.color || s.color || '#F5F0EB';
-      const ls = elSt.letterSpacing ? elSt.letterSpacing : (s.letterSpacing ? `${s.letterSpacing}px` : '-0.5px');
-      const lh = elSt.lineHeight || s.lineHeight || '1.2';
-      const textDeco = elSt.textDecoration || '';
-
-      const headingStyles = [
-        `font-family:${font} !important`,
-        `font-size:${fSize}`,
-        `color:${color}`,
-        `letter-spacing:${ls}`,
-        `line-height:${lh}`,
-        `font-style:${fontStyle} !important`,
-        fontWeight ? `font-weight:${fontWeight} !important` : '',
-        textDeco ? `text-decoration:${textDeco}` : '',
-        'margin:0'
-      ].filter(Boolean).join(';');
+      const headingStyles = resolveHeadingStyles(section, '36px');
 
       const inner = `
         <div style="text-align:${align};">
-          <${tag} class="sec-heading-custom" style="${headingStyles}">
+          <${tag} class="sec-heading-custom" data-heading-tag="${c.tag || 'h2'}" style="${headingStyles};margin:0;">
             ${renderFormattedText(c.text || '')}
           </${tag}>
           ${c.subtitle ? `<div style="font-size:15px;color:rgba(245,240,235,0.6);margin-top:10px;">${renderFormattedText(c.subtitle)}</div>` : ''}
@@ -1377,7 +1525,8 @@
         : '100%';
       const rawBody = c.body || c.description || '';
       const bodyHtml = sanitizeRichText(formatRichTextHtml(rawBody));
-      const fSize = s.fontSize ? `font-size:${parseInt(s.fontSize)}px;` : '';
+      const elStText = (s.elementStyles && (s.elementStyles.text || s.elementStyles['text-0'])) || {};
+      const fSize = elStText.fontSize ? `font-size:${elStText.fontSize};` : (s.descFontSize ? `font-size:${parseInt(s.descFontSize)}px;` : (s.fontSize ? `font-size:${parseInt(s.fontSize)}px;` : ''));
 
       // Global guard: suppress duplicate ghost subheading if identical or duplicated from body/description
       let hasValidSubheading = false;
@@ -1392,9 +1541,12 @@
         }
       }
 
+      const rtTag = resolveHeadingTag(c.tag, 'h2');
+      const rtStyles = resolveHeadingStyles(section);
+      const rtStyleAttr = rtStyles ? `style="${rtStyles};margin-bottom:16px;"` : 'style="margin-bottom:16px;"';
       const inner = `
         <div class="${s.cardStyle ? 'wd-full-card' : ''}" style="width:100%;max-width:${maxW};box-sizing:border-box;margin:0 auto;${s.cardStyle ? 'padding:clamp(24px, 4vw, 40px) clamp(20px, 3.5vw, 36px);' : ''}">
-          ${c.heading ? `<h2 class="sec-heading">${renderFormattedText(c.heading)}</h2>` : ''}
+          ${c.heading ? `<${rtTag} class="sec-heading" data-heading-tag="${c.tag || 'h2'}" ${rtStyleAttr}>${renderFormattedText(c.heading)}</${rtTag}>` : ''}
           ${hasValidSubheading ? `<div class="sec-subheading">${renderFormattedText(c.subheading)}</div>` : ''}
           <div class="wd-article-body" style="margin-top:18px;${fSize}width:100%;box-sizing:border-box;">
             ${bodyHtml}
@@ -1410,7 +1562,7 @@
     label: 'Pull Quote / Callout',
     category: 'Typography & Text',
     icon: '💬',
-    description: 'Prominent quote with left orange accent border, author name, and company title.',
+    description: 'Prominent quote with customizable designs, accent borders, colors, and author citation.',
     createDefault: () => ({
       content: {
         quote: '“The Sonic Media transformed our brand vision into an undeniable market leader within 90 days.”',
@@ -1421,29 +1573,103 @@
         alignment: 'left',
         cardStyle: true,
         fontSize: '22',
+        quoteSize: 22,
+        quoteColor: '#F5F0EB',
+        accentColor: '#FF5C00',
+        accentWidth: 4,
+        quoteDesign: 'accent_bar',
+        quoteMarkStyle: 'none',
         spacing: 'standard'
       }
     }),
     render(section, opts) {
       const c = section.content || {};
       const s = section.settings || {};
-      const elSt = (s.elementStyles && (s.elementStyles.heading || s.elementStyles.text || s.elementStyles['heading-0'])) || {};
-      const rawFont = elSt.fontFamily || s.fontFamily || '';
-      const quoteFont = resolveFontFamily(rawFont, "'Syne', sans-serif");
-      const quoteFontStyle = elSt.fontStyle || s.fontStyle || 'normal';
-      const quoteFontWeight = elSt.fontWeight || s.fontWeight || '600';
-      const fSize = elSt.fontSize || (s.fontSize ? `${parseInt(s.fontSize)}px` : '22px');
+      const elSt = (s.elementStyles && (s.elementStyles.heading || s.elementStyles.text || s.elementStyles['heading-0'] || s.elementStyles.quote || s.elementStyles['text-0'])) || {};
 
+      // 1. Typography & Size
+      const rawFont = elSt.fontFamily || s.quoteFontFamily || s.fontFamily || '';
+      const quoteFont = resolveFontFamily(rawFont, "'Syne', sans-serif");
+      const quoteFontStyle = elSt.fontStyle || s.quoteFontStyle || s.fontStyle || 'normal';
+      const quoteFontWeight = elSt.fontWeight || s.quoteFontWeight || s.fontWeight || '600';
+      const fSize = elSt.fontSize || (s.quoteSize ? `${parseInt(s.quoteSize)}px` : (s.fontSize ? `${parseInt(s.fontSize)}px` : '22px'));
+      const qColor = elSt.color || s.quoteColor || s.color || '#F5F0EB';
+      const qLineHeight = elSt.lineHeight || s.quoteLineHeight || s.lineHeight || '1.45';
+      const qAlign = elSt.textAlign || s.alignment || s.textAlign || 'left';
+
+      // 2. Accent & Borders
+      const accentColor = s.accentColor || s.quoteBorderColor || '#FF5C00';
+      const rawBorderWidth = s.accentWidth !== undefined ? s.accentWidth : (s.quoteBorderWidth !== undefined ? s.quoteBorderWidth : 4);
+      const borderWidth = parseInt(rawBorderWidth, 10);
+      const quoteDesign = s.quoteDesign || 'accent_bar';
+      const quoteMarkStyle = s.quoteMarkStyle || (quoteDesign === 'large_marks' ? 'bold' : 'none');
+
+      // 3. Card Container & Background
+      let cardBgStyle = '';
+      if (s.cardBg) {
+        cardBgStyle = `background:${s.cardBg};`;
+      } else if (s.cardStyle === 'glass' || s.cardStyle === 'glassmorphic') {
+        cardBgStyle = 'background:rgba(255,255,255,0.04);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.08);';
+      } else if (s.cardStyle === 'tint') {
+        cardBgStyle = 'background:rgba(255,92,0,0.06);border:1px solid rgba(255,92,0,0.2);';
+      } else if (s.cardStyle === false || s.cardStyle === 'transparent') {
+        cardBgStyle = 'background:transparent;';
+      } else if (s.cardStyle === true || s.cardStyle === 'boxed' || quoteDesign === 'modern_card' || quoteDesign === 'speech_bubble') {
+        cardBgStyle = 'background:#141414;border:1px solid rgba(255,255,255,0.08);';
+      } else {
+        cardBgStyle = 'background:#141414;';
+      }
+
+      const cardRadius = s.cardRadius !== undefined ? `${parseInt(s.cardRadius)}px` : (quoteDesign === 'speech_bubble' ? '18px' : (quoteDesign === 'modern_card' || s.cardStyle ? '12px' : '0px'));
+      const cardShadow = s.cardShadow ? `box-shadow:${s.cardShadow};` : (s.cardStyle && s.cardStyle !== 'transparent' && s.cardStyle !== false ? 'box-shadow:0 12px 36px rgba(0,0,0,0.3);' : '');
+
+      // Border accents depending on design
+      let borderAccentStyle = '';
+      if (quoteDesign === 'top_bottom') {
+        borderAccentStyle = `border-top:${borderWidth}px solid ${accentColor};border-bottom:${borderWidth}px solid ${accentColor};`;
+      } else if (quoteDesign === 'minimal') {
+        borderAccentStyle = 'border:none;';
+      } else if (quoteDesign === 'speech_bubble') {
+        borderAccentStyle = `border:${borderWidth > 0 ? `${borderWidth}px solid ${accentColor}` : '1px solid rgba(255,255,255,0.1)'};`;
+      } else {
+        // accent_bar, modern_card, large_marks default
+        if (borderWidth > 0 && accentColor !== 'transparent') {
+          borderAccentStyle = `border-left:${borderWidth}px solid ${accentColor};`;
+        }
+      }
+
+      // Decorative Quotation Marks
+      let quoteMarkHtml = '';
+      if (quoteMarkStyle === 'watermark') {
+        quoteMarkHtml = `<div style="position:absolute;top:6px;left:14px;font-size:86px;line-height:0.8;font-family:'Playfair Display', Georgia, serif;color:${accentColor};opacity:0.12;pointer-events:none;user-select:none;">“</div>`;
+      } else if (quoteMarkStyle === 'bold' || quoteDesign === 'large_marks') {
+        quoteMarkHtml = `<div style="font-size:42px;line-height:1;font-family:'Playfair Display', Georgia, serif;color:${accentColor};font-weight:700;margin-bottom:6px;user-select:none;">“</div>`;
+      } else if (quoteMarkStyle === 'accent') {
+        quoteMarkHtml = `<div style="display:inline-block;font-size:26px;line-height:1;color:${accentColor};margin-right:6px;vertical-align:top;font-family:'Playfair Display', Georgia, serif;">“</div>`;
+      }
+
+      // 4. Author & Role Citation
+      const authorColor = s.authorColor || '#F5F0EB';
+      const authorSize = s.authorSize ? `${parseInt(s.authorSize)}px` : '14px';
+      const authorFont = resolveFontFamily(s.authorFontFamily || "'Syne', sans-serif");
+      const roleColor = s.roleColor || 'rgba(245,240,235,0.6)';
+      const roleSize = s.roleSize ? `${parseInt(s.roleSize)}px` : '12px';
+      const showDivider = s.showDivider !== false && borderWidth > 0 && accentColor !== 'transparent';
+      const dividerColor = s.dividerColor || accentColor;
+      const flexAlign = qAlign === 'center' ? 'center' : (qAlign === 'right' ? 'flex-end' : 'flex-start');
+
+      const isBoxedCard = s.cardStyle && s.cardStyle !== 'transparent' && s.cardStyle !== false;
       const inner = `
-        <div class="sec-quote-box ${s.cardStyle ? 'wd-full-card' : ''}" style="width:100%;max-width:100%;box-sizing:border-box;margin:0 auto;border-left:4px solid #FF5C00;padding:clamp(20px, 3vw, 32px) clamp(20px, 3.5vw, 36px);${s.cardStyle ? '' : 'background:transparent;'}">
-          <blockquote style="font-family:${quoteFont};font-style:${quoteFontStyle};font-size:${fSize};font-weight:${quoteFontWeight};line-height:1.45;color:#F5F0EB;margin:0 0 16px;">
+        <div class="sec-quote-box ${isBoxedCard ? 'wd-full-card' : ''}" style="width:100%;max-width:100%;box-sizing:border-box;margin:0 auto;position:relative;border-radius:${cardRadius};${cardBgStyle}${cardShadow}${borderAccentStyle}padding:clamp(20px, 3vw, 32px) clamp(20px, 3.5vw, 36px);text-align:${qAlign};">
+          ${quoteMarkHtml}
+          <blockquote style="font-family:${quoteFont};font-style:${quoteFontStyle};font-size:${fSize};font-weight:${quoteFontWeight};line-height:${qLineHeight};color:${qColor};margin:0 0 16px;text-align:${qAlign};position:relative;z-index:1;">
             ${renderFormattedText(c.quote || '')}
           </blockquote>
-          <div style="display:flex;align-items:center;gap:12px;">
-            <div style="width:24px;height:2px;background:#FF5C00;"></div>
-            <div>
-              <strong style="color:#F5F0EB;font-size:14px;font-family:'Syne',sans-serif;">${escapeHtml(c.author || '')}</strong>
-              ${c.role ? `<div style="font-size:12px;color:rgba(245,240,235,0.6);margin-top:2px;">${escapeHtml(c.role)}</div>` : ''}
+          <div style="display:flex;align-items:center;justify-content:${flexAlign};gap:12px;position:relative;z-index:1;">
+            ${showDivider ? `<div style="width:24px;height:2px;background:${dividerColor};flex-shrink:0;"></div>` : ''}
+            <div style="text-align:${qAlign};">
+              <strong style="color:${authorColor};font-size:${authorSize};font-family:${authorFont};display:block;">${escapeHtml(c.author || '')}</strong>
+              ${c.role ? `<div style="font-size:${roleSize};color:${roleColor};margin-top:2px;">${escapeHtml(c.role)}</div>` : ''}
             </div>
           </div>
         </div>
@@ -1506,9 +1732,12 @@
         `;
       }).join('');
 
+      const listTag = resolveHeadingTag(c.tag, 'h3');
+      const listStyles = resolveHeadingStyles(section);
+      const listStyleAttr = listStyles ? `style="${listStyles};margin-bottom:24px;"` : 'style="margin-bottom:24px;"';
       const inner = `
         <div class="${s.cardStyle ? 'wd-full-card' : ''}" style="${s.cardStyle ? 'padding:36px;' : ''}">
-          ${c.heading ? `<h3 class="sec-heading" style="margin-bottom:24px;">${renderFormattedText(c.heading)}</h3>` : ''}
+          ${c.heading ? `<${listTag} class="sec-heading" data-heading-tag="${c.tag || 'h3'}" ${listStyleAttr}>${renderFormattedText(c.heading)}</${listTag}>` : ''}
           <div class="sec-list-grid" style="${gridStyle}">
             ${itemsHtml}
           </div>
@@ -1597,7 +1826,8 @@
       const h1Font = rawFont ? resolveFontFamily(rawFont, "'Bebas Neue', sans-serif") : '';
       const h1FontStyle = elSt.fontStyle || s.fontStyle || '';
       const h1FontWeight = elSt.fontWeight || s.fontWeight || '';
-      const h1FontSize = elSt.fontSize || s.fontSize || '';
+      const rawH1Size = elSt.fontSize || s.fontSize || (c.tag ? DEFAULT_TAG_SIZES[c.tag] : '') || '';
+      const h1FontSize = rawH1Size ? (String(rawH1Size).endsWith('px') || String(rawH1Size).endsWith('rem') || String(rawH1Size).startsWith('clamp') ? rawH1Size : `${parseFloat(rawH1Size)}px`) : '';
       const h1Color = elSt.color || s.color || '';
       const h1TextDeco = elSt.textDecoration || '';
 
@@ -1612,9 +1842,10 @@
 
       const heroBtnHtml = renderSectionButtonGroup(section, s.buttonAlign || align || 'center');
 
+      const heroTag = resolveHeadingTag(c.tag, 'h1');
       const inner = `
         ${c.eyebrow ? `<div class="wd-eyebrow" ${animAttr} style="--anim-delay: 0.08s;">${renderFormattedText(c.eyebrow)}</div>` : ''}
-        <h1 class="wd-h1" ${animAttr} style="${h1StyleAttr}">${titleHtml}</h1>
+        <${heroTag} class="wd-h1" data-heading-tag="${c.tag || 'h1'}" ${animAttr} style="${h1StyleAttr}">${titleHtml}</${heroTag}>
         ${c.subtitle ? `<p class="wd-sub" ${animAttr} style="--anim-delay: 0.38s;">${renderFormattedText(c.subtitle)}</p>` : ''}
         ${heroBtnHtml}
       `;
@@ -1687,9 +1918,10 @@
       } else if (hasCustomH) {
         imgTag = `
           <div class="sec-img-holder sec-prebuilt-img-holder" data-sec-id="${section.id}" data-el-key="image" style="position:relative;width:100%;height:${bh}px;overflow:hidden;border-radius:${radius};background:#121212;">
-            <img src="${escapeHtml(c.url || '')}" 
+            <img src="${escapeHtml(normalizeImageUrl(c.url || ''))}" 
                  alt="${escapeHtml(c.alt || 'Deliverable Asset')}" 
                  style="width:100%;height:100%;object-fit:${fit};object-position:${objPos};border-radius:${radius};display:block;" 
+                 referrerpolicy="no-referrer"
                  loading="eager" decoding="async">
             <div class="custom-image-drop-overlay sec-image-drop-overlay" style="position:absolute;inset:0;background:rgba(255,92,0,0.25);display:none;align-items:center;justify-content:center;border-radius:inherit;border:2px dashed #FF5C00;z-index:4;pointer-events:none;">
               <span style="background:#111;color:#FF5C00;font-weight:700;font-size:13px;padding:6px 16px;border-radius:20px;border:1px solid #FF5C00;box-shadow:0 4px 15px rgba(0,0,0,0.5);">Drop to Replace Photo</span>
@@ -1699,9 +1931,10 @@
       } else if (arPadding) {
         imgTag = `
           <div class="sec-img-holder sec-prebuilt-img-holder" data-sec-id="${section.id}" data-el-key="image" style="position:relative;width:100%;overflow:hidden;border-radius:${radius};padding-top:${arPadding};background:#121212;">
-            <img src="${escapeHtml(c.url || '')}" 
+            <img src="${escapeHtml(normalizeImageUrl(c.url || ''))}" 
                  alt="${escapeHtml(c.alt || 'Deliverable Asset')}" 
                  style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:${fit};object-position:${objPos};border-radius:${radius};display:block;" 
+                 referrerpolicy="no-referrer"
                  loading="eager" decoding="async">
             <div class="custom-image-drop-overlay sec-image-drop-overlay" style="position:absolute;inset:0;background:rgba(255,92,0,0.25);display:none;align-items:center;justify-content:center;border-radius:inherit;border:2px dashed #FF5C00;z-index:4;pointer-events:none;">
               <span style="background:#111;color:#FF5C00;font-weight:700;font-size:13px;padding:6px 16px;border-radius:20px;border:1px solid #FF5C00;box-shadow:0 4px 15px rgba(0,0,0,0.5);">Drop to Replace Photo</span>
@@ -1712,9 +1945,10 @@
         // Natural Auto aspect ratio (crisp full banner)
         imgTag = `
           <div class="sec-img-holder sec-prebuilt-img-holder" data-sec-id="${section.id}" data-el-key="image" style="position:relative;width:100%;overflow:hidden;border-radius:${radius};">
-            <img src="${escapeHtml(c.url || '')}" 
+            <img src="${escapeHtml(normalizeImageUrl(c.url || ''))}" 
                  alt="${escapeHtml(c.alt || 'Deliverable Asset')}" 
                  style="width:100%;height:auto;max-width:100%;object-position:${objPos};display:block;border-radius:${radius};" 
+                 referrerpolicy="no-referrer"
                  loading="eager" decoding="async">
             <div class="custom-image-drop-overlay sec-image-drop-overlay" style="position:absolute;inset:0;background:rgba(255,92,0,0.25);display:none;align-items:center;justify-content:center;border-radius:inherit;border:2px dashed #FF5C00;z-index:4;pointer-events:none;">
               <span style="background:#111;color:#FF5C00;font-weight:700;font-size:13px;padding:6px 16px;border-radius:20px;border:1px solid #FF5C00;box-shadow:0 4px 15px rgba(0,0,0,0.5);">Drop to Replace Photo</span>
@@ -1814,7 +2048,7 @@
           const ch = parseInt(s.cardHeight);
           imgMarkup = `
             <div class="sec-img-holder sec-prebuilt-img-holder" data-sec-id="${section.id}" data-el-key="grid-img-${idx}" data-img-index="${idx}" style="position:relative;width:100%;height:${ch}px;border-radius:${radius};overflow:hidden;background:#121212;">
-              <img src="${escapeHtml(itemImg)}" alt="${escapeHtml(itemCap || 'Grid item')}" style="width:100%;height:100%;object-fit:${fit};object-position:${itemPos};border-radius:${radius};display:block;" loading="lazy">
+              <img src="${escapeHtml(normalizeImageUrl(itemImg))}" alt="${escapeHtml(itemCap || 'Grid item')}" referrerpolicy="no-referrer" decoding="async" style="width:100%;height:100%;object-fit:${fit};object-position:${itemPos};border-radius:${radius};display:block;" loading="${opts && opts.isPublic ? 'lazy' : 'eager'}">
               <div class="custom-image-drop-overlay sec-image-drop-overlay" style="position:absolute;inset:0;background:rgba(255,92,0,0.25);display:none;align-items:center;justify-content:center;border-radius:inherit;border:2px dashed #FF5C00;z-index:4;pointer-events:none;">
                 <span style="background:#111;color:#FF5C00;font-weight:700;font-size:13px;padding:6px 16px;border-radius:20px;border:1px solid #FF5C00;box-shadow:0 4px 15px rgba(0,0,0,0.5);">Drop to Replace Photo</span>
               </div>
@@ -1823,7 +2057,7 @@
         } else if (arPadding) {
           imgMarkup = `
             <div class="sec-img-holder sec-prebuilt-img-holder" data-sec-id="${section.id}" data-el-key="grid-img-${idx}" data-img-index="${idx}" style="position:relative;width:100%;padding-top:${arPadding};border-radius:${radius};overflow:hidden;background:#121212;">
-              <img src="${escapeHtml(itemImg)}" alt="${escapeHtml(itemCap || 'Grid item')}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:${fit};object-position:${itemPos};border-radius:${radius};display:block;" loading="lazy">
+              <img src="${escapeHtml(normalizeImageUrl(itemImg))}" alt="${escapeHtml(itemCap || 'Grid item')}" referrerpolicy="no-referrer" decoding="async" style="position:absolute;inset:0;width:100%;height:100%;object-fit:${fit};object-position:${itemPos};border-radius:${radius};display:block;" loading="${opts && opts.isPublic ? 'lazy' : 'eager'}">
               <div class="custom-image-drop-overlay sec-image-drop-overlay" style="position:absolute;inset:0;background:rgba(255,92,0,0.25);display:none;align-items:center;justify-content:center;border-radius:inherit;border:2px dashed #FF5C00;z-index:4;pointer-events:none;">
                 <span style="background:#111;color:#FF5C00;font-weight:700;font-size:13px;padding:6px 16px;border-radius:20px;border:1px solid #FF5C00;box-shadow:0 4px 15px rgba(0,0,0,0.5);">Drop to Replace Photo</span>
               </div>
@@ -1832,7 +2066,7 @@
         } else {
           imgMarkup = `
             <div class="sec-img-holder sec-prebuilt-img-holder" data-sec-id="${section.id}" data-el-key="grid-img-${idx}" data-img-index="${idx}" style="position:relative;width:100%;border-radius:${radius};overflow:hidden;">
-              <img src="${escapeHtml(itemImg)}" alt="${escapeHtml(itemCap || 'Grid item')}" style="width:100%;height:auto;object-position:${itemPos};border-radius:${radius};display:block;" loading="lazy">
+              <img src="${escapeHtml(normalizeImageUrl(itemImg))}" alt="${escapeHtml(itemCap || 'Grid item')}" referrerpolicy="no-referrer" decoding="async" style="width:100%;height:auto;object-position:${itemPos};border-radius:${radius};display:block;" loading="${opts && opts.isPublic ? 'lazy' : 'eager'}">
               <div class="custom-image-drop-overlay sec-image-drop-overlay" style="position:absolute;inset:0;background:rgba(255,92,0,0.25);display:none;align-items:center;justify-content:center;border-radius:inherit;border:2px dashed #FF5C00;z-index:4;pointer-events:none;">
                 <span style="background:#111;color:#FF5C00;font-weight:700;font-size:13px;padding:6px 16px;border-radius:20px;border:1px solid #FF5C00;box-shadow:0 4px 15px rgba(0,0,0,0.5);">Drop to Replace Photo</span>
               </div>
@@ -1848,8 +2082,11 @@
         `;
       }).join('');
 
+      const imgGridTag = resolveHeadingTag(c.tag, 'h3');
+      const imgGridStyles = resolveHeadingStyles(section);
+      const imgGridStyleAttr = imgGridStyles ? `style="${imgGridStyles};margin-bottom:24px;text-align:center;"` : 'style="margin-bottom:24px;text-align:center;"';
       const inner = `
-        ${c.heading ? `<h3 class="sec-heading" style="margin-bottom:24px;text-align:center;">${renderFormattedText(c.heading)}</h3>` : ''}
+        ${c.heading ? `<${imgGridTag} class="sec-heading" data-heading-tag="${c.tag || 'h3'}" ${imgGridStyleAttr}>${renderFormattedText(c.heading)}</${imgGridTag}>` : ''}
         <div class="sec-img-grid-container sec-grid-cols-${cols}" style="display:grid;grid-template-columns:repeat(${cols}, minmax(0, 1fr));gap:${gap}px;width:100%;box-sizing:border-box;">
           ${itemsHtml}
         </div>
@@ -1902,7 +2139,7 @@
         const hasUrl = !!imgUrl;
         const mediaHtml = hasUrl ? `
           <div class="sec-prebuilt-img-holder" data-sec-id="${section.id}" data-el-key="gallery-img-${idx}" data-gallery-idx="${idx}" style="position:relative;width:100%;height:100%;min-height:180px;overflow:hidden;border-radius:12px;">
-            <img src="${escapeHtml(imgUrl)}" alt="${escapeHtml(imgObj.title || 'Deliverable Asset')}" class="wd-gallery-img" style="width:100%;height:100%;object-fit:cover;display:block;object-position:${itemPos};border-radius:12px;" loading="lazy" decoding="async">
+            <img src="${escapeHtml(normalizeImageUrl(imgUrl))}" alt="${escapeHtml(imgObj.title || 'Deliverable Asset')}" class="wd-gallery-img" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block;object-position:${itemPos};border-radius:12px;" loading="${opts && opts.isPublic ? 'lazy' : 'eager'}" decoding="async">
             <div class="custom-image-drop-overlay sec-image-drop-overlay" style="position:absolute;inset:0;background:rgba(255,92,0,0.25);display:none;align-items:center;justify-content:center;border-radius:inherit;border:2px dashed #FF5C00;z-index:4;pointer-events:none;">
               <span style="background:#111;color:#FF5C00;font-weight:700;font-size:13px;padding:6px 16px;border-radius:20px;border:1px solid #FF5C00;box-shadow:0 4px 15px rgba(0,0,0,0.5);">Drop to Replace Photo</span>
             </div>
@@ -1928,9 +2165,12 @@
         `;
       }).join('');
 
+      const galTag = resolveHeadingTag(c.tag, 'h3');
+      const galStyles = resolveHeadingStyles(section);
+      const galStyleAttr = galStyles ? `style="${galStyles};margin-bottom:24px;"` : 'style="margin-bottom:24px;"';
       const inner = `
         <div class="wd-full-card" style="padding:36px;">
-          ${c.heading ? `<h3 class="sec-heading" style="margin-bottom:24px;">${renderFormattedText(c.heading)}</h3>` : ''}
+          ${c.heading ? `<${galTag} class="sec-heading" data-heading-tag="${c.tag || 'h3'}" ${galStyleAttr}>${renderFormattedText(c.heading)}</${galTag}>` : ''}
           <div class="sec-img-grid-container sec-grid-cols-${cols}" style="display:grid;grid-template-columns:repeat(${cols}, minmax(0, 1fr));gap:${gap}px;width:100%;box-sizing:border-box;">
             ${itemsHtml}
           </div>
@@ -2020,7 +2260,7 @@
         } else if (customSlideH) {
           mediaHtml = `
             <div class="sec-prebuilt-img-holder" data-sec-id="${section.id}" data-el-key="slide-${idx + 1}" data-img-index="${idx}" style="position:relative;width:100%;height:${customSlideH}px;overflow:hidden;background:#121212;">
-              <img src="${escapeHtml(sl.url)}" alt="${escapeHtml(sl.title || 'Slide')}" style="width:100%;height:100%;object-fit:cover;object-position:${itemPos};display:block;${itemTransform}" loading="lazy">
+              <img src="${escapeHtml(normalizeImageUrl(sl.url))}" alt="${escapeHtml(sl.title || 'Slide')}" referrerpolicy="no-referrer" decoding="async" style="width:100%;height:100%;object-fit:cover;object-position:${itemPos};display:block;${itemTransform}" loading="${opts && opts.isPublic ? 'lazy' : 'eager'}">
               <div class="custom-image-drop-overlay sec-image-drop-overlay" style="position:absolute;inset:0;background:rgba(255,92,0,0.25);display:none;align-items:center;justify-content:center;border-radius:inherit;border:2px dashed #FF5C00;z-index:4;pointer-events:none;">
                 <span style="background:#111;color:#FF5C00;font-weight:700;font-size:13px;padding:6px 16px;border-radius:20px;border:1px solid #FF5C00;box-shadow:0 4px 15px rgba(0,0,0,0.5);">Drop to Replace Photo</span>
               </div>
@@ -2029,7 +2269,7 @@
         } else {
           mediaHtml = `
             <div class="sec-prebuilt-img-holder" data-sec-id="${section.id}" data-el-key="slide-${idx + 1}" data-img-index="${idx}" style="position:relative;width:100%;padding-top:56.25%;overflow:hidden;background:#121212;">
-              <img src="${escapeHtml(sl.url)}" alt="${escapeHtml(sl.title || 'Slide')}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:${itemPos};display:block;${itemTransform}" loading="lazy">
+              <img src="${escapeHtml(normalizeImageUrl(sl.url))}" alt="${escapeHtml(sl.title || 'Slide')}" referrerpolicy="no-referrer" decoding="async" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:${itemPos};display:block;${itemTransform}" loading="${opts && opts.isPublic ? 'lazy' : 'eager'}">
               <div class="custom-image-drop-overlay sec-image-drop-overlay" style="position:absolute;inset:0;background:rgba(255,92,0,0.25);display:none;align-items:center;justify-content:center;border-radius:inherit;border:2px dashed #FF5C00;z-index:4;pointer-events:none;">
                 <span style="background:#111;color:#FF5C00;font-weight:700;font-size:13px;padding:6px 16px;border-radius:20px;border:1px solid #FF5C00;box-shadow:0 4px 15px rgba(0,0,0,0.5);">Drop to Replace Photo</span>
               </div>
@@ -2073,6 +2313,9 @@
         `;
       }
 
+      const carTag = resolveHeadingTag(c.tag, 'h3');
+      const carStyles = resolveHeadingStyles(section);
+      const carStyleAttr = carStyles ? `style="${carStyles};margin-bottom:20px;text-align:center;"` : 'style="margin-bottom:20px;text-align:center;"';
       const inner = `
         <div class="sec-carousel-container" data-builder-layer="internal"
              data-carousel="true" 
@@ -2080,7 +2323,7 @@
              data-continuous-loop="true"
              data-interval="${Math.round(speedSec * 1000)}" 
              data-pause-hover="${pauseOnHover ? 'true' : 'false'}">
-          ${c.heading ? `<h3 class="sec-heading" style="margin-bottom:20px;text-align:center;">${renderFormattedText(c.heading)}</h3>` : ''}
+          ${c.heading ? `<${carTag} class="sec-heading" data-heading-tag="${c.tag || 'h3'}" ${carStyleAttr}>${renderFormattedText(c.heading)}</${carTag}>` : ''}
           
           <div class="sec-carousel-wrap" data-builder-layer="internal" style="position:relative;width:100%;overflow:hidden;border-radius:${slideRadius};">
             ${showArrows ? `
@@ -2115,19 +2358,33 @@
       },
       settings: {
         aspectRatio: '16:9',
+        sliderDirection: 'horizontal',
         spacing: 'standard'
       }
     }),
     render(section, opts) {
       const c = section.content || {};
-      const s = section.settings || {};
+      const s = (typeof SectionRegistry.resolveSettings === 'function')
+        ? SectionRegistry.resolveSettings(section, opts?.viewport)
+        : (section.settings || {});
 
-      const customW = s.customWidth ? (String(s.customWidth).endsWith('%') || String(s.customWidth).endsWith('px') ? s.customWidth : `${s.customWidth}px`) : '100%';
+      const rawRatio = s.aspectRatio || '16:9';
+      const ratio = (rawRatio === '9:16' || rawRatio === '4:5' || rawRatio === '1:1') ? rawRatio : '16:9';
+      const isVertical = s.sliderDirection === 'vertical';
+
+      let defaultW = '100%';
+      if (ratio === '9:16') defaultW = '460px';
+      else if (ratio === '4:5') defaultW = '520px';
+      else if (ratio === '1:1') defaultW = '580px';
+      else defaultW = '960px';
+
+      const customW = s.customWidth ? (String(s.customWidth).endsWith('%') || String(s.customWidth).endsWith('px') ? s.customWidth : `${s.customWidth}px`) : defaultW;
       const hasCustomH = s.comparisonHeight && parseInt(s.comparisonHeight) > 0;
       const customH = hasCustomH ? parseInt(s.comparisonHeight) : null;
       const isBuilderSelected = !opts?.isPublic && opts?.isSelected;
+
       const imgHandles = isBuilderSelected ? `
-        <div class="canvas-img-size-badge" title="Image Dimensions"><span>⚖️</span> <span class="badge-dim">${customW} × ${hasCustomH ? customH + 'px' : (s.aspectRatio || '16:9')}</span></div>
+        <div class="canvas-img-size-badge" title="Image Dimensions"><span>⚖️</span> <span class="badge-dim">${customW} × ${hasCustomH ? customH + 'px' : ratio}</span></div>
         <div class="canvas-img-resize-handle canvas-img-resize-handle-s" data-img-handle="s" data-sec-id="${section.id}" title="Drag vertically to adjust comparison height"></div>
         <div class="canvas-img-resize-handle canvas-img-resize-handle-e" data-img-handle="e" data-sec-id="${section.id}" title="Drag horizontally to adjust comparison width"></div>
         <div class="canvas-img-resize-handle canvas-img-resize-handle-w" data-img-handle="w" data-sec-id="${section.id}" title="Drag horizontally to adjust comparison width"></div>
@@ -2135,37 +2392,104 @@
         <div class="canvas-img-resize-handle canvas-img-resize-handle-sw" data-img-handle="sw" data-sec-id="${section.id}" title="Drag corner to adjust comparison width & height"></div>
       ` : '';
 
-      const inner = `
-        <div style="width:100%;max-width:${customW};box-sizing:border-box;margin:0 auto;position:relative;">
-          ${c.heading ? `<h3 class="sec-heading" style="margin-bottom:20px;text-align:center;">${renderFormattedText(c.heading)}</h3>` : ''}
-          <div class="sec-ba-container" style="position:relative;width:100%;${hasCustomH ? `height:${customH}px;padding-top:0;` : 'padding-top:56.25%;'}border-radius:16px;overflow:hidden;background:#121212;box-shadow:0 12px 40px rgba(0,0,0,0.8);--pos:50%;">
-            <!-- After Image (Background) -->
-            <div class="sec-ba-image-frame" data-el-key="after-image" style="position:absolute;inset:0;width:100%;height:100%;overflow:hidden;">
-              <img src="${escapeHtml(c.afterUrl || '')}" alt="${escapeHtml(c.afterLabel || 'After')}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">
-            </div>
-            <span class="sec-ba-badge badge-after" style="position:absolute;bottom:14px;right:14px;background:rgba(0,0,0,0.7);color:#10B981;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;border:1px solid rgba(16,185,129,0.4);pointer-events:none;">
-              ${escapeHtml(c.afterLabel || 'AFTER')}
-            </span>
+      const baTag = resolveHeadingTag(c.tag, 'h3');
+      const baStyles = resolveHeadingStyles(section);
+      const baStyleAttr = baStyles ? `style="${baStyles};margin-bottom:20px;text-align:center;"` : 'style="margin-bottom:20px;text-align:center;"';
 
-            <!-- Before Image (Clipped Overlay) -->
-            <div class="sec-ba-image-frame" data-el-key="before-image" style="position:absolute;inset:0;width:100%;height:100%;overflow:hidden;clip-path:polygon(0 0, var(--pos, 50%) 0, var(--pos, 50%) 100%, 0 100%);">
-              <img src="${escapeHtml(c.beforeUrl || '')}" alt="${escapeHtml(c.beforeLabel || 'Before')}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">
-              <span class="sec-ba-badge badge-before" style="position:absolute;bottom:14px;left:14px;background:rgba(0,0,0,0.7);color:#FF5C00;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;border:1px solid rgba(255,92,0,0.4);pointer-events:none;">
-                ${escapeHtml(c.beforeLabel || 'BEFORE')}
-              </span>
-            </div>
+      const beforeFocal = s.elementStyles?.['before-image']?.objectPosition || '50% 50%';
+      const afterFocal = s.elementStyles?.['after-image']?.objectPosition || '50% 50%';
 
-            <!-- Divider Line -->
-            <div style="position:absolute;top:0;bottom:0;left:var(--pos, 50%);width:2px;background:#FF5C00;box-shadow:0 0 12px #FF5C00;pointer-events:none;transform:translateX(-50%);">
-              <div style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);width:28px;height:28px;background:#FF5C00;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:bold;box-shadow:0 0 10px rgba(0,0,0,0.6);">↔</div>
-            </div>
+      const clipStyle = isVertical
+        ? 'clip-path: polygon(0 0, 100% 0, 100% var(--pos, 50%), 0 var(--pos, 50%)); -webkit-clip-path: polygon(0 0, 100% 0, 100% var(--pos, 50%), 0 var(--pos, 50%));'
+        : 'clip-path: polygon(0 0, var(--pos, 50%) 0, var(--pos, 50%) 100%, 0 100%); -webkit-clip-path: polygon(0 0, var(--pos, 50%) 0, var(--pos, 50%) 100%, 0 100%);';
 
-            <!-- Native Range Slider Controller -->
-            <input type="range" min="0" max="100" value="50" 
-                   oninput="this.parentElement.style.setProperty('--pos', this.value + '%')" 
-                   style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:ew-resize;z-index:10;margin:0;">
+      const dividerStyle = isVertical
+        ? 'position:absolute;left:0;right:0;top:var(--pos, 50%);height:2px;background:#FF5C00;box-shadow:0 0 14px #FF5C00, 0 0 4px #FF5C00;pointer-events:none;transform:translateY(-50%);z-index:4;'
+        : 'position:absolute;top:0;bottom:0;left:var(--pos, 50%);width:2px;background:#FF5C00;box-shadow:0 0 14px #FF5C00, 0 0 4px #FF5C00;pointer-events:none;transform:translateX(-50%);z-index:4;';
+
+      const knobIcon = isVertical ? '▲▼' : '◀▶';
+      const rangeCursor = isVertical ? 'ns-resize' : 'ew-resize';
+
+      const isBuilder = !opts?.isPublic;
+      const beforeBadgeStyle = isVertical
+        ? `position:absolute;top:14px;left:14px;background:rgba(10,10,10,0.8);backdrop-filter:blur(8px);color:#FF5C00;font-size:11px;font-weight:700;letter-spacing:0.05em;padding:5px 12px;border-radius:20px;border:1px solid rgba(255,92,0,0.5);pointer-events:${isBuilder ? 'auto' : 'none'};cursor:${isBuilder ? 'text' : 'default'};z-index:3;`
+        : `position:absolute;bottom:14px;left:14px;background:rgba(10,10,10,0.8);backdrop-filter:blur(8px);color:#FF5C00;font-size:11px;font-weight:700;letter-spacing:0.05em;padding:5px 12px;border-radius:20px;border:1px solid rgba(255,92,0,0.5);pointer-events:${isBuilder ? 'auto' : 'none'};cursor:${isBuilder ? 'text' : 'default'};z-index:3;`;
+
+      const afterBadgeStyle = `position:absolute;bottom:14px;right:14px;background:rgba(10,10,10,0.8);backdrop-filter:blur(8px);color:#10B981;font-size:11px;font-weight:700;letter-spacing:0.05em;padding:5px 12px;border-radius:20px;border:1px solid rgba(16,185,129,0.5);pointer-events:${isBuilder ? 'auto' : 'none'};cursor:${isBuilder ? 'text' : 'default'};z-index:3;`;
+
+      const beforeImgHtml = c.beforeUrl
+        ? `<img src="${escapeHtml(normalizeImageUrl(c.beforeUrl))}" alt="${escapeHtml(c.beforeLabel || 'Before')}" referrerpolicy="no-referrer" decoding="async" style="width:100%;height:100%;object-fit:cover;object-position:${escapeHtml(beforeFocal)};display:block;" loading="${opts && opts.isPublic ? 'lazy' : 'eager'}">`
+        : `
+          <div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at center, #1c1c1c 0%, #121212 100%);color:rgba(255,255,255,0.45);text-align:center;padding:24px;box-sizing:border-box;">
+            <div style="font-size:32px;margin-bottom:8px;opacity:0.7;">📷</div>
+            <div style="font-size:12px;font-weight:700;color:#FF5C00;letter-spacing:0.04em;text-transform:uppercase;">Before Image</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.45);margin-top:4px;">Upload in right panel to compare</div>
           </div>
-          ${imgHandles}
+        `;
+
+      const afterImgHtml = c.afterUrl
+        ? `<img src="${escapeHtml(normalizeImageUrl(c.afterUrl))}" alt="${escapeHtml(c.afterLabel || 'After')}" referrerpolicy="no-referrer" decoding="async" style="width:100%;height:100%;object-fit:cover;object-position:${escapeHtml(afterFocal)};display:block;" loading="${opts && opts.isPublic ? 'lazy' : 'eager'}">`
+        : `
+          <div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at center, #181818 0%, #101010 100%);color:rgba(255,255,255,0.45);text-align:center;padding:24px;box-sizing:border-box;">
+            <div style="font-size:32px;margin-bottom:8px;opacity:0.7;">✨</div>
+            <div style="font-size:12px;font-weight:700;color:#10B981;letter-spacing:0.04em;text-transform:uppercase;">After Image</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.45);margin-top:4px;">Upload in right panel to compare</div>
+          </div>
+        `;
+
+      let containerStyle = 'position:relative;width:100%;border-radius:16px;overflow:hidden;background:#121212;box-shadow:0 14px 44px rgba(0,0,0,0.85);user-select:none;-webkit-user-select:none;touch-action:none;--pos:50%;';
+      if (hasCustomH) {
+        containerStyle += `height:${customH}px;max-height:none;aspect-ratio:auto;padding-top:0;`;
+      } else {
+        const maxH = 'min(72vh, 680px)';
+        if (ratio === '9:16') {
+          containerStyle += `aspect-ratio:9/16;height:auto;max-height:${maxH};max-width:min(${customW}, calc(72vh * 9 / 16));margin:0 auto;padding-top:0;`;
+        } else if (ratio === '4:5') {
+          containerStyle += `aspect-ratio:4/5;height:auto;max-height:${maxH};max-width:min(${customW}, calc(72vh * 4 / 5));margin:0 auto;padding-top:0;`;
+        } else if (ratio === '1:1') {
+          containerStyle += `aspect-ratio:1/1;height:auto;max-height:${maxH};max-width:min(${customW}, 72vh);margin:0 auto;padding-top:0;`;
+        } else {
+          containerStyle += `aspect-ratio:16/9;height:auto;max-height:min(75vh, 650px);max-width:${customW};margin:0 auto;padding-top:0;`;
+        }
+      }
+
+      const inner = `
+        <div style="width:100%;max-width:${customW};box-sizing:border-box;margin:0 auto;position:relative;display:flex;flex-direction:column;align-items:center;">
+          ${c.heading ? `<${baTag} class="sec-heading" data-heading-tag="${c.tag || 'h3'}" ${baStyleAttr}>${renderFormattedText(c.heading)}</${baTag}>` : ''}
+          <div class="sec-ba-box-wrapper" style="position:relative;width:100%;display:flex;justify-content:center;align-items:center;">
+            <div class="sec-ba-container" data-direction="${isVertical ? 'vertical' : 'horizontal'}" data-ratio="${ratio}" style="${containerStyle}">
+              <!-- After Image (Background layer) -->
+              <div class="sec-ba-image-frame sec-ba-after" data-el-key="after-image" style="position:absolute;inset:0;width:100%;height:100%;overflow:hidden;z-index:1;">
+                ${afterImgHtml}
+              </div>
+              <span class="sec-ba-badge badge-after" data-field="afterLabel" data-el-key="after-badge" ${isBuilder ? 'contenteditable="true" spellcheck="false"' : ''} style="${afterBadgeStyle}">
+                ${escapeHtml(c.afterLabel || 'AFTER')}
+              </span>
+
+              <!-- Before Image (Clipped Overlay layer) -->
+              <div class="sec-ba-image-frame sec-ba-before" data-el-key="before-image" style="position:absolute;inset:0;width:100%;height:100%;overflow:hidden;${clipStyle}z-index:2;">
+                ${beforeImgHtml}
+                <span class="sec-ba-badge badge-before" data-field="beforeLabel" data-el-key="before-badge" ${isBuilder ? 'contenteditable="true" spellcheck="false"' : ''} style="${beforeBadgeStyle}">
+                  ${escapeHtml(c.beforeLabel || 'BEFORE')}
+                </span>
+              </div>
+
+              <!-- Divider Line -->
+              <div class="sec-ba-divider" style="${dividerStyle}">
+                <!-- Handle Knob -->
+                <div class="sec-ba-handle" style="position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);width:34px;height:34px;background:#FF5C00;border:2px solid #ffffff;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#ffffff;font-size:11px;font-weight:900;letter-spacing:-1px;box-shadow:0 0 16px rgba(255,92,0,0.85), 0 2px 10px rgba(0,0,0,0.7);cursor:${rangeCursor};pointer-events:auto;z-index:10;user-select:none;">
+                  ${knobIcon}
+                </div>
+              </div>
+
+              <!-- Native Range Slider Controller (for accessibility & touch fallback) -->
+              <input type="range" class="sec-ba-range" min="0" max="100" value="50" 
+                     aria-label="Before / After comparison slider"
+                     oninput="this.parentElement.style.setProperty('--pos', this.value + '%')" 
+                     style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:${rangeCursor};z-index:5;margin:0;pointer-events:none;">
+            </div>
+            ${imgHandles}
+          </div>
         </div>
       `;
       return renderUniversalWrap(section, inner);
@@ -2226,9 +2550,12 @@
         `;
       }
 
+      const vidTag = resolveHeadingTag(c.tag, 'h3');
+      const vidStyles = resolveHeadingStyles(section);
+      const vidStyleAttr = vidStyles ? `style="${vidStyles};margin-bottom:16px;text-align:center;"` : 'style="margin-bottom:16px;text-align:center;"';
       const inner = `
         <div style="width:100%;max-width:100%;box-sizing:border-box;margin:0 auto;">
-          ${c.title ? `<h3 class="sec-heading" style="margin-bottom:16px;text-align:center;">${renderFormattedText(c.title)}</h3>` : ''}
+          ${c.title ? `<${vidTag} class="sec-heading" data-heading-tag="${c.tag || 'h3'}" ${vidStyleAttr}>${renderFormattedText(c.title)}</${vidTag}>` : ''}
           ${videoPlayerHtml}
           ${c.caption ? `<div style="font-size:12px;color:rgba(245,240,235,0.5);text-align:center;margin-top:10px;">${renderFormattedText(c.caption)}</div>` : ''}
         </div>
@@ -2374,10 +2701,13 @@
       // Button configuration (Supports custom button settings, existing ctaText/ctaUrl, or removal)
       const btnHtml = renderSectionButtonGroup(section, s.buttonAlign || 'left');
 
+      const tiTag = resolveHeadingTag(c.tag, 'h2');
+      const tiStyles = resolveHeadingStyles(section);
+      const tiStyleAttr = tiStyles ? `style="${tiStyles};margin-bottom:16px;"` : 'style="margin-bottom:16px;"';
       const textCol = `
         <div class="sec-text-col" style="display:flex;flex-direction:column;justify-content:center;">
           ${c.eyebrow ? `<div class="wd-eyebrow" style="margin-bottom:8px;">${renderFormattedText(c.eyebrow)}</div>` : ''}
-          ${c.heading ? `<h2 class="sec-heading" style="margin-bottom:16px;">${renderFormattedText(c.heading)}</h2>` : ''}
+          ${c.heading ? `<${tiTag} class="sec-heading" data-heading-tag="${c.tag || 'h2'}" ${tiStyleAttr}>${renderFormattedText(c.heading)}</${tiTag}>` : ''}
           <div class="wd-article-body">
             ${sanitizeRichText(c.body || '')}
           </div>
@@ -2388,7 +2718,7 @@
       const hasUrl = c.imageUrl && c.imageUrl.trim();
       const imgHolderHtml = hasUrl ? `
         <div class="sec-img-holder sec-prebuilt-img-holder" data-sec-id="${section.id}" data-el-key="split-image" style="width:100%;height:${imgH ? '100%' : 'auto'};overflow:hidden;border-radius:${imgRadius};background:#121212;position:relative;">
-          <img src="${escapeHtml(c.imageUrl || '')}" alt="${escapeHtml(c.heading || 'Project visual')}" style="width:100%;height:${imgH ? '100%' : 'auto'};max-height:100%;object-fit:${imgFit};object-position:${objPos};display:block;border-radius:${imgRadius};" loading="lazy">
+          <img src="${escapeHtml(normalizeImageUrl(c.imageUrl || ''))}" alt="${escapeHtml(c.heading || 'Project visual')}" referrerpolicy="no-referrer" decoding="async" style="width:100%;height:${imgH ? '100%' : 'auto'};max-height:100%;object-fit:${imgFit};object-position:${objPos};display:block;border-radius:${imgRadius};" loading="${opts && opts.isPublic ? 'lazy' : 'eager'}">
           <div class="custom-image-drop-overlay sec-image-drop-overlay" style="position:absolute;inset:0;background:rgba(255,92,0,0.25);display:none;align-items:center;justify-content:center;border-radius:inherit;border:2px dashed #FF5C00;z-index:4;pointer-events:none;">
             <span style="background:#111;color:#FF5C00;font-weight:700;font-size:13px;padding:6px 16px;border-radius:20px;border:1px solid #FF5C00;box-shadow:0 4px 15px rgba(0,0,0,0.5);">Drop to Replace Photo</span>
           </div>
@@ -2592,9 +2922,12 @@
         layoutStyle = `display:grid;grid-template-columns:${gridColsStyle};gap:${gap}px;width:100%;box-sizing:border-box;`;
       }
 
+      const delivTag = resolveHeadingTag(c.tag, 'h3');
+      const delivStyles = resolveHeadingStyles(section);
+      const delivStyleAttr = delivStyles ? `style="${delivStyles};margin-bottom:20px;"` : 'style="margin-bottom:20px;"';
       const inner = `
         <div class="wd-full-card" style="padding:36px;">
-          ${c.heading ? `<h3 class="sec-heading" style="margin-bottom:20px;">${renderFormattedText(c.heading)}</h3>` : ''}
+          ${c.heading ? `<${delivTag} class="sec-heading" data-heading-tag="${c.tag || 'h3'}" ${delivStyleAttr}>${renderFormattedText(c.heading)}</${delivTag}>` : ''}
           <div class="wd-deliverables-grid" style="${layoutStyle}">
             ${itemsHtml}
           </div>
@@ -2646,8 +2979,11 @@
         </div>
       `).join('');
 
+      const cgTag = resolveHeadingTag(c.tag, 'h3');
+      const cgStyles = resolveHeadingStyles(section);
+      const cgStyleAttr = cgStyles ? `style="${cgStyles};margin-bottom:24px;text-align:center;"` : 'style="margin-bottom:24px;text-align:center;"';
       const inner = `
-        ${c.heading ? `<h3 class="sec-heading" style="margin-bottom:24px;text-align:center;">${renderFormattedText(c.heading)}</h3>` : ''}
+        ${c.heading ? `<${cgTag} class="sec-heading" data-heading-tag="${c.tag || 'h3'}" ${cgStyleAttr}>${renderFormattedText(c.heading)}</${cgTag}>` : ''}
         <div class="wd-cards-grid-inner" style="display:grid;grid-template-columns:${gridColsStyle};gap:${gap}px;width:100%;box-sizing:border-box;">
           ${cardsHtml}
         </div>
@@ -2685,7 +3021,7 @@
             “${escapeHtml(c.quote || '')}”
           </p>
           <div style="display:flex;align-items:center;gap:14px;">
-            ${c.avatar ? `<span data-el-key="testimonial-avatar" style="display:inline-flex;width:48px;height:48px;border-radius:50%;overflow:hidden;flex:0 0 auto;"><img src="${escapeHtml(c.avatar)}" alt="${escapeHtml(c.author || '')}" style="width:100%;height:100%;border-radius:inherit;object-fit:cover;border:2px solid #FF5C00;box-sizing:border-box;" loading="lazy"></span>` : ''}
+            ${c.avatar ? `<span data-el-key="testimonial-avatar" style="display:inline-flex;width:48px;height:48px;border-radius:50%;overflow:hidden;flex:0 0 auto;"><img src="${escapeHtml(normalizeImageUrl(c.avatar))}" alt="${escapeHtml(c.author || '')}" referrerpolicy="no-referrer" decoding="async" style="width:100%;height:100%;border-radius:inherit;object-fit:cover;border:2px solid #FF5C00;box-sizing:border-box;" loading="${opts && opts.isPublic ? 'lazy' : 'eager'}"></span>` : ''}
             <div>
               <strong style="color:#F5F0EB;font-size:14px;font-family:'Syne',sans-serif;">${escapeHtml(c.author || '')}</strong>
               <div style="font-size:12px;color:rgba(245,240,235,0.6);margin-top:2px;">${escapeHtml(c.title || '')}</div>
@@ -2725,7 +3061,7 @@
 
       const logosHtml = logos.map((l, i) => `
         <div data-el="logo-item-${i}" data-el-key="logo-${i}" class="sec-logo-item client-logo-item" style="display:flex;align-items:center;justify-content:center;padding:12px;filter:grayscale(100%) brightness(1.2);opacity:0.75;transition:all 0.2s;">
-          ${l.url ? `<img src="${escapeHtml(l.url)}" alt="${escapeHtml(l.name || 'Client Logo')}" style="max-height:42px;max-width:140px;object-fit:contain;" loading="lazy">` : `<div style="font-size:12px;color:rgba(255,255,255,0.4);border:1px dashed rgba(255,255,255,0.2);padding:8px 14px;border-radius:4px;">${escapeHtml(l.name || 'Empty Logo')}</div>`}
+          ${l.url ? `<img src="${escapeHtml(normalizeImageUrl(l.url))}" alt="${escapeHtml(l.name || 'Client Logo')}" referrerpolicy="no-referrer" decoding="async" style="max-height:42px;max-width:140px;object-fit:contain;" loading="${opts && opts.isPublic ? 'lazy' : 'eager'}">` : `<div style="font-size:12px;color:rgba(255,255,255,0.4);border:1px dashed rgba(255,255,255,0.2);padding:8px 14px;border-radius:4px;">${escapeHtml(l.name || 'Empty Logo')}</div>`}
         </div>
       `).join('');
 
@@ -2797,12 +3133,16 @@
       const ctaFontWeight = elSt.fontWeight || s.fontWeight || '800';
       const ctaFontStyleAttr = ctaFontStyle ? `font-style:${ctaFontStyle} !important;` : '';
 
+      const ctaTag = resolveHeadingTag(c.tag, 'h2');
+      const ctaStyles = resolveHeadingStyles(section);
+      const baseCtaSize = (elSt.fontSize || s.fontSize) ? '' : 'font-size:clamp(28px, 4.5vw, 48px);';
+      const ctaHeadingStyle = `${baseCtaSize}${ctaStyles ? ctaStyles + ';' : ''}font-family:${ctaFont} !important;${ctaFontStyleAttr}font-weight:${ctaFontWeight};color:#F5F0EB;margin:0 0 16px;line-height:1.15;text-align:center;word-break:break-word;overflow-wrap:break-word;`;
       const inner = `
         <div class="sec-cta-card has-element-box has-reposition-handle" data-el-key="cta-card" data-el-label="CTA Card" data-sec-id="${section.id}" style="position:relative;${cardWidthStyle}${cardHeightStyle}margin:0 auto;box-sizing:border-box;padding:clamp(40px, 6vw, 64px) clamp(24px, 4vw, 40px);text-align:center;${cardBg}${cardBorder}${cardRadius}${cardShadow}${cardOpacity}${cardTransform}word-break:break-word;overflow-wrap:break-word;">
           ${c.eyebrow ? `<div class="wd-eyebrow" data-el-key="eyebrow" style="margin-bottom:12px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#FF5C00;text-align:center;justify-content:center;word-break:break-word;overflow-wrap:break-word;">${renderFormattedText(c.eyebrow)}</div>` : ''}
-          <h2 class="wd-cta-heading" data-el-key="heading" style="font-size:clamp(28px, 4.5vw, 48px);font-family:${ctaFont} !important;${ctaFontStyleAttr}font-weight:${ctaFontWeight};color:#F5F0EB;margin:0 0 16px;line-height:1.15;text-align:center;word-break:break-word;overflow-wrap:break-word;">
+          <${ctaTag} class="wd-cta-heading" data-el-key="heading" data-heading-tag="${c.tag || 'h2'}" style="${ctaHeadingStyle}">
             ${renderFormattedText(c.heading || '')}
-          </h2>
+          </${ctaTag}>
           <p class="wd-cta-desc" data-el-key="description" style="max-width:560px;width:100%;box-sizing:border-box;margin:0 auto 32px;font-size:15px;line-height:1.6;color:rgba(245,240,235,0.7);text-align:center;word-break:break-word;overflow-wrap:break-word;">
             ${renderFormattedText(c.description || '')}
           </p>
@@ -3226,45 +3566,95 @@
     // ── Before/After Slider Initializer ──
     const baContainers = root.querySelectorAll('.sec-ba-container');
     baContainers.forEach(box => {
-      const handle = box.querySelector('.sec-ba-handle');
-      if (!handle) return;
-
+      const isVertical = box.getAttribute('data-direction') === 'vertical';
       let isDown = false;
-      const updateDivider = (clientX) => {
-        const rect = box.getBoundingClientRect();
-        const offsetX = Math.max(0, Math.min(clientX - rect.left, rect.width));
-        const pct = (offsetX / rect.width) * 100;
-        box.style.setProperty('--pos', pct.toFixed(2) + '%');
-      };
 
-      const onMouseDown = (e) => {
-        isDown = true;
-        updateDivider(e.clientX);
-      };
-      const onMouseMove = (e) => {
-        if (!isDown) return;
-        updateDivider(e.clientX);
-      };
-      const onMouseUp = () => {
-        isDown = false;
-      };
-      const onTouchMove = (e) => {
-        if (e.touches && e.touches[0]) {
-          updateDivider(e.touches[0].clientX);
+      const updatePosFromEvent = (e) => {
+        const rect = box.getBoundingClientRect();
+        if (isVertical) {
+          if (rect.height <= 0) return;
+          const clientY = (e.touches && e.touches[0]) ? e.touches[0].clientY : e.clientY;
+          if (typeof clientY !== 'number') return;
+          const offsetY = Math.max(0, Math.min(clientY - rect.top, rect.height));
+          const pct = Math.max(0, Math.min(100, (offsetY / rect.height) * 100));
+          box.style.setProperty('--pos', pct.toFixed(2) + '%');
+          const range = box.querySelector('.sec-ba-range');
+          if (range) range.value = pct;
+        } else {
+          if (rect.width <= 0) return;
+          const clientX = (e.touches && e.touches[0]) ? e.touches[0].clientX : e.clientX;
+          if (typeof clientX !== 'number') return;
+          const offsetX = Math.max(0, Math.min(clientX - rect.left, rect.width));
+          const pct = Math.max(0, Math.min(100, (offsetX / rect.width) * 100));
+          box.style.setProperty('--pos', pct.toFixed(2) + '%');
+          const range = box.querySelector('.sec-ba-range');
+          if (range) range.value = pct;
         }
       };
 
-      box.onmousedown = onMouseDown;
-      box.ontouchmove = onTouchMove;
+      const onPointerDown = (e) => {
+        if (e.button && e.button !== 0) return;
+        // Ignore canvas section resize handles, badges, action bars, and contenteditable elements in builder mode
+        if (e.target && e.target.closest && (
+          e.target.closest('.canvas-img-resize-handle') ||
+          e.target.closest('.canvas-resize-handle') ||
+          e.target.closest('.sec-ba-badge') ||
+          e.target.closest('.element-action-bar') ||
+          e.target.closest('[contenteditable="true"]')
+        )) return;
+        isDown = true;
+        box.classList.add('is-sliding');
+        try { if (e.pointerId !== undefined) box.setPointerCapture(e.pointerId); } catch (_) {}
+        updatePosFromEvent(e);
+        if (e.cancelable) e.preventDefault();
+        e.stopPropagation();
+      };
+
+      const onPointerMove = (e) => {
+        if (!isDown) return;
+        updatePosFromEvent(e);
+        if (e.cancelable) e.preventDefault();
+        e.stopPropagation();
+      };
+
+      const onPointerUp = (e) => {
+        if (!isDown) return;
+        isDown = false;
+        box.classList.remove('is-sliding');
+        try { if (e.pointerId !== undefined) box.releasePointerCapture(e.pointerId); } catch (_) {}
+      };
+
+      // Unified pointer and mouse/touch listeners
+      const onMouseMove = onPointerMove;
+      const onMouseUp = onPointerUp;
+
+      box.addEventListener('pointerdown', onPointerDown);
+      window.addEventListener('pointermove', onPointerMove, { passive: false });
+      window.addEventListener('pointerup', onPointerUp);
+      window.addEventListener('pointercancel', onPointerUp);
+
+      // Mouse & touch listeners for legacy and cross-browser environments
+      box.addEventListener('mousedown', onPointerDown);
       window.addEventListener('mousemove', onMouseMove);
       window.addEventListener('mouseup', onMouseUp);
 
+      box.addEventListener('touchstart', onPointerDown, { passive: false });
+      window.addEventListener('touchmove', onPointerMove, { passive: false });
+      window.addEventListener('touchend', onPointerUp);
+
       box._sectionInteractiveCleanup = () => {
         isDown = false;
-        box.onmousedown = null;
-        box.ontouchmove = null;
+        box.classList.remove('is-sliding');
+        box.removeEventListener('pointerdown', onPointerDown);
+        window.removeEventListener('pointermove', onPointerMove);
+        window.removeEventListener('pointerup', onPointerUp);
+        window.removeEventListener('pointercancel', onPointerUp);
+        box.removeEventListener('mousedown', onPointerDown);
         window.removeEventListener('mousemove', onMouseMove);
         window.removeEventListener('mouseup', onMouseUp);
+        box.removeEventListener('touchstart', onPointerDown);
+        window.removeEventListener('touchmove', onPointerMove);
+        window.removeEventListener('touchend', onPointerUp);
       };
     });
 
@@ -3293,10 +3683,12 @@
   global.renderFormattedText = renderFormattedText;
   global.sanitizeRichText = sanitizeRichText;
   global.normalizeLinkUrl = normalizeLinkUrl;
+  global.normalizeImageUrl = normalizeImageUrl;
   global.repairAnchorHrefs = repairAnchorHrefs;
   SectionRegistry.renderFormattedText = renderFormattedText;
   SectionRegistry.sanitizeRichText = sanitizeRichText;
   SectionRegistry.normalizeLinkUrl = normalizeLinkUrl;
+  SectionRegistry.normalizeImageUrl = normalizeImageUrl;
   SectionRegistry.repairAnchorHrefs = repairAnchorHrefs;
   SectionRegistry.getSectionButtons = getSectionButtons;
   SectionRegistry.renderSectionButtonGroup = renderSectionButtonGroup;
@@ -3307,6 +3699,9 @@
   SectionRegistry.migrateSections = migrateSections;
   SectionRegistry.serializeSections = serializeSections;
   SectionRegistry.getSectionNodes = getSectionNodes;
+  SectionRegistry.resolveHeadingTag = resolveHeadingTag;
+  SectionRegistry.resolveHeadingStyles = resolveHeadingStyles;
+  SectionRegistry.DEFAULT_TAG_SIZES = DEFAULT_TAG_SIZES;
 
   function resolveSavedElement(secEl, key) {
     if (!secEl || !key) return null;
@@ -3447,14 +3842,51 @@
           textTargets.push(...Array.from(el.querySelectorAll('span,strong,b,em,i,u,s,mark,a')));
         }
         Array.from(new Set(textTargets)).forEach(textEl => {
-          if (st.fontFamily) {
-            setStyleProp(textEl, 'fontFamily', 'font-family', resolveFontFamily(st.fontFamily));
-            textEl.style.fontFamily = st.fontFamily;
+          const tag = (textEl.tagName || '').toLowerCase();
+          const dField = textEl.getAttribute ? textEl.getAttribute('data-field') : '';
+          const cls = typeof textEl.className === 'string' ? textEl.className : '';
+          const isH = typeof textEl.matches === 'function'
+            ? textEl.matches('h1,h2,h3,h4,h5,h6,[data-field="heading"],.sec-heading,.sec-title,.sec-card-title,.wd-gallery-title')
+            : (/^h[1-6]$/.test(tag) || dField === 'heading' || cls.includes('sec-heading') || cls.includes('sec-title') || cls.includes('sec-card-title'));
+          const isP = typeof textEl.matches === 'function'
+            ? textEl.matches('p,[data-field="text"],.sec-desc,.wd-article-body,.hero-desc,.sec-feature-desc')
+            : (tag === 'p' || dField === 'text' || cls.includes('sec-desc') || cls.includes('hero-desc'));
+
+          if (isH) {
+            const hSize = st.headingFontSize || (st.fontSize && !st.textFontSize && !st.descFontSize ? st.fontSize : '');
+            if (hSize) setStyleProp(textEl, 'fontSize', 'font-size', hSize);
+            const hFont = st.headingFontFamily || st.fontFamily;
+            if (hFont) {
+              setStyleProp(textEl, 'fontFamily', 'font-family', resolveFontFamily(hFont));
+              textEl.style.fontFamily = hFont;
+            }
+            const hWeight = st.headingFontWeight || st.fontWeight;
+            if (hWeight) setStyleProp(textEl, 'fontWeight', 'font-weight', hWeight);
+            const hColor = st.headingColor || st.color;
+            if (hColor) setStyleProp(textEl, 'color', 'color', hColor);
+          } else if (isP) {
+            const pSize = st.textFontSize || st.descFontSize || '';
+            if (pSize) setStyleProp(textEl, 'fontSize', 'font-size', pSize);
+            const pFont = st.descFontFamily || st.fontFamily;
+            if (pFont) {
+              setStyleProp(textEl, 'fontFamily', 'font-family', resolveFontFamily(pFont));
+              textEl.style.fontFamily = pFont;
+            }
+            const pWeight = st.descFontWeight || st.fontWeight;
+            if (pWeight) setStyleProp(textEl, 'fontWeight', 'font-weight', pWeight);
+            const pColor = st.descColor || st.color;
+            if (pColor) setStyleProp(textEl, 'color', 'color', pColor);
+          } else {
+            if (st.fontSize) setStyleProp(textEl, 'fontSize', 'font-size', st.fontSize);
+            if (st.fontFamily) {
+              setStyleProp(textEl, 'fontFamily', 'font-family', resolveFontFamily(st.fontFamily));
+              textEl.style.fontFamily = st.fontFamily;
+            }
+            if (st.fontWeight) setStyleProp(textEl, 'fontWeight', 'font-weight', st.fontWeight);
+            if (st.color) setStyleProp(textEl, 'color', 'color', st.color);
           }
+
           if (st.fontStyle) setStyleProp(textEl, 'fontStyle', 'font-style', st.fontStyle);
-          if (st.fontWeight) setStyleProp(textEl, 'fontWeight', 'font-weight', st.fontWeight);
-          if (st.fontSize) setStyleProp(textEl, 'fontSize', 'font-size', st.fontSize);
-          if (st.color) setStyleProp(textEl, 'color', 'color', st.color);
           if (st.textDecoration) setStyleProp(textEl, 'textDecoration', 'text-decoration', st.textDecoration);
           if (st.letterSpacing) setStyleProp(textEl, 'letterSpacing', 'letter-spacing', st.letterSpacing);
           if (st.lineHeight) setStyleProp(textEl, 'lineHeight', 'line-height', st.lineHeight);
